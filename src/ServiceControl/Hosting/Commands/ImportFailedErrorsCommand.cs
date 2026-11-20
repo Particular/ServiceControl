@@ -4,13 +4,16 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using EndpointControl.Handlers;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
+    using Monitoring;
     using NServiceBus;
     using Operations;
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
+    using Persistence;
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
@@ -53,6 +56,11 @@
 
             var hostBuilder = Host.CreateApplicationBuilder();
             hostBuilder.AddServiceControl(settings, endpointConfiguration, new RecoverabilityComponent());
+
+            // HeartbeatMonitoringComponent normally registers these two, and this host leaves that component out.
+            // Without the enricher, a re-imported message loses its sending and receiving endpoints, and they never reach the known endpoints.
+            hostBuilder.Services.AddSingleton<IEndpointInstanceMonitoring, EndpointInstanceMonitoring>();
+            hostBuilder.Services.AddErrorMessageEnricher<DetectNewEndpointsFromErrorImportsEnricher>();
 
             return hostBuilder.Build();
         }

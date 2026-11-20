@@ -619,15 +619,15 @@ class RetentionSweepTests : ErrorIngestionTestBase
     [Test]
     public async Task A_cancelled_sweep_keeps_the_errors_of_passes_that_failed_first()
     {
+        // Subtracting this from the clock cannot be represented, so the failed messages pass fails before the first delete.
+        // The interceptor cancels the sweep at that delete, so the failure is recorded before the cancellation.
         EFSettings.ErrorRetentionPeriod = TimeSpan.FromDays(1_000_000);
 
         using var cancellation = new CancellationTokenSource();
-        var sweeper = GetSweeper();
+        cancelAfterBatchDelete.Cancellation = cancellation;
 
-        // The failed messages pass throws before any database call, so by the time the start returns
-        // the event log pass is waiting on the database and the cancellation lands there.
+        var sweeper = GetSweeper();
         sweeper.TryStartManualSweep(null, null, cancellation.Token);
-        await cancellation.CancelAsync();
 
         await WaitForManualSweepToFinish();
 
@@ -637,29 +637,6 @@ class RetentionSweepTests : ErrorIngestionTestBase
         {
             Assert.That(status.LastOutcome, Is.EqualTo(RetentionSweepOutcome.Cancelled));
             Assert.That(status.LastError, Does.Contain(nameof(RetentionEntity.FailedMessages)));
-        }
-    }
-
-    [Test]
-    public async Task Manual_sweep_cancelled_part_way_reports_cancelled()
-    {
-        using var cancellation = new CancellationTokenSource();
-        var sweeper = GetSweeper();
-
-        // The background sweep runs on this thread until its first database call, so it is still
-        // running when the token is cancelled.
-        sweeper.TryStartManualSweep(null, null, cancellation.Token);
-        await cancellation.CancelAsync();
-
-        await WaitForManualSweepToFinish();
-
-        var status = sweeper.GetStatus();
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(status.LastOutcome, Is.EqualTo(RetentionSweepOutcome.Cancelled));
-            Assert.That(status.LastError, Is.Null);
-            Assert.That(status.LastFinishedAt, Is.Not.Null);
         }
     }
 
@@ -758,11 +735,15 @@ class RetentionSweepTests : ErrorIngestionTestBase
 
         await WaitForManualSweepToFinish();
 
+        var status = sweeper.GetStatus();
+
         using (Assert.EnterMultipleScope())
         {
             Assert.That(recorded.Cycles(RetentionEntity.EventLog).Select(cycle => cycle.Result), Is.EqualTo(new[] { "cancelled" }));
             Assert.That(recorded.Cycles(RetentionEntity.GroupComments), Is.Empty, "the sweep must stop at the pass that was cut short");
-            Assert.That(sweeper.GetStatus().LastOutcome, Is.EqualTo(RetentionSweepOutcome.Cancelled));
+            Assert.That(status.LastOutcome, Is.EqualTo(RetentionSweepOutcome.Cancelled));
+            Assert.That(status.LastError, Is.Null, "a cancelled pass is not an error");
+            Assert.That(status.LastFinishedAt, Is.Not.Null);
             Assert.That(await Query(dbContext => dbContext.EventLogItems.CountAsync()), Is.EqualTo(500), "exactly one batch is deleted before the cancellation");
         }
     }
