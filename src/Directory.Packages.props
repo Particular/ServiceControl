@@ -40,7 +40,7 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="$(RuntimeFrameworkVersion)" />
-    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.4" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.12.0" />
     <PackageVersion Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
     <PackageVersion Include="Mindscape.Raygun4Net.NetCore" Version="11.2.6" />
