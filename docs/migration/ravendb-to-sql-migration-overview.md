@@ -455,7 +455,7 @@ It says nothing about load on the source.
 
 - **The source needs no new settings.** It reads the instance's existing RavenDB settings.
 - **Settings are read fresh at every start**, except that an optional category's window is fixed once that category starts.
-- **Progress shows in the ServicePulse activity feed, the log and `--migration-status`.** There is no migration custom check, because custom checks are being removed from ServiceControl.
+- **Progress shows in the ServicePulse activity feed, the log and `--migration-status`.** There is no migration custom check instead migration status will be surfaced with a custom ServicePulse UI.
 - **There is no HTTP API, pause, resume or abort.** Stopping a copy takes a restart.
 
 ## Open decisions
