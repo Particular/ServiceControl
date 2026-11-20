@@ -221,6 +221,8 @@
 
         public const string MSG_THIS_TRANSPORT_REQUIRES_A_CONNECTION_STRING = "This transport requires a connection string.";
 
+        public const string MSG_THIS_STORAGE_TYPE_REQUIRES_A_CONNECTION_STRING = "This storage type requires a database connection string.";
+
         public const string MSG_CANTCONTAINWHITESPACE = "{0} cannot contain white space.";
 
         public const string MSG_SELECTAUDITFORWARDING = "Must select audit forwarding.";

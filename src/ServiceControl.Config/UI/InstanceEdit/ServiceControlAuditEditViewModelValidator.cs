@@ -40,7 +40,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
                     .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Audit Database Maintenance Port"))
                 .NotEqual(x => x.PortNumber)
                     .WithMessage(string.Format(Validation.Validations.MSG_PORTS_NOT_EQUAL, "Database Maintenance", "Audit"))
-                .When(x => x.SubmitAttempted);
+                .When(x => x.SubmitAttempted && x.DatabaseMaintenancePortNumberRequired);
 
             RuleFor(x => x.LogPath)
                 .NotEmpty()

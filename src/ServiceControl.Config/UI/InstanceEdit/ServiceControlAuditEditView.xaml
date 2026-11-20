@@ -87,7 +87,8 @@
                                       Warning="{Binding HostNameWarning}" />
                 <controls:FormTextBox Header="PORT NUMBER (1 - 49151)" Text="{Binding PortNumber}" />
                 <controls:FormTextBox Header="DATABASE MAINTENANCE PORT NUMBER (1 - 49151)"
-                                      Text="{Binding DatabaseMaintenancePortNumber}" />
+                                      Text="{Binding DatabaseMaintenancePortNumber}"
+                                      Visibility="{Binding DatabaseMaintenancePortNumberRequired, Converter={StaticResource boolToVis}}" />
 
                 <Border Margin="0,40,0,20"
                         BorderBrush="{StaticResource Gray90Brush}"
@@ -217,19 +218,21 @@
                                            Visibility="{Binding Path=(cm:IDataErrorInfo.Error), Converter={StaticResource nullOrEmptyToVisInverted}}" />
                     </Grid>
 
-                <Border Margin="0,40,0,20"
-                        BorderBrush="{StaticResource Gray90Brush}"
-                        BorderThickness="0,0,0,1">
-                    <TextBlock FontSize="13px"
-                               FontWeight="Bold"
-                               Text="ADVANCED CONFIGURATION" />
-                </Border>
-                <controls:FormComboBox HorizontalAlignment="Stretch"
-                                       VerticalAlignment="Top"
-                                       DisplayMemberPath="Name"
-                                       Header="FULL TEXT SEARCH ON MESSAGE BODIES"
-                                       ItemsSource="{Binding EnableFullTextSearchOnBodiesOptions}"
-                                       SelectedValue="{Binding EnableFullTextSearchOnBodies}" />
+                <StackPanel Visibility="{Binding ShowFullTextSearchOnBodies, Converter={StaticResource boolToVis}}">
+                    <Border Margin="0,40,0,20"
+                            BorderBrush="{StaticResource Gray90Brush}"
+                            BorderThickness="0,0,0,1">
+                        <TextBlock FontSize="13px"
+                                   FontWeight="Bold"
+                                   Text="ADVANCED CONFIGURATION" />
+                    </Border>
+                    <controls:FormComboBox HorizontalAlignment="Stretch"
+                                           VerticalAlignment="Top"
+                                           DisplayMemberPath="Name"
+                                           Header="FULL TEXT SEARCH ON MESSAGE BODIES"
+                                           ItemsSource="{Binding EnableFullTextSearchOnBodiesOptions}"
+                                           SelectedValue="{Binding EnableFullTextSearchOnBodies}" />
+                </StackPanel>
             </StackPanel>
         </sie:SharedServiceControlEditorView.SharedContent>
     </sie:SharedServiceControlEditorView>

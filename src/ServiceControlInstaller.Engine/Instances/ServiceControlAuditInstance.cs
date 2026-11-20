@@ -46,7 +46,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public string ServiceControlQueueAddress { get; set; }
 
-        public PersistenceManifest PersistenceManifest { get; set; }
+        public string PersistenceConnectionString { get; set; }
 
         protected override void ApplySettingsChanges(KeyValueConfigurationCollection settings)
         {
@@ -68,7 +68,12 @@ namespace ServiceControlInstaller.Engine.Instances
             settings.Set(AuditInstanceSettingsList.AuditRetentionPeriod, AuditRetentionPeriod.ToString(), Version);
             settings.Set(AuditInstanceSettingsList.AuditQueue, AuditQueue, Version);
             settings.Set(AuditInstanceSettingsList.AuditLogQueue, AuditLogQueue, Version);
-            settings.Set(AuditInstanceSettingsList.EnableFullTextSearchOnBodies, EnableFullTextSearchOnBodies.ToString().ToLowerInvariant(), Version);
+
+            var enableFullTextSearchOnBodiesValue = PersistenceManifest.Settings.Any(s => s.Name == AuditInstanceSettingsList.EnableFullTextSearchOnBodies.Name)
+                ? EnableFullTextSearchOnBodies.ToString().ToLowerInvariant()
+                : null;
+
+            settings.Set(AuditInstanceSettingsList.EnableFullTextSearchOnBodies, enableFullTextSearchOnBodiesValue, Version);
             settings.Set(AuditInstanceSettingsList.StorageType, PersistenceManifest.Name);
 
             // Retired settings
@@ -91,6 +96,14 @@ namespace ServiceControlInstaller.Engine.Instances
         }
 
         protected override string BaseServiceName => "ServiceControl.Audit";
+
+        protected override SettingInfo DatabaseMaintenancePortSetting => AuditInstanceSettingsList.DatabaseMaintenancePort;
+
+        protected override SettingInfo RavenDBConnectionStringSetting => AuditInstanceSettingsList.RavenDBConnectionString;
+
+        protected override SettingInfo MessageBodyStorageTypeSetting => AuditInstanceSettingsList.MessageBodyStorageType;
+
+        protected override SettingInfo MessageBodyStoragePathSetting => AuditInstanceSettingsList.MessageBodyFileSystemStoragePath;
 
         public override void Reload()
         {
@@ -153,22 +166,6 @@ namespace ServiceControlInstaller.Engine.Instances
             FileUtils.UnzipToSubdirectory("RavenDBServer.zip", Path.Combine(destDir, "Persisters", "RavenDB", "RavenDBServer"));
         }
 
-        protected override IEnumerable<string> GetPersistencePathsToCleanUp()
-        {
-            var settings = AppConfig.Config.AppSettings.Settings;
-            foreach (var key in PersistenceManifest.SettingsWithPathsToCleanup)
-            {
-                if (!settings.AllKeys.Contains(key, StringComparer.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                var folderPath = settings[key].Value;
-                yield return folderPath.StartsWith("~") //Raven uses ~ to indicate path is relative to bin folder e.g. ~/Data/Logs
-                    ? Path.Combine(InstallPath, folderPath.Remove(0, 1))
-                    : folderPath;
-            }
-        }
 
         protected override void ValidateConnectionString()
         {
