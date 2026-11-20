@@ -23,6 +23,6 @@
             await session.SaveChangesAsync(cancellationToken);
         }
 
-        static string TrialMetadataId = "metadata/trialinformation";
+        internal const string TrialMetadataId = "metadata/trialinformation";
     }
 }

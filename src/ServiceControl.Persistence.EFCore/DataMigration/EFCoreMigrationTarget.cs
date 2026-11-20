@@ -30,7 +30,12 @@ sealed class EFCoreMigrationTarget(
         new LicensingEndpointsWriter(migrationDialect),
         new LicensingThroughputWriter(migrationDialect),
         new LicensingReportMasksWriter(migrationDialect),
-        new LicensedEndpointDetailsWriter(migrationDialect)
+        new LicensedEndpointDetailsWriter(migrationDialect),
+        new MessageRedirectsWriter(migrationDialect),
+        new SubscriptionsWriter(migrationDialect),
+        new NotificationSettingsWriter(migrationDialect),
+        new TrialEndDateWriter(migrationDialect),
+        new RetryOperationsWriter(migrationDialect)
     }.ToFrozenDictionary(writer => writer.CategoryId, StringComparer.Ordinal);
 
     public Task Open(CancellationToken cancellationToken = default) =>
@@ -112,6 +117,36 @@ sealed class EFCoreMigrationTarget(
 
     public Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext((dbContext, token) => WriterFor(category).Count(dbContext, token), cancellationToken);
+
+    public Task<MigrationCheckpoint> ResetForRetry(MigrationCheckpoint reset, CancellationToken cancellationToken = default) =>
+        ExecuteWithDbContext(async (dbContext, resetToken) =>
+        {
+            var storeKeyed = writers.GetValueOrDefault(reset.CategoryId) as IStoreKeyedCategoryWriter;
+
+            var (deleted, saved) = await dbContext.Database.CreateExecutionStrategy().ExecuteAsync(async token =>
+            {
+                dbContext.ChangeTracker.Clear();
+
+                await using var transaction = await dbContext.Database.BeginTransactionAsync(token);
+
+                var deletedRows = storeKeyed is null ? 0 : await storeKeyed.DeleteCopiedRows(dbContext, token);
+                var stored = await dbContext.UpsertCheckpoint(reset, token);
+                await transaction.CommitAsync(token);
+
+                return (deletedRows, stored);
+            }, resetToken);
+
+            if (storeKeyed is null)
+            {
+                logger.LogInformation("Reset category {CategoryId} for a retry and kept the rows it copied", reset.CategoryId);
+            }
+            else
+            {
+                logger.LogInformation("Reset category {CategoryId} for a retry and deleted the {DeletedRowCount} rows it copied, because a re-read would add them again under new keys", reset.CategoryId, deleted);
+            }
+
+            return saved;
+        }, cancellationToken);
 
     public IReadOnlyCollection<string> SupportedCategoryIds => writers.Keys;
 

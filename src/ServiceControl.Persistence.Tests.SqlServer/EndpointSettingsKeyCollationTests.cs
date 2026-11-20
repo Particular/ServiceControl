@@ -30,7 +30,12 @@ class EndpointSettingsKeyCollationTests : PersistenceTestBase
 
         await Write(("EndpointSettings/1", "Sales"), ("EndpointSettings/2", "sales"));
 
-        Assert.That(targetWarnings.Messages.Count(message => message.Contains("'sales'") && message.Contains("kept 'Sales'")), Is.EqualTo(1), string.Join(Environment.NewLine, targetWarnings.Messages));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(targetWarnings.Messages.Count(message => message.Contains("'sales'") && message.Contains("kept 'Sales'")), Is.EqualTo(1), string.Join(Environment.NewLine, targetWarnings.Messages));
+            Assert.That(targetWarnings.Messages, Has.Exactly(1).StartsWith("Merged EndpointSettings/2 ").And.Contains("kept 'Sales'"), "the operator finds the dropped row by this source id");
+            Assert.That(targetWarnings.Messages, Has.None.StartsWith("Merged EndpointSettings/1 "), "the kept row was not dropped");
+        }
     }
 
     [Test]
@@ -42,6 +47,26 @@ class EndpointSettingsKeyCollationTests : PersistenceTestBase
         await Write(("EndpointSettings/1", "Sales"), ("EndpointSettings/2", "sales"));
 
         Assert.That(targetWarnings.Messages, Has.Exactly(1).Contains("kept 'Sales'"), string.Join(Environment.NewLine, targetWarnings.Messages));
+    }
+
+    [Test]
+    public async Task A_case_merge_keeps_the_setting_whose_name_a_known_endpoint_uses_even_when_it_comes_second()
+    {
+        await OpenACaseInsensitiveTarget("Sales");
+
+        await Write(("EndpointSettings/1", "sales", true), ("EndpointSettings/2", "Sales", false));
+
+        List<EndpointSettingsEntity> stored;
+        using (var scope = ServiceProvider.CreateScope())
+        {
+            stored = await scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>().EndpointSettings.AsNoTracking().ToListAsync();
+        }
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(stored.Select(setting => (setting.Name, setting.TrackInstances)), Is.EqualTo(new[] { ("Sales", false) }), "the heartbeat sync deletes a setting no known endpoint has the exact name of, so the orphan must be the one dropped");
+            Assert.That(targetWarnings.Messages, Has.Exactly(1).StartsWith("Merged EndpointSettings/1 ").And.Contains("kept 'Sales'"), string.Join(Environment.NewLine, targetWarnings.Messages));
+        }
     }
 
     async Task OpenACaseInsensitiveTarget(params string[] knownEndpointNames)
@@ -70,11 +95,13 @@ class EndpointSettingsKeyCollationTests : PersistenceTestBase
         await ServiceProvider.GetRequiredService<IMigrationTarget>().Open();
     }
 
-    async Task Write(params (string SourceId, string Name)[] rows)
+    Task Write(params (string SourceId, string Name)[] rows) => Write([.. rows.Select(row => (row.SourceId, row.Name, true))]);
+
+    async Task Write(params (string SourceId, string Name, bool TrackInstances)[] rows)
     {
         var category = MigrationCategoryRegistry.All.Single(entry => entry.Id == MigrationCategoryIds.EndpointSettings);
         var batch = new MigrationBatch(
-            [.. rows.Select(row => new MigrationRow(row.SourceId, new EndpointSettings { Name = row.Name, TrackInstances = true }, new Dictionary<string, object>()))],
+            [.. rows.Select(row => new MigrationRow(row.SourceId, new EndpointSettings { Name = row.Name, TrackInstances = row.TrackInstances }, new Dictionary<string, object>()))],
             rows[^1].SourceId);
         var checkpoint = await ServiceProvider.GetRequiredService<IMigrationCheckpointStore>().Read(category.Id)
             ?? new MigrationCheckpoint(category.Id, MigrationCategoryState.InProgress, null, 0, 0, null, null, null, null, null, null);

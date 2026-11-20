@@ -15,8 +15,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Time.Testing;
 using NServiceBus.Extensibility;
 using NServiceBus.Transport;
+using NServiceBus.Unicast.Subscriptions;
+using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
 using NUnit.Framework;
 using Particular.LicensingComponent.BrokerThroughput;
 using Particular.LicensingComponent.Contracts;
@@ -29,6 +32,8 @@ using ServiceControl.Hosting.Commands;
 using ServiceControl.Infrastructure.WebApi;
 using ServiceControl.MessageFailures;
 using ServiceControl.Migration.Checks;
+using ServiceControl.Monitoring;
+using ServiceControl.Notifications;
 using ServiceControl.Operations;
 using ServiceControl.Operations.BodyStorage;
 using ServiceControl.Persistence;
@@ -36,10 +41,13 @@ using ServiceControl.Persistence.DataMigration;
 using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Entities;
+using ServiceControl.Persistence.EFCore.Implementation;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 using ServiceControl.Persistence.Infrastructure;
+using ServiceControl.Persistence.MessageRedirects;
 using ServiceControl.Persistence.Tests;
 using ServiceControl.Persistence.UnitOfWork;
+using ServiceControl.Recoverability;
 using ServiceControl.Transports.BrokerThroughput;
 using TestHelper;
 // Aliased rather than imported: Raven.Client.Documents carries LINQ extensions that collide with EF Core's.
@@ -223,6 +231,43 @@ abstract class MigrationAcceptanceTest
 
     protected Task SeedThroughputLicensedEndpointDetails(LicensedEndpointDetails details) =>
         SeedSource(Source.ThroughputDatabase, ("LicensedEndpointDetails", details));
+
+    protected Task SeedSourceMessageRedirects(params MessageRedirect[] redirects) =>
+        SeedSource(("messageredirects", new
+        {
+            Redirects = redirects.Select(redirect => new { redirect.FromPhysicalAddress, redirect.ToPhysicalAddress, LastModifiedTicks = redirect.LastModified.Ticks }).ToList()
+        }));
+
+    // Stores the type as the string MessageTypeConverter writes, because that is what the persister reads.
+    protected Task SeedSourceSubscriptions(params SubscriptionRow[] subscriptions) =>
+        SeedSource(("Subscriptions/All", new
+        {
+            All = subscriptions
+                .GroupBy(subscription => new MessageType(subscription.MessageType, subscription.Version).ToString())
+                .ToDictionary(group => group.Key, group => new
+                {
+                    Id = group.Key,
+                    MessageType = group.Key,
+                    Subscribers = group.Select(subscription => new { subscription.TransportAddress, subscription.Endpoint }).ToList()
+                })
+        }));
+
+    // Version 6.19 and earlier stored this document in the NotificationsSettings collection.
+    protected async Task SeedSourceNotificationSettings(EmailNotifications emailNotifications, string collection = "NotificationsSettingsDocuments")
+    {
+        var document = new { Email = emailNotifications };
+
+        using var session = SourceStore.OpenAsyncSession(Source.PrimaryDatabase);
+        await session.StoreAsync(document, "NotificationsSettings/All");
+        session.Advanced.GetMetadataFor(document)["@collection"] = collection;
+        await session.SaveChangesAsync();
+    }
+
+    protected Task SeedSourceTrialEndDate(DateOnly endDate) =>
+        SeedSource(("metadata/trialinformation", new TrialMetadata { TrialEndDate = endDate }));
+
+    protected Task SeedSourceRetryHistory(RetryHistory history) =>
+        SeedSource(("RetryOperations/History", history));
 
     protected Task SeedSourceWithBody(FailedMessage document, byte[] body, string contentType) =>
         SeedSourceWithBodies((document, body, contentType));
@@ -442,11 +487,60 @@ abstract class MigrationAcceptanceTest
         return batches;
     }
 
+    SyncPassCountingLogger syncPasses;
+
+    protected void CountSyncPasses(IServiceCollection services)
+    {
+        syncPasses = null;
+        services.AddSingleton<ILogger<HeartbeatEndpointSettingsSyncHostedService>>(provider =>
+            syncPasses = new SyncPassCountingLogger(provider.GetRequiredService<ILoggerFactory>().CreateLogger<HeartbeatEndpointSettingsSyncHostedService>()));
+    }
+
+    protected async Task WaitForSyncPass(FakeTimeProvider time)
+    {
+        await WaitUntil(() => Task.FromResult(syncPasses?.Started >= 1), "the heartbeat settings sync started a pass");
+
+        time.Advance(TimeSpan.FromHours(6) + TimeSpan.FromSeconds(1));
+
+        await WaitUntil(() => Task.FromResult(syncPasses.Started >= 2), "the heartbeat settings sync finished its pass and reached its next tick");
+    }
+
+    sealed class SyncPassCountingLogger(ILogger inner) : ILogger<HeartbeatEndpointSettingsSyncHostedService>
+    {
+        int started;
+
+        public int Started => started;
+
+        public IDisposable BeginScope<TState>(TState state) where TState : notnull => inner.BeginScope(state);
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        {
+            if (state is IReadOnlyList<KeyValuePair<string, object>> values
+                && values.Any(value => value.Key == "{OriginalFormat}" && Equals(value.Value, "Performing sync for {ServiceName}")))
+            {
+                Interlocked.Increment(ref started);
+            }
+
+            inner.Log(logLevel, eventId, state, exception, formatter);
+        }
+    }
+
     protected IEndpointSettingsStore EndpointSettingsStore => targetServices.GetRequiredService<IEndpointSettingsStore>();
     protected IMonitoringDataStore MonitoringDataStore => targetServices.GetRequiredService<IMonitoringDataStore>();
     protected IRetryBatchStore RetryBatchStore => targetServices.GetRequiredService<IRetryBatchStore>();
     protected IRetryStagingStore RetryStagingStore => targetServices.GetRequiredService<IRetryStagingStore>();
     protected IFailedMessageRetryDataStore FailedMessageRetryDataStore => targetServices.GetRequiredService<IFailedMessageRetryDataStore>();
+    protected IMessageRedirectsDataStore MessageRedirectsDataStore => targetServices.GetRequiredService<IMessageRedirectsDataStore>();
+    protected INotificationsDataStore NotificationsStore => targetServices.GetRequiredService<INotificationsDataStore>();
+    protected ITrialLicenseDataProvider TrialLicenseDataProvider => targetServices.GetRequiredService<ITrialLicenseDataProvider>();
+    protected IRetryHistoryDataStore RetryHistoryStore => targetServices.GetRequiredService<IRetryHistoryDataStore>();
+
+    // Built by hand, because its DI constructor needs NServiceBus settings the target services do not have.
+    // A zero cache duration makes every read go to the table.
+    protected ISubscriptionStorage SubscriptionStorage =>
+        new SubscriptionStorage(targetServices.GetRequiredService<IServiceScopeFactory>(), "Particular.ServiceControl", "Particular.ServiceControl", [], TimeSpan.Zero, TimeProvider.System);
 
     protected async Task<MigrationWriteResult> CopyCategory(string categoryId, CancellationToken cancellationToken = default)
     {
@@ -582,6 +676,8 @@ abstract class MigrationAcceptanceTest
         }
 
         public Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default) => inner.Count(category, cancellationToken);
+
+        public Task<MigrationCheckpoint> ResetForRetry(MigrationCheckpoint reset, CancellationToken cancellationToken = default) => inner.ResetForRetry(reset, cancellationToken);
 
         public IReadOnlyCollection<string> SupportedCategoryIds => inner.SupportedCategoryIds;
 
