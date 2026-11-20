@@ -1,5 +1,6 @@
 namespace ServiceControl.Migration.AcceptanceTests;
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -20,7 +21,8 @@ class LicensingEndpointsMigrationTests : MigrationAcceptanceTest
             SanitizedName = "Sales_Orders",
             UserIndicator = "Sales team",
             Scope = "Sales",
-            EndpointIndicators = [EndpointIndicator.PlatformEndpoint.ToString()]
+            EndpointIndicators = [EndpointIndicator.PlatformEndpoint.ToString()],
+            CreatedDate = new DateTime(2026, 3, 4, 5, 6, 7, DateTimeKind.Utc)
         });
 
         await CopyCategory("LicensingEndpoints");
@@ -34,6 +36,7 @@ class LicensingEndpointsMigrationTests : MigrationAcceptanceTest
             Assert.That(fromTarget, Is.Not.Null);
             Assert.That(fromTarget!.UserIndicator, Is.EqualTo("Sales team"));
             Assert.That(fromTarget.Scope, Is.EqualTo("Sales"));
+            Assert.That(fromTarget.CreatedDate, Is.EqualTo(new DateTime(2026, 3, 4, 5, 6, 7, DateTimeKind.Utc)), "the decommissioned endpoint sweep removes an endpoint with no throughput once it is a day old, so a lost date makes a new endpoint eligible at once");
             Assert.That(row.SanitizedName, Is.EqualTo("Sales_Orders"));
             Assert.That(row.NormalizedSanitizedName, Is.EqualTo("sales_orders"), "GetEndpointThroughputByQueueName matches on this column, so an unnormalised value hides a migrated endpoint's throughput from the licensing report");
             Assert.That(fromTarget.EndpointIndicators, Is.EqualTo(new[] { EndpointIndicator.PlatformEndpoint.ToString() }), "the indicators column holds what EF itself writes: JSON on SQL Server, a text[] on PostgreSQL");

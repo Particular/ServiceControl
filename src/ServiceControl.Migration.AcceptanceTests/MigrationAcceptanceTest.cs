@@ -178,7 +178,8 @@ abstract class MigrationAcceptanceTest
             endpoint.SanitizedName,
             EndpointIndicators = endpoint.EndpointIndicators ?? [],
             UserIndicator = endpoint.UserIndicator ?? string.Empty,
-            Scope = endpoint.Scope ?? string.Empty
+            Scope = endpoint.Scope ?? string.Empty,
+            endpoint.CreatedDate
         };
 
         using var session = SourceStore.OpenAsyncSession(Source.ThroughputDatabase);
