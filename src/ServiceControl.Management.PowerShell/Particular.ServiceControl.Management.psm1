@@ -41,10 +41,10 @@ New-Alias -Value Get-ServiceControlManagementCommands -Name  sc-help
 New-Alias -Value Get-ServiceControlRemotes -Name sc-remotes
 New-Alias -Value Add-ServiceControlRemote -Name sc-addremote
 New-Alias -Value Remove-ServiceControlRemote -Name sc-deleteremote
-New-Alias -Value Enable-ServiceControlMaintenanceMode -Name sc-maintenance-on
-New-Alias -Value Disable-ServiceControlMaintenanceMode -Name sc-maintenance-off
-New-Alias -Value Enable-ServiceControlAuditMaintenanceMode -Name audit-maintenance-on
-New-Alias -Value Disable-ServiceControlAuditMaintenanceMode -Name audit-maintenance-off
+New-Alias -Value Start-ServiceControlMaintenanceMode -Name sc-maintenance-start
+New-Alias -Value Stop-ServiceControlMaintenanceMode -Name sc-maintenance-stop
+New-Alias -Value Start-ServiceControlAuditMaintenanceMode -Name audit-maintenance-start
+New-Alias -Value Stop-ServiceControlAuditMaintenanceMode -Name audit-maintenance-stop
 
 Export-ModuleMember * -Alias *
 

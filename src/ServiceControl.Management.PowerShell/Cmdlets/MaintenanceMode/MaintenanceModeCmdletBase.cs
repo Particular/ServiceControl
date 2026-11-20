@@ -10,7 +10,7 @@ namespace ServiceControl.Management.PowerShell
         [Parameter(Mandatory = true, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true, Position = 0, HelpMessage = "Specify the instance name")]
         public string[] Name { get; set; }
 
-        protected abstract bool Enable { get; }
+        protected abstract bool StartInMaintenanceMode { get; }
 
         protected abstract ServiceControlBaseService FindInstance(string name);
 
@@ -35,14 +35,13 @@ namespace ServiceControl.Management.PowerShell
                     ThrowTerminatingError(new ErrorRecord(new Exception($"Failed to stop {instance.Name}"), "StopFailure", ErrorCategory.InvalidResult, null));
                 }
 
-                if (Enable)
-                {
-                    instance.EnableMaintenanceMode();
-                }
-                else
+                if (!StartInMaintenanceMode)
                 {
                     instance.DisableMaintenanceMode();
+                    continue;
                 }
+
+                instance.EnableMaintenanceMode();
 
                 if (!instance.TryStartService())
                 {
