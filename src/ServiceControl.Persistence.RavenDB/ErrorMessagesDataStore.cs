@@ -429,9 +429,12 @@ namespace ServiceControl.Persistence.RavenDB
                 }
             };
 
+            // The index has to include the latest changes. Otherwise, a message deleted right before the request is not
+            // in the index as archived yet, and the patch leaves it archived without reporting it.
             var patch = new PatchByQueryOperation(query, new QueryOperationOptions
             {
-                AllowStale = true,
+                AllowStale = false,
+                StaleTimeout = TimeSpan.FromMinutes(5),
                 RetrieveDetails = true
             });
 
