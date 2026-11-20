@@ -23,6 +23,7 @@ static class LicensingEndpointRowMapper
             NormalizedSanitizedName = LicensingDataStore.Normalize(sanitizedName),
             UserIndicator = endpoint.UserIndicator ?? string.Empty,
             Scope = endpoint.Scope,
+            CreatedDate = endpoint.CreatedDate ?? DateTime.MinValue,
             EndpointIndicators = endpoint.EndpointIndicators?.ToList() ?? []
         };
     }

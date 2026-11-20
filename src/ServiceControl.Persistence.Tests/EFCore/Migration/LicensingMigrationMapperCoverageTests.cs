@@ -20,7 +20,8 @@ class LicensingMigrationMapperCoverageTests : PersistenceTestBase
             SanitizedName = "Sales.Orders",
             EndpointIndicators = [EndpointIndicator.PlatformEndpoint.ToString()],
             UserIndicator = "Sales team",
-            Scope = "Sales"
+            Scope = "Sales",
+            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
         };
 
         MigrationEntityCoverage.AssertEveryMappedPropertyIsSet(await Model(), LicensingEndpointRowMapper.Map(endpoint));
