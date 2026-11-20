@@ -33,8 +33,8 @@
         [Test]
         public void Should_return_null_for_not_found_persistence_type()
         {
-            var fakePersistenceType = "My.fake.persistence, fakeTransportAssembly";
-            var persistenceManifest = PersistenceManifestLibrary.Find(fakePersistenceType);
+            var fakeStorageType = "My.fake.persistence, fakeTransportAssembly";
+            var persistenceManifest = PersistenceManifestLibrary.Find(fakeStorageType);
 
             Assert.That(persistenceManifest, Is.Null);
         }

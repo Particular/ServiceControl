@@ -18,9 +18,9 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     class SharedRavenStorageConfiguration : PrimaryStorageConfiguration, AuditStorageConfiguration
     {
         // Both persisters ship a manifest named RavenDB, and only one of them survives the copy into this project's output folder
-        string PrimaryStorageConfiguration.PersistenceType => TypeNameOf(typeof(RavenPersistenceConfiguration));
+        string PrimaryStorageConfiguration.StorageType => TypeNameOf(typeof(RavenPersistenceConfiguration));
 
-        string AuditStorageConfiguration.PersistenceType => TypeNameOf(typeof(AuditRavenPersistenceConfiguration));
+        string AuditStorageConfiguration.StorageType => TypeNameOf(typeof(AuditRavenPersistenceConfiguration));
 
         async Task PrimaryStorageConfiguration.CustomizeSettings(PrimaryInstanceSettings settings, CancellationToken cancellationToken)
         {

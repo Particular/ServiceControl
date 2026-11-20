@@ -350,7 +350,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability
 
         async Task<Settings> CreateSettings()
         {
-            var settings = new Settings(TransportIntegration.TypeName, StorageConfiguration.PersistenceType,
+            var settings = new Settings(TransportIntegration.TypeName, StorageConfiguration.StorageType,
                 CreateLoggingSettings(), forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10))
             {
                 InstanceName = $"IngestOnly.{Guid.NewGuid():n}",

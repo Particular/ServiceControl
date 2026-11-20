@@ -31,7 +31,7 @@
             settings.Set(ServiceControlSettings.DBPath, details.DBPath);
             settings.Set(ServiceControlSettings.ForwardErrorMessages, details.ForwardErrorMessages.ToString(), version);
             settings.Set(ServiceControlSettings.TransportType, details.TransportPackage.Name, version);
-            settings.Set(ServiceControlSettings.PersistenceType, details.PersistenceManifest.Name); // TODO: Why is it set here AND at ServiceControlInstance.ApplySettingsChanges 🤬
+            settings.Set(ServiceControlSettings.StorageType, details.PersistenceManifest.Name); // TODO: Why is it set here AND at ServiceControlInstance.ApplySettingsChanges 🤬
             settings.Set(ServiceControlSettings.ErrorQueue, details.ErrorQueue);
             settings.Set(ServiceControlSettings.ErrorLogQueue, details.ForwardErrorMessages ? details.ErrorLogQueue : null);
             settings.Set(ServiceControlSettings.AuditRetentionPeriod, details.AuditRetentionPeriod.ToString(), version);
@@ -51,6 +51,7 @@
             settings.RemoveIfRetired(ServiceControlSettings.AuditLogQueue, version);
             settings.RemoveIfRetired(ServiceControlSettings.ForwardAuditMessages, version);
             settings.RemoveIfRetired(ServiceControlSettings.InternalQueueName, version);
+            settings.RemoveIfRetired(ServiceControlSettings.PersistenceType, version);
             settings.RemoveIfRetired(ServiceControlSettings.LicensingComponentRabbitMqManagementApiUrl, version);
             settings.RemoveIfRetired(ServiceControlSettings.LicensingComponentRabbitMqManagementApiUsername, version);
             settings.RemoveIfRetired(ServiceControlSettings.LicensingComponentRabbitMqManagementApiPassword, version);

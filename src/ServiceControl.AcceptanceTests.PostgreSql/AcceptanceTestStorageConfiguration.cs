@@ -13,7 +13,7 @@ using ServiceControl.Persistence.Tests;
 
 public class AcceptanceTestStorageConfiguration : IAcceptanceTestStorageConfiguration
 {
-    public string PersistenceType { get; } = "PostgreSQL";
+    public string StorageType { get; } = "PostgreSQL";
 
     public async Task CustomizeSettings(Settings settings, CancellationToken cancellationToken = default)
     {
