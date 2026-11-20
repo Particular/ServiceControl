@@ -57,7 +57,8 @@
             var hostBuilder = Host.CreateApplicationBuilder();
             hostBuilder.AddServiceControl(settings, endpointConfiguration, new RecoverabilityComponent());
 
-            // Heartbeat monitoring normally registers the enricher that records each message's endpoints, and this host does not run it.
+            // HeartbeatMonitoringComponent normally registers these two, and this host leaves that component out.
+            // Without the enricher, a re-imported message loses its sending and receiving endpoints, and they never reach the known endpoints.
             hostBuilder.Services.AddSingleton<IEndpointInstanceMonitoring, EndpointInstanceMonitoring>();
             hostBuilder.Services.AddErrorMessageEnricher<DetectNewEndpointsFromErrorImportsEnricher>();
 

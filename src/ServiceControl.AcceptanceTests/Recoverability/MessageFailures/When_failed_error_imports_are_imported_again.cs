@@ -47,17 +47,17 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
             };
             var failedMessageId = FailedErrorImport.DeriveKey(headers, nativeMessageId).ToString();
 
-            IHost host;
-            using (await StorageConfiguration.UseDatabaseLifecycleLock())
-            {
-                await new SetupCommand().Execute(new HostArguments([]), settings);
-
-                host = ImportFailedErrorsCommand.BuildHost(settings);
-                await host.StartAsync();
-            }
-
+            IHost host = null;
             try
             {
+                using (await StorageConfiguration.UseDatabaseLifecycleLock())
+                {
+                    await new SetupCommand().Execute(new HostArguments([]), settings);
+
+                    host = ImportFailedErrorsCommand.BuildHost(settings);
+                    await host.StartAsync();
+                }
+
                 var failedImports = host.Services.GetRequiredService<IFailedErrorImportDataStore>();
                 await failedImports.StoreFailedErrorImport(new FailedErrorImport
                 {
@@ -96,8 +96,17 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
             }
             finally
             {
-                await host.StopAsync();
-                host.Dispose();
+                if (host != null)
+                {
+                    try
+                    {
+                        await host.StopAsync();
+                    }
+                    finally
+                    {
+                        host.Dispose();
+                    }
+                }
             }
         }
 
