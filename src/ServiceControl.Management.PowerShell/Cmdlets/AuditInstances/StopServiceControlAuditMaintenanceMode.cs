@@ -1,18 +1,16 @@
 namespace ServiceControl.Management.PowerShell
 {
     using System;
+    using System.Linq;
     using System.Management.Automation;
     using ServiceControlInstaller.Engine.Instances;
 
-    public abstract class MaintenanceModeCmdletBase : PSCmdlet
+    [Cmdlet(VerbsLifecycle.Stop, "ServiceControlAuditMaintenanceMode")]
+    public class StopServiceControlAuditMaintenanceMode : PSCmdlet
     {
         [ValidateNotNullOrEmpty]
-        [Parameter(Mandatory = true, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true, Position = 0, HelpMessage = "Specify the instance name")]
+        [Parameter(Mandatory = true, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true, Position = 0, HelpMessage = "Specify the ServiceControl Audit instance name")]
         public string[] Name { get; set; }
-
-        protected abstract bool StartInMaintenanceMode { get; }
-
-        protected abstract ServiceControlBaseService FindInstance(string name);
 
         protected override void BeginProcessing()
         {
@@ -23,7 +21,7 @@ namespace ServiceControl.Management.PowerShell
         {
             foreach (var name in Name)
             {
-                var instance = FindInstance(name);
+                var instance = InstanceFinder.ServiceControlAuditInstances().FirstOrDefault(i => i.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
                 if (instance == null)
                 {
                     WriteWarning($"No action taken. An instance called {name} was not found");
@@ -35,18 +33,7 @@ namespace ServiceControl.Management.PowerShell
                     ThrowTerminatingError(new ErrorRecord(new Exception($"Failed to stop {instance.Name}"), "StopFailure", ErrorCategory.InvalidResult, null));
                 }
 
-                if (!StartInMaintenanceMode)
-                {
-                    instance.DisableMaintenanceMode();
-                    continue;
-                }
-
-                instance.EnableMaintenanceMode();
-
-                if (!instance.TryStartService())
-                {
-                    ThrowTerminatingError(new ErrorRecord(new Exception($"Failed to start {instance.Name}"), "StartFailure", ErrorCategory.InvalidResult, null));
-                }
+                instance.DisableMaintenanceMode();
             }
         }
     }
