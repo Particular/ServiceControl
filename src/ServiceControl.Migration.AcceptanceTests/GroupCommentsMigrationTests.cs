@@ -30,6 +30,7 @@ class GroupCommentsMigrationTests : MigrationAcceptanceTest
             (spaces.Groups.Single().Id, "   "),
             ("group-with-no-copied-message", "Raised with the shipping team"));
         await CopyCategory(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        await CopyCategory(MigrationCategoryIds.UnresolvedFailedMessages);
 
         var result = await CopyCategory(MigrationCategoryIds.GroupComments);
         var comments = (await GroupsStore.GetUnresolvedGroupsByClassifier(kept.Groups.Single().Type, null, new PagingInfo())).ToDictionary(view => view.Id, view => view.Comment);

@@ -11,6 +11,7 @@ using Particular.LicensingComponent.Contracts;
 using Raven.Client.Documents.Operations.Indexes;
 using ServiceControl.Contracts.CustomChecks;
 using ServiceControl.ExternalIntegrations;
+using ServiceControl.MessageFailures;
 using ServiceControl.Infrastructure.RavenDB.Subscriptions;
 using ServiceControl.Notifications;
 using ServiceControl.Operations;
@@ -136,7 +137,8 @@ class RavenMigrationSourceTests : RavenMigrationSourceTestBase
     {
         [MigrationCategoryIds.EndpointSettings] = tests => tests.SeedEndpointSettings(2),
         [MigrationCategoryIds.KnownEndpoints] = tests => tests.MonitoringDataStore.CreateIfNotExists(new EndpointDetails { Name = "Sales.Orders", HostId = Guid.NewGuid(), Host = "HOST01" }),
-        [MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages] = tests => tests.SeedFailedMessage(new IngestedFailure().ToFailedMessage()),
+        [MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages] = tests => tests.SeedFailedMessage(new IngestedFailure().ToFailedMessage(FailedMessageStatus.RetryIssued)),
+        [MigrationCategoryIds.UnresolvedFailedMessages] = tests => tests.SeedFailedMessage(new IngestedFailure().ToFailedMessage()),
         [MigrationCategoryIds.LicensingEndpoints] = tests => tests.SeedThroughputDocument("Sales.Orders/Broker", new EndpointDocument(new EndpointIdentifier("Sales.Orders", ThroughputSource.Broker))),
         [MigrationCategoryIds.LicensingThroughput] = tests => tests.SeedThroughputDocument("Sales.Orders/Broker", new EndpointDocument(new EndpointIdentifier("Sales.Orders", ThroughputSource.Broker))),
         [MigrationCategoryIds.LicensingReportMasks] = tests => tests.SeedThroughputDocument(RavenLicensingDataStore.ReportMasksDocumentId, new ReportConfigurationDocument { MaskedStrings = ["contoso"] }),

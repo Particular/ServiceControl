@@ -99,7 +99,7 @@ class GroupCommentsMigrationTargetTests : ErrorIngestionTestBase
             {
                 ("GroupComment/group-of-archived-messages",
                     "The group 'group-of-archived-messages' has no copied failed message, so the retention sweep removes this comment shortly after ServiceControl opens. " +
-                    "Its messages are archived or resolved, are gone from the source, or were skipped by the copy. " +
+                    "Its messages have not been copied yet, are archived or resolved, are gone from the source, or were skipped by the copy. " +
                     $"The comment was: '{longComment}'")
             }), "a comment on a group with a copied message stays, so only the other is named, with the whole comment because the sweep deletes it");
             Assert.That((first.Copied, first.Changed), Is.EqualTo((2, 1)));

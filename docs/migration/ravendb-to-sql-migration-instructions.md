@@ -9,7 +9,7 @@ The migration does not move the audit instance or the monitoring instance. The a
 
 ## How the migration runs
 
-Run `--start-data-migration` with ServiceControl stopped to copy the data it needs to open. **This part is your outage**. After the command succeeds, start ServiceControl to copy the event log and the archived and resolved failed messages in the background. **The migration never writes to RavenDB**.
+Run `--start-data-migration` with ServiceControl stopped to copy the data it needs to open. **This part is your outage**. After the command succeeds, start ServiceControl to copy the unresolved failed messages, the event log and the archived and resolved failed messages in the background. **The migration never writes to RavenDB**.
 
 > [!IMPORTANT]
 > Until ServiceControl opens, you can go back to RavenDB and lose nothing. After it opens, you cannot go back.
@@ -70,8 +70,9 @@ Make sure that your setup is supported:
 
 Get the data ready:
 
-- Resolve or archive as many unresolved failed messages as you can. They never age out, and ServiceControl stays closed until they are all copied. **A large backlog makes the outage long**. The copy reads archived and resolved messages only after ServiceControl opens. The exception is a RavenDB index that is broken or leaves out some failed messages: then the copy reads every failed message during the outage, logs a warning, and a large archive makes the outage longer too.
+- Let retries finish where you can. ServiceControl stays closed until every retry-issued message and every message that holds a retry claim is copied, and a retry-issued message never ages out. Unresolved messages without a claim copy after ServiceControl opens, so a large unresolved backlog does not lengthen the outage, but it does lengthen the background copy. The copy reads archived and resolved messages only after ServiceControl opens. The exception is a RavenDB index that is broken or leaves out some failed messages: then the copy reads every failed message during the outage, logs a warning, and a large archive makes the outage longer too.
 - Run `--import-failed-errors` while the instance is still on RavenDB. A failed error import is a message that ServiceControl took off the error queue but failed to store. The migration copies these either way, but imported ones arrive as ordinary failed messages.
+- Let retry, archive and unarchive operations finish on RavenDB before stopping ServiceControl. Migration refuses persisted batches, the retry forwarding marker, and archive or unarchive operation documents. Stopping ServiceControl leaves unfinished work persisted.
 
 Keep these settings as they are:
 
@@ -146,6 +147,8 @@ If you want less optional data, set a shorter window for the optional categories
 
 By default, the migration copies all the optional data that RavenDB still holds (current retension period setting). A window longer than the retention period copies nothing extra. After a category starts copying, you cannot change its window. To stop it early, abandon it.
 
+The unresolved failed messages have no window and no setting turns them off. They copy once ServiceControl opens, however old they are.
+
 ## Step 4: Run the dry run
 
 The dry run reads RavenDB and tells you what the migration will do, including an estimate of how long ServiceControl will be closed. It does not write anything. Run it with the `--migration-dry-run` argument, in the same way as the source report. [The overview](ravendb-to-sql-migration-overview.md#the-dry-run) lists what it reports.
@@ -204,6 +207,20 @@ No configuration change is needed to finish. Once every category is Done or Aban
 ### A startup check fails
 
 ServiceControl does not start, and its log names the check that failed. Nothing is copied. Correct the cause, then run `--start-data-migration` again. The dry run runs the same checks, so you can use it to test your correction.
+
+### RavenDB holds unfinished operations
+
+The refusal names the unfinished operation families and an example document id from each. The migration does not copy active operation state. Completed retry history and outstanding retry claims do not cause this refusal.
+
+1. Set `ServiceControl/PersistenceType` back to RavenDB.
+2. Start ServiceControl.
+3. Request the same group action again if an archive or unarchive operation does not resume.
+4. Wait until the retry, archive and unarchive operations finish.
+5. Stop ServiceControl.
+6. Set `ServiceControl/PersistenceType` back to the SQL target.
+7. Run `--start-data-migration` again.
+
+If the refusal persists, contact support rather than deleting operation documents. A batch document can remain without its operation document.
 
 ### A category is Failed
 

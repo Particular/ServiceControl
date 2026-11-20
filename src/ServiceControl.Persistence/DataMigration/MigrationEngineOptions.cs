@@ -11,7 +11,7 @@ using ServiceControl.Configuration;
 /// <param name="ThrottlePause">How long to wait between batches of an optional category, which is what keeps the background copy off the instance's back. Zero waits not at all.</param>
 /// <param name="HaltThresholdPercent">The share of skipped rows, as a percentage, that stops a category.</param>
 /// <param name="HaltThresholdMinimum">The number of skipped rows that has to be passed before the percentage counts, so a handful of bad rows in a small category is not a halt.</param>
-/// <param name="SelectedOptionalCategoryIds">The optional categories to copy. An optional category outside this list is never copied.</param>
+/// <param name="SelectedOptionalCategoryIds">The optional categories to copy. An optional category outside this list is never copied. The unresolved failed messages are always in it.</param>
 public sealed record MigrationEngineOptions(
     TimeSpan ThrottlePause,
     int HaltThresholdPercent,
@@ -37,7 +37,7 @@ public sealed record MigrationEngineOptions(
     /// <summary>
     /// Reads the options from the instance's settings. Anything not set takes the default from
     /// <see cref="MigrationSettings" />, except the two windows, which default to the retention periods passed in.
-    /// An optional category is selected when its window is greater than zero.
+    /// A windowed optional category is selected when its window is greater than zero, and the unresolved failed messages are always selected.
     /// </summary>
     /// <param name="settingsRootNamespace">The settings root the migration keys are read under.</param>
     /// <param name="eventRetentionPeriod">The instance's event retention period, used as the event log window when none is set.</param>
@@ -51,7 +51,8 @@ public sealed record MigrationEngineOptions(
         var eventLogWindow = ReadWindow(settingsRootNamespace, MigrationSettings.EventLogWindowKey, eventRetentionPeriod);
         var archivedAndResolvedWindow = ReadWindow(settingsRootNamespace, MigrationSettings.ArchivedAndResolvedFailedMessagesWindowKey, errorRetentionPeriod);
 
-        var selectedIds = new List<string>();
+        // Not windowed: an unresolved message is waiting on somebody however old it is.
+        var selectedIds = new List<string> { MigrationCategoryIds.UnresolvedFailedMessages };
 
         if (eventLogWindow > TimeSpan.Zero)
         {

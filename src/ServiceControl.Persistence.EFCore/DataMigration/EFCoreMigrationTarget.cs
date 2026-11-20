@@ -27,6 +27,7 @@ sealed class EFCoreMigrationTarget(
         new KnownEndpointsWriter(migrationDialect),
         new EndpointSettingsWriter(migrationDialect),
         new FailedMessagesWriter(migrationDialect, storagePersistence, settings),
+        new UnresolvedFailedMessagesWriter(migrationDialect, storagePersistence, settings),
         new LicensingEndpointsWriter(migrationDialect),
         new LicensingThroughputWriter(migrationDialect),
         new LicensingReportMasksWriter(migrationDialect),

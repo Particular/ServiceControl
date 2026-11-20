@@ -21,7 +21,7 @@ class FailedMessageBodyMigrationTests : MigrationAcceptanceTest
         var content = Encoding.UTF8.GetBytes("<order>1</order>");
         await SeedSourceWithBody(failure.ToFailedMessage(), content, "text/xml");
 
-        await CopyCategory(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        await CopyCategory(MigrationCategoryIds.UnresolvedFailedMessages);
 
         var row = await GetFailedMessage(failure.UniqueMessageId);
         var fetched = await BodyStorage.TryFetch(failure.UniqueMessageId.ToString());
@@ -47,7 +47,7 @@ class FailedMessageBodyMigrationTests : MigrationAcceptanceTest
         var content = Encoding.UTF8.GetBytes(text);
         await SeedSourceWithBody(failure.ToFailedMessage(), content, "application/json");
 
-        await CopyCategory(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        await CopyCategory(MigrationCategoryIds.UnresolvedFailedMessages);
 
         var row = await GetFailedMessage(failure.UniqueMessageId);
 
@@ -81,7 +81,7 @@ class FailedMessageBodyMigrationTests : MigrationAcceptanceTest
         var content = new byte[] { 0x08, 0x00, 0x96, 0x01, 0xFF };
         await SeedSourceWithBody(failure.ToFailedMessage(), content, "application/x-protobuf");
 
-        await CopyCategory(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        await CopyCategory(MigrationCategoryIds.UnresolvedFailedMessages);
 
         var row = await GetFailedMessage(failure.UniqueMessageId);
         var written = RecordedBodies.Written.Single();
@@ -112,9 +112,9 @@ class FailedMessageBodyMigrationTests : MigrationAcceptanceTest
         await SeedSourceWithBody(readable.ToFailedMessage(), Encoding.UTF8.GetBytes("<order>1</order>"), "text/xml");
         await SeedSource(($"FailedMessages/{missing.UniqueMessageId}", missing.ToFailedMessage()));
 
-        var result = await CopyCategory(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        var result = await CopyCategory(MigrationCategoryIds.UnresolvedFailedMessages);
 
-        var checkpoint = await ReadCheckpoint(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        var checkpoint = await ReadCheckpoint(MigrationCategoryIds.UnresolvedFailedMessages);
 
         using (Assert.EnterMultipleScope())
         {
@@ -132,7 +132,7 @@ class FailedMessageBodyMigrationTests : MigrationAcceptanceTest
         var failure = new IngestedFailure();
         await SeedSourceWithBody(failure.ToFailedMessage(), [], "text/plain");
 
-        var result = await CopyCategory(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        var result = await CopyCategory(MigrationCategoryIds.UnresolvedFailedMessages);
 
         var row = await GetFailedMessage(failure.UniqueMessageId);
 
@@ -158,7 +158,7 @@ class FailedMessageBodyMigrationTests : MigrationAcceptanceTest
             (inline.ToFailedMessage(), inlineContent, "text/xml"),
             (external.ToFailedMessage(), externalContent, "application/x-protobuf"));
 
-        await CopyCategory(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        await CopyCategory(MigrationCategoryIds.UnresolvedFailedMessages);
 
         Assert.That(await Fetch(inline.UniqueMessageId), Is.EqualTo(inlineContent));
         Assert.That(await Fetch(external.UniqueMessageId), Is.EqualTo(externalContent), "the body was stored under an id TryFetch does not resolve");
