@@ -42,7 +42,7 @@
             }
 
             // Integration Events
-            if (!settings.DisableExternalIntegrationsPublishing)
+            if (settings.EnableExternalIntegrationsPublishing)
             {
                 context.AddEventPublished<FailedMessagesArchived>();
                 context.AddEventPublished<FailedMessagesUnArchived>();
