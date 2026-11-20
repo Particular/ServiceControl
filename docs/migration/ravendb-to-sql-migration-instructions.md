@@ -1,7 +1,7 @@
 # Migration Engine: Instructions
 
 > [!NOTE]
-> Production copying remains blocked until the complete migration ships. `--migration-source-report` works; `--start-data-migration` reports that copying is unavailable. The release blockers for the failed-message split are listed under [Unresolved release blockers](ravendb-to-sql-migration-overview.md#unresolved-release-blockers) in the overview.
+> Production copying remains blocked until the complete migration ships. `--migration-source-report` works; `--start-data-migration` reports that copying is unavailable.
 
 This page tells you how to move the data of a ServiceControl error instance from RavenDB to SQL Server or PostgreSQL. The ServiceControl executable provides the offline command and the online copier, so you do not need a separate tool. [The migration overview](ravendb-to-sql-migration-overview.md) explains how the migration works and why.
 
