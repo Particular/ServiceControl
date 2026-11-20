@@ -362,5 +362,5 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
             LastCollectedDate = lastCollectedDate ?? default
         };
 
-    static string Normalize(string name) => name.ToLowerInvariant();
+    internal static string Normalize(string name) => name.ToLowerInvariant();
 }

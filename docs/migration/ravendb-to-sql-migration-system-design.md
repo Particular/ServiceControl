@@ -1,0 +1,302 @@
+# Migration Engine: System Architecture Design
+
+> [!NOTE]
+> This build does not carry the whole migration yet. This page describes it as it will be when it ships. The offline command, checkpoint-based startup gate, and online orchestration are present, but production copying remains blocked by `MigrationIsReleasedCheck`.
+
+[The overview](ravendb-to-sql-migration-overview.md) covers behaviour and guarantees. [The instructions](ravendb-to-sql-migration-instructions.md) cover the operator procedure. This page maps both onto types, call order and assembly boundaries.
+
+> [!IMPORTANT]
+> Startup check order and category order are load-bearing. Read the required copy and category sections before reordering checks or adding a category.
+
+## Overview
+
+```mermaid
+flowchart LR
+    subgraph host["ServiceControl host"]
+        req["MigrateCommand<br/>then MigrationStartup"]
+        opt["OptionalCategoryCopier"]
+        guard["MigrationBeforeTheHostOpens"]
+        cmd["Migration commands"]
+    end
+    subgraph neutral["ServiceControl.Persistence"]
+        eng["MigrationEngine"]
+    end
+    subgraph raven["ServiceControl.Persistence.RavenDB"]
+        src["RavenMigrationSource<br/>IMigrationCategoryReader per category"]
+    end
+    subgraph ef["ServiceControl.Persistence.EFCore"]
+        tgt["EFCoreMigrationTarget<br/>IMigrationCategoryWriter per category"]
+        cp["EFMigrationCheckpointStore"]
+    end
+    req --> eng
+    opt --> eng
+    guard --> cp
+    eng --> src
+    eng --> tgt
+    eng --> cp
+    cmd --> cp
+    cmd --> src
+    cmd --> tgt
+    src --> rdb[("RavenDB<br/>read only")]
+    tgt --> sql[("SQL Server or PostgreSQL")]
+    cp --> sql
+    tgt --> bod[("Body store")]
+```
+
+`MigrationEngine` is store-agnostic. It drives `IMigrationSource` and `IMigrationTarget` per category and treats the cursor as an opaque string that it hands from source to target. Progress is persisted per category as a checkpoint row in the target database, committed in the same transaction as the rows it describes. Every command except `--migration-source-report` reads the checkpoint table.
+
+## Assemblies
+
+Dependencies point inward: each persister knows only its own store, the neutral assembly knows neither, and the host is the only composition root that names both.
+
+| Assembly | Types | Boundary rationale |
+| --- | --- | --- |
+| `ServiceControl.Persistence` | `MigrationEngine`, `MigrationBodyLoader`. Contracts: `IMigrationSource`, `IMigrationTarget`, `IMigrationCheckpointStore`, `IMigrationStartupCheck`, `IMigrationTargetReadiness`, `IMigrationSourceFactory`. Data: `MigrationCategory`, `MigrationCategoryKind`, `MigrationCategoryIds`, `MigrationCategoryRegistry`, `MigrationBatch`, `MigrationRow`, `MigrationBody`, `MigrationCheckpoint`, `MigrationWriteResult`, `MigrationSkipReason`, `MigrationSourceDescription`, `MigrationSourceFact`. Rules: `MigrationCategoryStateExtensions`, `MigrationSkipReasonExtensions`, `MigrationCheckpointRules`, `HaltThreshold`. Options: `MigrationEngineOptions`, `MigrationSettings`. `MigrationCheckpointConflictException`. Read-only views: `MigrationStatusView`, `MigrationVerification`, `MigrationDryRunArithmetic` | Referenced by both persisters and the host, references neither persister, so the engine is unit-tested against in-memory fakes in `ServiceControl.UnitTests/Migration` |
+| `ServiceControl.Persistence.RavenDB` | `RavenMigrationSource`, `RavenReadOnlySourceLifecycle`, `RavenDocumentStream`, `IMigrationCategoryReader`, `IWindowedMigrationCategoryReader`, one reader per category | Owns document id prefixes, sessions and the embedded server |
+| `ServiceControl.Persistence.EFCore` | `EFCoreMigrationTarget`, `EFCoreMigrationTargetReadiness`, `IMigrationCategoryWriter`, `IStoreKeyedCategoryWriter`, one writer per category, `PreparedBatch`, `IMigrationSqlDialect`, `MigrationInsert`, `StoreKeyedInsert`, `EFMigrationCheckpointStore`, `MigrationCheckpointExtensions`, `EFCoreMigrationRowAssessor`, and the three target readiness checks | Owns tables, column widths and provider parameter limits |
+| `ServiceControl` (host) | `MigrateCommand`, `MigrationBeforeTheHostOpens`, `RecordHostOpenedOnTarget`, `MigrationStartup` with nested `ClosedWindowProgress`, `MigrationStartupCheckRunner`, the four host checks, `OptionalCategoryCopier`, `FinishedCopyBeforeAnIngestionNodeOpens`, `MigrationProgressReporter`, the migration commands with `MigrationOperatorCommands` and `MigrationSourceDescriptionPrinter`, `PersistenceFactory.CreateMigrationSource` and `OpenMigrationSource` | Pair support is the one question neither persister can answer, so it lives here |
+
+Supporting assemblies:
+
+- `SqlServerMigrationSqlDialect` and `PostgreSqlMigrationSqlDialect` implement `IMigrationSqlDialect` and are the only provider-specific migration code. SQL Server reads key-column collations in `Open`, builds each key column's `KeyComparer` from the collation's comparison style (case, accent, kana type and width, plus SQL Server's trailing-space padding), and inserts with `MERGE ... WITH (HOLDLOCK)`, de-duplicating the batch with `ROW_NUMBER() OVER (PARTITION BY <key> COLLATE <column collation>)`. PostgreSQL uses `INSERT ... ON CONFLICT DO NOTHING RETURNING`. Both implement `AddLicensingEndpointThroughput`, which groups each statement's rows by key and sums their counts before adding them to the stored day, so the database decides which names are one day. SQL Server groups under the key column's collation; PostgreSQL's deterministic collations make a plain `GROUP BY` the same equality. Each provider assembly carries its own `AddMigrationCheckpoints` EF migration and model snapshot, so a checkpoint schema change needs a migration in both.
+- `ServiceControl.DomainEvents` holds `MigrationStarted`, `MigrationCategoryHalted`, `MigrationFinished` and `MigrationSourceUnreachable`.
+
+The RavenDB persister registers no `IMigrationTarget`, `IMigrationTargetReadiness` or `IMigrationCheckpointStore`, so the guards below resolve `null` on RavenDB and return. `MigrationPairIsSupportedCheck` is what rejects RavenDB as a target.
+
+## What runs on every SQL instance
+
+- **Registrations.** `BasePersistence.RegisterDataStores`, reached through each provider's `AddPersistence`, registers `IMigrationCheckpointStore` as `EFMigrationCheckpointStore`, `IMigrationTargetReadiness` as `EFCoreMigrationTargetReadiness` and `IMigrationTarget` as `EFCoreMigrationTarget`, all singletons.
+- **`MigrationBeforeTheHostOpens`.** `RunCommand` registers a lifecycle service that checks required checkpoints in `StartingAsync`, before any hosted service starts or Kestrel binds. It delegates to `FinishedCopyBeforeAnIngestionNodeOpens`, treating unknown ids as required. An unfinished required row refuses startup and names `--start-data-migration`. The service never copies data. With no checkpoint store registered (RavenDB), it returns immediately.
+- **`FinishedCopyBeforeAnIngestionNodeOpens`.** Registered by `ErrorIngestionOnlyCommand.BuildHost` on every ingestion-only host and by `ImportFailedErrorsCommand.BuildHost` on every SQL import. In `StartingAsync` it reads every checkpoint row, drops the rows the registry classifies as optional, and refuses unless every remaining row `IsFinished`. An id unknown to this build counts as required. The worker never copies: a single host owns the copy, because a second copier would race the offline command on the checkpoint version.
+- **`RecordHostOpenedOnTarget` on every writer.** The main host, ingestion workers, and SQL imports register `RecordHostOpenedOnTarget` and stamp `Migration/HostOpenedOnTarget` when checkpoint rows exist. Ingestion ends the free abort, so rollback advice must never offer a free abort after a worker has written.
+
+The ingestion gate sees categories the copy never reached because `MigrationStartup.RunRequiredCategories` upserts a `NotStarted` row for every category without one before copying the first. `MigrationEngine.RunCategories` does the same for the background copy. Without those rows, a copy interrupted between two categories leaves only terminal rows and the gate passes. The gate cannot see a copy that has not written its first row, see [open decisions](ravendb-to-sql-migration-overview.md#gaps-nothing-enforces).
+
+> [!IMPORTANT]
+> Stop workers before running `--start-data-migration`. Restart them only after the command succeeds and the main host opens. A worker cannot detect a migration before its first checkpoint exists.
+
+## The required copy
+
+Unresolved and retry-issued failed messages copy while the host is closed because the copy cannot merge with live writes. `FailedMessagesWriterBase` inserts only messages the target lacks and never updates one it holds. From the moment the host opens, ingestion writes to the same rows:
+
+- **A retry confirmation finds no row.** `ResolveRetriedMessages` updates only rows already in SQL, and `FailedMessageBatchWriter.ResolveRetried` deletes the retry claim either way. The copy then inserts the message as still failing, though its retry succeeded.
+- **A message that fails again loses its history.** Ingestion upserts a row holding only the new attempt. The copy then finds the id present and drops the RavenDB row, with its earlier attempts, first failure time and retry-issued status.
+- **Group actions see part of the list.** Retrying or archiving a group in ServicePulse acts only on the messages copied so far.
+
+Archived and resolved messages are safe to copy after the host opens. If one of them fails again, the live unresolved row should win, and an insert-only copy gives exactly that. Copying unresolved messages in the background would need a writer that merges by attempt time, and retry confirmations held until their row arrives. Both change live ingestion.
+
+For developer smoke tests, Debug builds honor `SERVICECONTROL_MIGRATION_ALLOW_UNRELEASED=true` in both `--start-data-migration` and normal startup. Release builds ignore this override.
+
+```mermaid
+sequenceDiagram
+    participant Run as Operator
+    participant Copy as MigrateCommand
+    participant Start as MigrationStartup
+    participant Checks as MigrationStartupCheckRunner
+    participant Source as RavenMigrationSource
+    participant Target as EFCoreMigrationTarget
+    participant Engine as MigrationEngine
+
+    Run->>Copy: --start-data-migration, with ServiceControl stopped
+    Copy->>Copy: build persistence-only host; never StartAsync
+    Copy->>Start: RunRequiredCopy(app.Services, settings)
+    Start->>Checks: MigrationPairIsSupportedCheck
+    Start->>Start: PersistenceFactory.CreateMigrationSource, not connected
+    Start->>Checks: RunChecksAndOpenTarget
+    Checks->>Target: Open
+    Start->>Start: IMigrationCheckpointStore.ReadAll
+    Start->>Source: Open
+    Start->>Checks: source.ContributedChecks(), empty for RavenDB
+    Start->>Engine: RunRequiredCategories under ClosedWindowProgress
+    Engine-->>Start: one checkpoint per category
+    Start->>Start: ReportWhatTheCopyLeftBehind
+    Start->>Start: RefuseIfAnyCategoryDidNotComplete
+    Start-->>Copy: returns, or throws and the command fails
+    Copy-->>Run: success: start ServiceControl to complete online migration
+    Run->>Run: start service or container
+    Note over Run: Startup checks required checkpoints; StartedAsync stamps the target
+```
+
+Each position in the sequence is deliberate:
+
+1. **Inside the offline command.** `MigrateCommand` builds a host containing persistence, logging, and the clock. It never calls `StartAsync` or `RunAsync`, so no hosted services run. It calls `MigrationStartup.RunRequiredCopy` directly and prints the instruction to start ServiceControl only after success. Ctrl+C cancels the command; committed batches remain resumable through another `--start-data-migration` invocation. The Windows service is not starting during this work, so its start timeout does not apply.
+2. **`MigrationPairIsSupportedCheck` first.** It needs no source, target or options. It resolves `PersistenceType` through `PersistenceManifestLibrary` and checks it against `PersistenceFactory.SqlPersistenceNames`; the source type is fixed at `PersistenceFactory.MigrationSourcePersistenceType`. `--start-data-migration` against a RavenDB target is rejected here.
+3. **`PersistenceFactory.CreateMigrationSource`** resolves the source persistence and hard-casts its configuration to `IMigrationSourceFactory`, implemented only by `RavenPersistenceConfiguration`. A non-implementing persister fails with `InvalidCastException`. No I/O happens yet.
+4. **`MigrationStartup.RunChecksAndOpenTarget`**, the target half, in order:
+   - `OptionalCategoryWindowsAreValidCheck` runs `MigrationEngineOptions.FromSettings`, refusing a window that is not a non-negative `TimeSpan` and naming the key. A zero window removes the category from `SelectedOptionalCategoryIds`.
+   - `RetryHistoryDepthIsSafeCheck` is host-owned because it needs only `Settings.RetryHistoryDepth`, which keeps that value off `PersistenceSettings` and out of `/api/configuration`.
+   - `EFCoreMigrationTargetReadiness.ContributedChecks`: `SchemaIsCurrentCheck`, `TargetHoldsNoServiceControlDataCheck`, `BodyStorageIsWritableCheck`. The body probe is deleted after writing, so it does not skew body counts.
+   - `IMigrationTarget.Open`, where the SQL Server dialect loads key-column collations.
+   - `OptionalCategoryWindowsAreUnchangedCheck`, last because it reads checkpoint rows. It refuses a started, unfinished optional category whose configured window differs from `StartedWindowSeconds`.
+
+   `MigrationStartupCheckRunner` short-circuits on the first refusal.
+5. **`TargetHoldsNoServiceControlDataCheck`** passes immediately if a checkpoint row exists for any required category. Otherwise it refuses if any mapped table other than `MigrationCheckpoints` has a row, `Settings` included, naming tables by `GetTableName()` (`endpoint_settings`, `settings` on PostgreSQL).
+6. **Source open, last.** It is the only step that can spawn a process. `RunRequiredCopy` reads the checkpoint rows and builds the engine first. `RavenReadOnlySourceLifecycle.Open` then:
+   - starts the embedded server, if configured;
+   - connects: on an external server it rejects an expired or not-yet-valid client certificate and an `https://` URL without one, then attaches `RefuseWrite` to the request pipeline before `Initialize`, so the version request is covered;
+   - checks an external server's version against the client;
+   - waits for both databases, with a 5-minute budget per database on an embedded server. The budget is only checked when RavenDB raises its own timeout, so the wait can exceed it.
+
+   > [!IMPORTANT]
+   > Readers must stream by id prefix, load by id, or query a static index. `RefuseWrite` blocks writes but passes query POSTs (`/queries`, `/multi_get`, `/streams/queries`), and a dynamic query creates an `Auto/` index. Only the embedded server sets `DisableAutoIndexes`.
+7. **Source outage tolerance.** A failed source open is tolerated only when every required category already `IsFinished`. The host logs it, `MigrationStartup.RecordSourceOutage` writes the exception (inner exception when present) as `LastError` on each selected optional category still copying, creating `NotStarted` rows where absent, the command skips the copy and succeeds. The operator can then start ServiceControl; its online copier handles any later source outage independently. In every other case the host refuses and writes nothing; if a required category never started, the refusal says the only exits are pointing back at RavenDB or starting over.
+8. **`source.ContributedChecks()`** runs once the source is open, because such a check needs a session. `RavenMigrationSource` returns none, and a refusal here is never tolerated.
+9. **Checkpoint initialization.** The command seeds `NotStarted` rows for required and selected optional categories before copying. `MigrationStartup.RunRequiredCategories` also ensures required rows exist, then runs each required category under its own linked `CancellationTokenSource`, awaited with `WaitAsync` on that token.
+10. **`ClosedWindowProgress`** polls the checkpoint store every 30 seconds and logs progress. When the running category has committed nothing for 30 minutes, measured from the later of `LastProgressAt` and its run start, it cancels that category's token. `WaitAsync` returns even if the call underneath ignores cancellation, the category settles `Halted` with the stall in `LastError`, and the next category runs. The abandoned call keeps running until the host refuses and the process exits. A host shutdown leaves the row `InProgress`.
+11. **`CopyOrExplainWhyItStopped`** maps `MigrationCheckpointConflictException` to a message about a second instance writing the same checkpoints.
+12. **`ReportWhatTheCopyLeftBehind`** logs skips per category. It offers `--migration-retry` only for an `IsFailed` row, and reports harmless skips on a `Complete` row with the explanation `HarmlessSkipExplanations` holds for each harmless reason. A test fails unless that map covers exactly the `IsBenign` reasons.
+13. **`RefuseIfAnyCategoryDidNotComplete`** keeps the host closed. One message lists every Failed required category with stored state, counts, skips by reason (permanent reasons flagged as not retryable through `IsPermanent`, and harmless reasons flagged `, harmless` through `IsBenign`), `LastError` and both commands. A Copying required category gets a line without a command. Rollback advice comes last.
+14. **`RecordHostOpenedOnTarget`** is registered on normal startup, never on the offline command. In `StartedAsync` it writes `Migration/HostOpenedOnTarget` the first time a host opens on a database that holds checkpoint rows, so the marker means "a host opened since the copy began", not "a host ran here once". The marker ends the free abort.
+
+## The background copy
+
+`OptionalCategoryCopier` is a `BackgroundService` registered by `RunCommand` only on the main instance. It waits for `ApplicationStarted`, then reads checkpoints. With no unfinished optional rows, it exits without creating a source or opening a target.
+
+- It runs the selected, supported optional categories in registry order, `EventLog` then `ArchivedAndResolvedFailedMessages`, skipping rows that are `IsFinished` or `IsFailed`. The offline command has already seeded the rows that identify the online work.
+- It creates and opens its own source only when a supported category is still copying. On failure it calls `RecordSourceOutage` and exits for this start. It does not depend on in-process state from `--start-data-migration`, which ran in another process.
+- An exception leaves the category `InProgress` with `LastError`, untouched until the next start, so a transient failure never forces an abandon.
+
+Windowing: `MigrationEngineOptions.WindowFor` supplies the window and the reader applies it through `IWindowedMigrationCategoryReader`. The engine writes `StartedWindowSeconds` once, on the first `InProgress` upsert. `CopiesFrom` is `StartedAt` minus the currently configured window, so window stability across restarts depends entirely on `OptionalCategoryWindowsAreUnchangedCheck`. Verify counts from `StartedAt` minus `StartedWindowSeconds` instead, which is the same window while the category copies, because nothing stops the setting changing once it has finished.
+
+> [!IMPORTANT]
+> Do not remove or reorder `OptionalCategoryWindowsAreUnchangedCheck`. The stored `StartedWindowSeconds` column does not protect the window by itself. The online startup path must validate unchanged windows too, because `--start-data-migration` no longer runs during normal startup.
+
+`Migration/ThrottlePauseMilliseconds` inserts a delay between optional-category batches, skipping the first batch of each category. Required categories are never throttled.
+
+## Copying a batch
+
+`MigrationEngine.RunCategoryAsync` is the per-category loop. Every store-specific step is delegated.
+
+| Step | Owner | Rationale |
+| --- | --- | --- |
+| Load the checkpoint | `EFMigrationCheckpointStore.Read` | The table lives in the target database |
+| Short-circuit terminal or Failed rows | `MigrationCategoryStateExtensions.IsFinished`, `IsFailed` | Single definition shared by every caller; the source is not read |
+| Ordering | `MigrationCategory.MustFollow`, from `MigrationCategoryRegistry.All` | Data, not code. A follower whose predecessor is not `IsFinished` is upserted `Blocked` with `LastError` naming it |
+| Start or resume | Engine: `NotStarted`, `Blocked`, or any row with `LastError` moves to `InProgress`, cursor kept | `Halted` never resumes by itself; only `--migration-retry` resets it |
+| Batch size | `EFCoreMigrationTarget.BatchSizeFor` via the category's `IMigrationCategoryWriter` | Writers use `RowsPerStatementFor<TEntity>` from the dialect's parameter budget; `StoreKeyedInsert`-only writers use a fixed 500 |
+| Read after cursor | `IMigrationCategoryReader`, usually via `RavenDocumentStream.ByPrefix`; `FailedMessagesReader` streams a query on `FailedMessageViewIndex` ordered by `id()`, after waiting for the index to be up to date, and falls back to `ByPrefix` when the index is errored, disabled or holds fewer failed messages with a copied status than the collection does; the two licensing endpoint readers use `ThroughputDocuments.Endpoints`; single-document readers load by id | No-tracking session. A cursor whose document no longer exists is refused, because RavenDB would otherwise resume after the missing id and skip rows. The cursor advances on every document seen. Both unresolved paths resume on the same document id cursor |
+| Fetch bodies | `MigrationBodyLoader` over `IMigrationSource.ReadBody` | Rows with a null body only, 8 concurrent, `MigrationEngine.MaxBodyReadAttempts` (3) with `MigrationEngineOptions.BodyRetryBackoff` (200 ms). `IsDefect` exceptions such as `NotSupportedException` are not retried and reach the batch catch. A missing attachment is skipped as `BodyMissing` after one attempt, a permanent fault no retry fixes, since ingestion writes an attachment for every failed message. Body skips stay off the checkpoint until the write commits |
+| Map documents to rows | `IMigrationCategoryWriter.Prepare`, returning `PreparedBatch` | Only the writer knows `NOT NULL` columns, key caps and what the product deletes anyway. Rows are inserted later inside the target transaction. Body-carrying writers write external bodies here, before the transaction, only for messages the target does not hold. A crash leaves orphan bodies, see [open decisions](ravendb-to-sql-migration-overview.md#what-the-checks-do-not-catch) |
+| Insert and checkpoint | `EFCoreMigrationTarget.Write`: `AccountForEveryRow`, then in one transaction under the execution strategy `PreparedBatch.Insert`, `AlreadyPresentIn`, `MigrationCheckpoint.Extend`, `MigrationCheckpointExtensions.UpsertCheckpoint` | Most writers use the dialect's `InsertMissing` built on `MigrationInsert`. Store-keyed rows use `StoreKeyedInsert`, because `MigrationInsert` rejects store-generated keys. Throughput days use `AddLicensingEndpointThroughput`. Each attempt clears the change tracker. Skips, merges and changes are logged after commit. `MigrationWriteResult.Merged` and `Changed` carry the batch's counts of each, which the engine adds up per category for the current run in `MigrationEngine.MergedAndChangedThisRun`; the checkpoint stores neither. See [progress and checkpoints](ravendb-to-sql-migration-overview.md#progress-and-checkpoints) |
+| Post-commit reconciliation | Engine compares `Write`'s saved checkpoint with the counts it restated | Mismatch settles `Halted`, either kind |
+| Early stop | `HaltThreshold.Exceeded` on per-run counters | Fault skips (reasons not `IsBenign`, plus body skips) must exceed both `Migration/HaltThresholdPercent` and `Migration/HaltThresholdMinimum`. Counters are not persisted, so the threshold is per run |
+| Settle | `MigrationEngine.Settle`, after `IMigrationTarget.Count` at the end of the source | Saves the category's SQL row count on the row it settles, as `TargetCountAtSettle`. A halt saves without it, because the target may be what failed, and `--migration-abandon` reads it later. Logs before saving, because the checkpoint store shares the target database and a failed save would hide the cause |
+
+Failed message body placement lives in `FailedMessagesWriter`, shared by `ArchivedAndResolvedFailedMessagesWriter`. `MessageBodyClassifier.Classify` decides placement and `FailedMessageDocumentTranslator.SetBody` fills the columns: text up to `MaxBodySizeToStore` (100 KB default) inline; longer text inline prefix plus external copy; binary, invalid UTF-8 or NUL-containing text external only; empty bodies not stored. External writes go through `IBodyStoragePersistence.WriteBody`, which owns compression and the filesystem, Azure Blob or S3 backend, and complete before the transaction opens. `FailedErrorImportsWriter` places a failed error import's body by the SQL import store's own rule, inline up to `MaxBodySizeToStore` and otherwise external only, under `FailedErrorImportEntity.ExternalBodyId`, also before the transaction opens.
+
+Invariants enforced across class boundaries:
+
+- `MigrationCheckpoint.Extend` throws unless the per-`MigrationSkipReason` counts sum exactly to the skipped count. `EFCoreMigrationTarget.AccountForEveryRow` throws unless prepared rows plus skips equal the batch size, catching rows dropped during preparation. `AlreadyPresentIn` throws when a writer over-reports. Every row is copied, skipped or already present.
+- `MigrationSkipReasonExtensions.IsBenign` is fixed: `PastRetention`, `BlankGroupComment`, `SourceStorageCheck`. Everything else is a fault, `Unknown` included.
+- `PreparedBatch.Merges` reports rows whose key collides with another under the target's collation. Writers with a text key detect them with `KeyMerges.In` or `KeyMerges.Split`, which compare with `IMigrationSqlDialect.KeyComparer` against the batch and the existing table. `FailedErrorImportsWriter`, whose key is a GUID, reports a second import of the same message in the batch, and one the table holds with another failure time. `EFCoreMigrationTarget` logs one warning per merge naming both keys, the source row kept, or the stored row, and the source row dropped. The dropped row counts as already present, and also in `MigrationWriteResult.Merged`, so the category summary `MigrationStartup.ReportWhatTheCopyLeftBehind` logs shows merges apart from the rest of already present. Every writer whose key can fold two source rows into one reports them here, or the summary understates merges.
+- `PreparedBatch.Changes` reports rows the insert adds whose stored value differs from the source's on purpose: a failed message's cut message type, dropped or blank failure groups, and failure groups one key folds together; a failed error import's missing exception or body stored empty; and a group comment on a group with no copied failed message, which the retention sweep deletes. A failed message keeping only its newest processing attempt is not a change, because every row does that by design. Writers report only rows the target does not already hold, so a re-read reports nothing twice. `EFCoreMigrationTarget` logs one warning per change after the commit, and `MigrationWriteResult.Changed` counts them. A process that stops between the commit and the log loses that batch's lines for good. `MigrationStartup.ReportWhatTheCopyLeftBehind` warns, naming both counts, when a category's merged count exceeds its already-present count, because the key comparer then disagrees with the database. `PreparedBatch.RenumberedRows` names rows the database gives new ids, and the target logs it once per copy of a category, on the batch whose checkpoint has copied nothing yet.
+- `TargetCountAtSettle` is read with `IMigrationTarget.Count` just before the save that settles a category at the end of the source, or that abandons it, and is never updated afterwards. For a required category it is exactly what the copy left in SQL: the host is closed, `TargetHoldsNoServiceControlDataCheck` started the target empty, and a second copier would move the row's version so the settle save is refused. That is why the count needs no shared transaction with the save. For an optional category it also includes what ServiceControl wrote while the copy ran.
+
+## Category states
+
+`MigrationCategoryState` has seven stored values, surfaced as four operator states:
+
+| Operator state | Stored | Meaning |
+| --- | --- | --- |
+| Copying | `NotStarted`, `InProgress`, `Blocked` | Not terminal, including a follower waiting on its predecessor and an optional category stopped by an error the next start retries |
+| Done | `Complete` | Every row copied or benignly skipped, counts reconciled |
+| Failed | `Halted`, `CompleteWithErrors` | Stays Failed until `--migration-retry` or `--migration-abandon` |
+| Abandoned | `Abandoned` | Terminal, set by the operator directly or by cascade |
+
+The required-copy refusal prints both forms for a Failed row (`EndpointSettings is Failed (Halted)`) and the stored state alone for a Copying row. Retry and abandon refusals print the operator state only.
+
+Early stops during a run:
+
+- Threshold exceeded or post-commit mismatch: `Halted`, either kind.
+- Required category exception or 30-minute stall: `Halted`.
+- Optional category exception: stays `InProgress` with `LastError`.
+
+Settlement at end of source, in order:
+
+1. Rows read this run differ from rows processed: `Halted`.
+2. Any fault skip in the checkpoint: `CompleteWithErrors`.
+3. Otherwise: `Complete`.
+
+`MigrationCategoryStateExtensions.IsFinished` (`Complete` or `Abandoned`) and `IsFailed` (`Halted` or `CompleteWithErrors`) are the single definitions, used by the engine, the required-copy refusal, the background copier, the end-of-migration guard, the ingestion gate, status, verify and both operator commands. The host opens when every required category `IsFinished`; the migration is finished when every category is.
+
+`MigrationCheckpointRules` holds the rules shared by the guard, the commands and status:
+
+- `IsOutstanding`: not finished, except an optional `NotStarted` row whose window is `0`.
+- `CanBeRetried`: an `IsFailed` row, or an optional `NotStarted` or `InProgress` row with `LastError` (which covers `RecordSourceOutage` rows). Never `Blocked` or a missing row. `MigrationOperatorCommands.Retry` rejects `EventLog` before consulting it.
+- `CanBeAbandoned`: a required row that `IsFailed` or is `InProgress` with copied plus skipped plus already-present above 0, treating an id unknown to the registry as required; an optional category in any state except `Complete` or `Abandoned`, including no row.
+
+Checkpoint schema: one row per category in `MigrationCheckpoints` (`migration_checkpoints` on PostgreSQL), primary key `CategoryId`. Columns: `State`, `Cursor`, `CopiedCount`, `SkippedCount`, `AlreadyPresentCount`, `SkipReasons` (JSON keyed by enum name; unknown names deserialize to `Unknown`, a fault), `StartedAt`, `LastProgressAt`, `SettledAt`, `LastError`, `StartedWindowSeconds`, `TargetCountAtSettle` (null until the category first settles) and `Version`, the optimistic concurrency token. No attempt counter and no decision record. `AddMigrationCheckpoints` creates the table in both providers and has not been released, so `TargetCountAtSettle` replaces the never-written `SourceTotal` column inside it rather than in a second migration. This build does not store merged or changed counts: `MigrationEngine.MergedAndChangedThisRun` holds them for the current run only, so the summary of a resumed category counts only that run's. Phase 13 adds them to the checkpoint so that verify can show them. Run-level facts are `Settings` rows under `Migration/`, such as `Migration/HostOpenedOnTarget`.
+
+## Commands
+
+Every migration command except the source report builds a host with `AddPersistence` and never calls `StartAsync`, so no hosted service runs, including the retention sweeper and the integration event dispatcher. The source report builds no host and calls `PersistenceFactory.OpenMigrationSource` directly.
+
+| Command | Class | Opens RavenDB | Reads and writes |
+| --- | --- | --- | --- |
+| `--start-data-migration` | `MigrateCommand` | Yes | Runs the required-copy checks and engine, seeds selected optional checkpoints, and exits. On success it instructs the operator to start ServiceControl; it never starts the service itself |
+| `--migration-source-report` | `MigrationSourceReportCommand` | Yes | `IMigrationSource.Describe` and `Inventory` through `MigrationSourceDescriptionPrinter`; the copy never calls either. Each `MigrationSourceFact` carries its originating setting key. `Inventory` covers every collection, including uncopied ones |
+| `--migration-dry-run` | `MigrationDryRunCommand`, `MigrationDryRunArithmetic` | Yes | `MigrationPairIsSupportedCheck`, then `MigrationStartup.RunChecksAndOpen` (both halves), so it refuses wherever a real start would. Reads `Count`, `Read`, `ReadBody`, `ReadBodyVolume`, `Inventory`, `Describe`, `IMigrationTarget.Assess` (via `EFCoreMigrationRowAssessor`) and `BatchSizeFor`. Writes no row; the body probe is the only write. Exit code 0 even when the report shows problems; a refused check throws |
+| `--migration-status` | `MigrationStatusCommand`, `MigrationStatusView` | No | `IMigrationCheckpointStore.ReadAll` and `MigrationEngineOptions.FromSettings`. Read-only, safe while ServiceControl runs |
+| `--migration-verify` | `MigrationVerifyCommand`, `MigrationVerification` | Yes | `ReadAll`, `FromSettings`, then `IMigrationSource.Count` per selected category, judged against the rows the copy read (below). A windowed category is counted from `CopiesFrom` set to `StartedAt` minus `StartedWindowSeconds`, the window the copy used, on the source side only. Never calls `IMigrationTarget.Count`. Streams every selected category, though not the bodies, so on an embedded source ServiceControl is stopped first. Exit code 1 only when a category `IsOutstanding`; rows never read on a Done category are reported, not failed |
+| `--migration-retry <category>` | `MigrationRetryCommand`, `MigrationOperatorCommands` | No | `Retry` checks `CanBeRetried` and builds the reset row; `IMigrationTarget.ResetForRetry` persists it |
+| `--migration-abandon <category>` | `MigrationAbandonCommand`, `MigrationOperatorCommands` | No | Checks `CanBeAbandoned`, then writes `Abandoned` rows through the checkpoint store only |
+
+`MigrationOperatorCommands.Retry` builds the reset row without I/O: state `NotStarted`; `Cursor`, the four counts, `SkipReasons`, `SettledAt`, `TargetCountAtSettle` and `LastError` cleared; `StartedAt` and `StartedWindowSeconds` kept. Change retry semantics there. `ResetForRetry` only persists the row it receives, in one transaction under the execution strategy. A category whose rows a re-read cannot recognise as already copied cannot be re-read idempotently: store-keyed rows come back under new keys, and throughput counts are added again. Its writer implements `IStoreKeyedCategoryWriter.DeleteCopiedRows` and the reset deletes its rows in the same transaction:
+
+- `RetryOperationsWriter`: `HistoricRetryOperations`, then `UnacknowledgedRetryOperations`.
+- `PendingIntegrationEventsWriter`: `ExternalIntegrationDispatchRequests`.
+- `LicensingThroughputWriter`: `LicensingEndpointThroughput`.
+
+All three are required categories, and `CanBeRetried` takes a required category only when it is Failed, which keeps the host closed, so the host has not opened and the target started empty. `ResetForRetry` also checks this itself: inside the reset transaction it reads the `Migration/HostOpenedOnTarget` setting, and when it is set it refuses a reset that would delete, naming the category, and deletes and saves nothing. A reset that deletes nothing, such as an optional category's, is not refused. `EventLog` is also store-keyed but copies after the host opens, when its rows are indistinguishable from live ones, so it is abandon-only.
+
+`--migration-abandon` first re-saves the named row unchanged, when it exists, to bump its version and fence off a concurrent copy. It then abandons dependants along `MigrationCategory.MustFollowIsDataLink` (`EndpointSettings` after `KnownEndpoints`, `LicensingThroughput` after `LicensingEndpoints`), deepest first, skipping `Complete` and `Abandoned` dependants and inserting `Abandoned` rows for dependants without one, and saves the named row last. `GroupComments` follows the unresolved failed messages for ordering only and is not cascaded. An optional category with no row gets a new `Abandoned` row. Every row it saves `Abandoned` carries `TargetCountAtSettle`, read just before the save, as a settle does. No domain event is raised, because ServiceControl is stopped.
+
+Both operator commands rely on `MigrationCheckpointConflictException` to detect a race with a running copy.
+
+`MigrationVerification` judges one thing per category: RavenDB now against the rows the copy read, `CopiedCount` plus `SkippedCount` plus `AlreadyPresentCount`. That sum is exactly the rows the last complete pass read, body skips included: `RunCategoryAsync` settles `Halted` when the rows a run read differ from the rows the target accounted for, a crash resume adds to the same totals, and a retry clears them. Once the source opens RavenDB only shrinks, because `RefuseWrite` refuses every client write and only RavenDB's expiry deletes.
+
+- **RavenDB higher than the sum** is rows the copy never read. Verify flags them, by category.
+- **RavenDB lower than the sum** is rows RavenDB removed after the copy read them, normal for the event log, the archive and a few unresolved messages with a stale expiry. Printed, not judged.
+- **Expiry can hide the same number of unread rows** in the categories it touches, so a flagged number is a floor.
+- **The count streams the same reader the copy used** (`RavenMigrationSource.Count`), so verify finds rows one run missed, such as a resume that skipped a range or a stream that ended early. It cannot find a reader that always misses the same rows, or a source pointed at the wrong database.
+- **No live SQL count is compared with anything.** Once the host opens, normal use rewrites most categories' tables within minutes. `TargetCountAtSettle` is printed beside the sum instead. Merged rows are printed there only once phase 13 stores their count on the checkpoint; until then they appear only in the log of the run that made them.
+- **An abandoned category's sum covers its last pass only.** Rows an earlier pass copied before a retry are in `TargetCountAtSettle` but not in the sum, so RavenDB minus the sum overstates what was never copied.
+
+For rows never read on a Done category, verify prints `ROWS NOT READ`, names the category under the table and tells the operator to keep RavenDB, because those rows exist only there. The exit code ignores them, and neither operator command takes a Done row. Whether to fix them is an [open decision](ravendb-to-sql-migration-overview.md#what-the-checks-do-not-catch).
+
+## Readers and writers
+
+Readers live at `ServiceControl.Persistence.RavenDB/DataMigration/Readers/<Category>Reader.cs` and are keyed in `RavenMigrationSource`'s reader dictionary. Writers live at `ServiceControl.Persistence.EFCore/DataMigration/Writers/<Category>Writer.cs` and are keyed in the `FrozenDictionary` initialised in `EFCoreMigrationTarget`. `MigrationCategoryCoverageTests` asserts that every registry category has both.
+
+Every reader derives from `MigrationCategoryReader<TDocument>` and every writer from `MigrationCategoryWriter<TDocument>`, and the two for one category take the same `TDocument`, the type of each row's `Document`. The reader base streams whole documents from the primary database through `WholeDocuments`, and exposes `Lifecycle` to a reader that projects or reads the throughput database itself. The writer base casts every row once and hands `PrepareDocuments` the typed documents, so a row of another type fails the batch with an `InvalidCastException` naming the category, the row and both types. Four tests hold this: `MigrationCategoryCoverageTests.Every_reader_and_its_writer_agree_on_the_document_type`, `MigrationCategoryReadersTests.Every_reader_derives_from_the_typed_base`, `MigrationCategoryWritersTests.Every_writer_derives_from_the_typed_base` and `MigrationCategoryWritersTests.Every_writer_names_its_category_and_the_row_when_a_document_is_not_its_type`.
+
+| Order | Category | Kind | Reader, writer | Notes |
+| --- | --- | --- | --- | --- |
+| 1 | `KnownEndpoints` | Required | `KnownEndpointsReader`, `KnownEndpointsWriter` | |
+| 2 | `EndpointSettings` | Required | `EndpointSettingsReader`, `EndpointSettingsWriter` | Data link to `KnownEndpoints`. Copies every setting, including one for an unknown endpoint, which `HeartbeatEndpointSettingsSyncHostedService` removes once the host opens. Reports case merges on a case-insensitive name column |
+| 3 | `MessageRedirects` | Required | `MessageRedirectsReader`, `MessageRedirectsWriter` | |
+| 4 | `Subscriptions` | Required | `SubscriptionsReader`, `SubscriptionsWriter` | Rows differing only in message-type version merge |
+| 5 | `NotificationSettings` | Required | `NotificationSettingsReader`, `NotificationSettingsWriter` | One `Settings` row via `SettingRowMapper` |
+| 6 | `TrialEndDate` | Required | `TrialEndDateReader`, `TrialEndDateWriter` | One `Settings` row via `SettingRowMapper` |
+| 7 | `RetryOperations` | Required | `RetryOperationsReader`, `RetryOperationsWriter` | Two tables: historic rows store-keyed via `StoreKeyedInsert`, unacknowledged rows via `InsertMissing`, which sizes the batch. Deletes its rows on retry |
+| 8 | `LicensingEndpoints` | Required | `LicensingEndpointsReader`, `LicensingEndpointsWriter` | Throughput database. Reads only the `EndpointDocuments` collection, through `ThroughputDocuments.Endpoint`, because the throughput database gives its documents no id prefix and also holds the settings documents. With no prefix RavenDB streams in reverse etag order and ignores `startAfter`, so `ThroughputDocuments.Endpoints` reads every endpoint, sorts the ids in ordinal order and skips past the cursor itself. Reports through `KeyMerges.In` each endpoint folded into another's key. `LicensingThroughputWriter` reports no merge for the days, because the fold is reported here |
+| 9 | `LicensingThroughput` | Required | `LicensingThroughputReader`, `LicensingThroughputWriter` | Throughput database. Data link to `LicensingEndpoints`. The reader gives one batch per endpoint from `ThroughputDocuments.Endpoints` with a batch size of one, and ignores the requested batch size, because one endpoint can hold a year or more of days. Each batch's cursor is its endpoint's id. The writer keeps the last row of a day repeated for one source endpoint, compared ordinally. `AddLicensingEndpointThroughput` splits the batch into statements and adds each day's count to the stored one, summing endpoints whose names the key column treats as the same, in one batch or across batches. A re-read is not idempotent, so a resume relies on each batch committing with its checkpoint, and a retry deletes the copied rows first |
+| 10 | `LicensingReportMasks` | Required | `LicensingReportMasksReader`, `LicensingReportMasksWriter` | Throughput database. One `Settings` row via `SettingRowMapper` |
+| 11 | `LicensedEndpointDetails` | Required | `LicensedEndpointDetailsReader`, `LicensedEndpointDetailsWriter` | Throughput database. One `Settings` row via `SettingRowMapper` |
+| 12 | `UnresolvedAndRetryIssuedFailedMessages` | Required | `FailedMessagesReader`, `FailedMessagesWriter` | Carries bodies. `FailedMessageStream` projection, `FailedMessageDocumentTranslator`. `FailedMessageStream.ResolveRetryClaims` looks up each batch's RavenDB retry claims in one request and gives every retry-issued row the `RetryClaimHeld` metadata key. The writer writes a claim only for a retry-issued message it inserts whose flag is true, so the claims mirror RavenDB's, and fails the batch when the flag is missing or not a bool |
+| 13 | `PendingIntegrationEvents` | Required | `PendingIntegrationEventsReader`, `PendingIntegrationEventsWriter` | Store-keyed via `StoreKeyedInsert`. Deletes its rows on retry |
+| 14 | `CustomChecks` | Required | `CustomChecksReader`, `CustomChecksWriter` | The RavenDB reader flags a check whose id and category match one of the RavenDB persister's own six checks with the `SourceStorageCheck` metadata key, and the writer skips a flagged row as `SourceStorageCheck` without knowing any id. A RavenDB audit instance's dirty memory result reports under another category, so it is copied |
+| 15 | `FailedErrorImports` | Required | `FailedErrorImportsReader`, `FailedErrorImportsWriter` | Carries bodies inline in `Read`, never calls `ReadBody` |
+| 16 | `GroupComments` | Required | `GroupCommentsReader`, `GroupCommentsWriter` | Ordered after `UnresolvedAndRetryIssuedFailedMessages`, not a data link. Skips blanks as `BlankGroupComment`. Reports group ids that differ only in trailing spaces as merges on SQL Server. Reports each copied comment on a group with no copied failed message as a change, because the retention sweep deletes it |
+| 1 | `EventLog` | Optional | `EventLogReader`, `EventLogWriter` | Windowed, store-keyed, abandon-only. Skips as `PastRetention` |
+| 2 | `ArchivedAndResolvedFailedMessages` | Optional | `ArchivedAndResolvedFailedMessagesReader`, `ArchivedAndResolvedFailedMessagesWriter` | Windowed, carries bodies, shares `FailedMessagesWriter` preparation. Skips as `PastRetention` |
+
+## Progress reporting
+
+There is no migration custom check: custom checks are being removed from ServiceControl, so progress uses the activity feed, the log and `--migration-status` only.
+
+- `MigrationProgressReporter` raises `MigrationStarted`, `MigrationCategoryHalted` (for both Failed states), `MigrationFinished` (carrying `CategoriesAbandoned`) and `MigrationSourceUnreachable`, mapped into the ServicePulse activity feed by their `EventLogMappingDefinition` classes. It logs and swallows publish failures but propagates cancellation. All four are raised from `OptionalCategoryCopier`, so they cover the background copy only, and a Failed required category produces no activity-feed entry; its record is the startup refusal and the log.
+- `MigrationSourceUnreachable` is raised once per start when `OptionalCategoryCopier` idles on a source outage, its own failed open or one the required start recorded, carrying the error and the optional categories left waiting.
+- Completed checkpoints stop the online copier automatically. No enable setting or final configuration edit is needed.
+- `ClosedWindowProgress` logs running required categories every 30 seconds while the host is closed.
+- `--migration-status` reports state, progress, last error and available commands per category at any time, and whether migration can be turned off.

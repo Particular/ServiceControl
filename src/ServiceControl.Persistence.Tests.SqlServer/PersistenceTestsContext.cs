@@ -50,13 +50,15 @@ public partial class PersistenceTestsContext : IPersistenceTestsContext
         hostBuilder.Services.AddSingleton<TimeProvider>(FakeTime);
     }
 
-    public async Task PostSetup(IHost host)
+    public async Task InstallSchema(IHost host)
     {
         this.host = host;
 
         using var scope = host.Services.CreateScope();
         await scope.ServiceProvider.GetRequiredService<IDatabaseMigrator>().ApplyMigrations();
     }
+
+    public Task PostSetup(IHost host) => Task.CompletedTask;
 
     public async Task TearDown()
     {

@@ -62,6 +62,24 @@ namespace Particular.ServiceControl.Hosting
                 }
             };
 
+            var migrationOptions = new OptionSet
+            {
+                {
+                    "start-data-migration",
+                    "Copy required migration data with ServiceControl stopped",
+                    s => Command = typeof(MigrateCommand)
+                }
+            };
+
+            var migrationSourceReportOptions = new OptionSet
+            {
+                {
+                    "migration-source-report",
+                    "Report what a migration would read from the source persistence",
+                    s => Command = typeof(MigrationSourceReportCommand)
+                }
+            };
+
             try
             {
                 // Parsed before setup returns, so setup can refuse to provision an ingestion-only worker.
@@ -88,9 +106,27 @@ namespace Particular.ServiceControl.Hosting
                     return;
                 }
 
+                migrationOptions.Parse(args);
+
+                if (Command == typeof(MigrateCommand))
+                {
+                    if (ErrorIngestionOnly)
+                    {
+                        throw new Exception("--start-data-migration cannot run with --error-ingestion-only. Stop every instance before running the offline migration.");
+                    }
+                    return;
+                }
+
                 if (ErrorIngestionOnly)
                 {
                     Command = typeof(ErrorIngestionOnlyCommand);
+                    return;
+                }
+
+                migrationSourceReportOptions.Parse(args);
+
+                if (Command == typeof(MigrationSourceReportCommand))
+                {
                     return;
                 }
 

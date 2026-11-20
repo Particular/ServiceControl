@@ -6,7 +6,7 @@ namespace ServiceControl.Persistence.RavenDB.Editing
 
     class NotificationsDataStore(IRavenSessionProvider sessionProvider) : INotificationsDataStore
     {
-        const string SingleDocumentId = "NotificationsSettings/All";
+        internal const string SingleDocumentId = "NotificationsSettings/All";
 
         public async Task<NotificationsSettings> LoadSettings(CancellationToken cancellationToken = default)
         {

@@ -12,6 +12,9 @@
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.AcceptanceTesting\ServiceControl.AcceptanceTesting.csproj" />
     <ProjectReference Include="..\ServiceControl.Persistence.EFCore.SqlServer\ServiceControl.Persistence.EFCore.SqlServer.csproj" />
+    <!-- Built so its manifest is where DevelopmentPersistenceLocations looks; not copied, or its persistence.manifest would collide with this project's own. -->
+    <ProjectReference Include="..\ServiceControl.Persistence.RavenDB\ServiceControl.Persistence.RavenDB.csproj" ReferenceOutputAssembly="false" Private="false" />
+    <ProjectReference Include="..\ServiceControl.RavenDB\ServiceControl.RavenDB.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
     <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
@@ -20,6 +23,7 @@
   <ItemGroup>
     <PackageReference Include="GitHubActionsTestLogger" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="NServiceBus.Heartbeat" />
     <PackageReference Include="NServiceBus.SagaAudit" />
@@ -31,6 +35,9 @@
 
   <ItemGroup>
     <Compile Include="..\ServiceControl.AcceptanceTests\**\*.cs" LinkBase="Shared" />
+    <Compile Include="..\ServiceControl.Migration.AcceptanceTests\**\*.cs" LinkBase="Migration" />
+    <Compile Include="..\ServiceControl.Persistence.Tests\IngestedFailure.cs" />
+    <Compile Include="..\ServiceControl.Persistence.Tests\EFCore\InMemoryBodyStoragePersistence.cs" />
     <Compile Include="..\ServiceControl.Persistence.Tests.SqlServer\SqlServerSharedContainer.cs" />
     <Compile Include="..\ServiceControl.Persistence.Tests.SqlServer\TestSchema.cs" />
     <Compile Include="..\ServiceControl.Persistence.Tests.SqlServer\StopSharedSqlServer.cs" />
