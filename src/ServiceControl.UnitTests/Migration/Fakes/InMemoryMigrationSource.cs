@@ -75,7 +75,7 @@ public sealed class InMemoryMigrationSource : IMigrationSource
 
     public Task Open(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
-    public IReadOnlyList<IMigrationStartupCheck> ContributedChecks() => [];
+    public IReadOnlyList<IMigrationStartupCheck> ContributedChecks(MigrationCategoryKind copying) => [];
 
     public Task<MigrationSourceDescription> Describe(CancellationToken cancellationToken = default) => Task.FromResult(Description);
 

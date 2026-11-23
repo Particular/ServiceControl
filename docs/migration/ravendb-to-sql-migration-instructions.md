@@ -72,7 +72,7 @@ Get the data ready:
 
 - Let retries finish where you can. ServiceControl stays closed until every retry-issued message and every message that holds a retry claim is copied, and a retry-issued message never ages out. Unresolved messages without a claim copy after ServiceControl opens, so a large unresolved backlog does not lengthen the outage, but it does lengthen the background copy. The copy reads archived and resolved messages only after ServiceControl opens. The exception is a RavenDB index that is broken or leaves out some failed messages: then the copy reads every failed message during the outage, logs a warning, and a large archive makes the outage longer too.
 - Run `--import-failed-errors` while the instance is still on RavenDB. A failed error import is a message that ServiceControl took off the error queue but failed to store. The migration copies these either way, but imported ones arrive as ordinary failed messages.
-- Let retry, archive and unarchive operations finish on RavenDB before stopping ServiceControl. Migration refuses persisted batches, the retry forwarding marker, and archive or unarchive operation documents. Stopping ServiceControl leaves unfinished work persisted.
+- Let retry, archive and unarchive operations finish on RavenDB before stopping ServiceControl. The offline command refuses persisted batches, the retry forwarding marker, and archive or unarchive operation documents. Stopping ServiceControl leaves unfinished work persisted.
 
 Keep these settings as they are:
 
@@ -210,11 +210,11 @@ ServiceControl does not start, and its log names the check that failed. Nothing 
 
 ### RavenDB holds unfinished operations
 
-The refusal names the unfinished operation families and an example document id from each. The migration does not copy active operation state. Completed retry history and outstanding retry claims do not cause this refusal.
+The offline command makes this refusal before it copies anything. The refusal names the unfinished operation families and an example document id from each. The migration does not copy active operation state. Completed retry history and outstanding retry claims do not cause this refusal.
 
 1. Set `ServiceControl/PersistenceType` back to RavenDB.
 2. Start ServiceControl.
-3. Request the same group action again if an archive or unarchive operation does not resume.
+3. Let retry batches resume when ServiceControl starts. An archive or unarchive operation resumes only when you request the same group action again. If that is no longer possible, for example because no failed messages remain in the group, contact Particular support. Do not delete the leftover documents yourself.
 4. Wait until the retry, archive and unarchive operations finish.
 5. Stop ServiceControl.
 6. Set `ServiceControl/PersistenceType` back to the SQL target.

@@ -33,7 +33,7 @@ sealed class UnfinishedOperationsCheck(RavenReadOnlySourceLifecycle lifecycle) :
         if (unfinished.Count > 0)
         {
             throw new InvalidOperationException(
-                $"The RavenDB database '{lifecycle.Settings.DatabaseName}' holds unfinished operations: {string.Join("; ", unfinished)}. The migration does not copy them. Start ServiceControl on RavenDB again, wait until its retry, archive and unarchive operations have finished, stop it, and run --start-data-migration again. If an archive or unarchive operation does not resume, request the same group action again on RavenDB. Stopping ServiceControl does not finish them.");
+                $"The RavenDB database '{lifecycle.Settings.DatabaseName}' holds unfinished operations: {string.Join("; ", unfinished)}. The migration does not copy them. Start ServiceControl on RavenDB again, wait until its retry, archive and unarchive operations have finished, stop it, and run --start-data-migration again. Retry batches resume when ServiceControl starts. An archive or unarchive operation resumes only when the same group action is requested again on RavenDB. If that is no longer possible, for example because no failed messages remain in the group, contact Particular support. Stopping ServiceControl does not finish them.");
         }
     }
 

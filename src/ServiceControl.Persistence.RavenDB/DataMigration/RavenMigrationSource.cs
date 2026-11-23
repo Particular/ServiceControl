@@ -46,7 +46,8 @@ sealed class RavenMigrationSource(RavenReadOnlySourceLifecycle lifecycle) : IMig
 
     public Task Open(CancellationToken cancellationToken = default) => lifecycle.Open(cancellationToken);
 
-    public IReadOnlyList<IMigrationStartupCheck> ContributedChecks() => [new UnfinishedOperationsCheck(lifecycle)];
+    public IReadOnlyList<IMigrationStartupCheck> ContributedChecks(MigrationCategoryKind copying) =>
+        copying == MigrationCategoryKind.Required ? [new UnfinishedOperationsCheck(lifecycle)] : [];
 
     public async Task<MigrationSourceDescription> Describe(CancellationToken cancellationToken = default)
     {

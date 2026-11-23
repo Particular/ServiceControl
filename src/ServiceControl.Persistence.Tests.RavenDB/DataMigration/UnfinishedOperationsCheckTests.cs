@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using ServiceControl.Persistence.DataMigration;
 using ServiceControl.Persistence.RavenDB;
 using ServiceControl.Persistence.RavenDB.Recoverability;
 using ServiceControl.Recoverability;
@@ -15,7 +16,16 @@ class UnfinishedOperationsCheckTests : RavenMigrationSourceTestBase
     {
         await using var source = await OpenMigrationSource();
 
-        Assert.That(source.ContributedChecks().Select(check => check.Name), Has.Member("RavenDB holds no unfinished retry, archive or unarchive operations"));
+        Assert.That(source.ContributedChecks(MigrationCategoryKind.Required).Select(check => check.Name), Has.Member("RavenDB holds no unfinished retry, archive or unarchive operations"));
+    }
+
+    [Test]
+    public async Task The_source_contributes_no_check_to_the_online_copy()
+    {
+        await Seed("retry batch");
+        await using var source = await OpenMigrationSource();
+
+        Assert.That(source.ContributedChecks(MigrationCategoryKind.Optional), Is.Empty, "a refusal after ServiceControl opened on SQL would advise going back to RavenDB");
     }
 
     [Test]
@@ -76,7 +86,9 @@ class UnfinishedOperationsCheckTests : RavenMigrationSourceTestBase
             Assert.That(refusal.Message, Does.Contain(documentId), "the operator is told which document is unfinished");
             Assert.That(refusal.Message, Does.Contain("Start ServiceControl on RavenDB again"));
             Assert.That(refusal.Message, Does.Contain("--start-data-migration again"));
-            Assert.That(refusal.Message, Does.Contain("request the same group action again on RavenDB"));
+            Assert.That(refusal.Message, Does.Contain("requested again on RavenDB"));
+            Assert.That(refusal.Message, Does.Contain("contact Particular support"));
+            Assert.That(refusal.Message, Does.Not.Contain("delete"));
         }
     }
 
@@ -100,7 +112,7 @@ class UnfinishedOperationsCheckTests : RavenMigrationSourceTestBase
 
     static async Task RunChecks(Persistence.DataMigration.IMigrationSource source)
     {
-        foreach (var check in source.ContributedChecks())
+        foreach (var check in source.ContributedChecks(MigrationCategoryKind.Required))
         {
             await check.Run();
         }

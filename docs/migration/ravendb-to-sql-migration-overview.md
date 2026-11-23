@@ -166,7 +166,7 @@ There are nineteen *categories*: fifteen required and four optional.
 **Never copied, because nothing needs them:**
 
 - RavenDB index definitions.
-- In-flight retry, archive and unarchive work: `RetryBatches`, `RetryBatchNowForwardings`, `ArchiveOperations`, `UnarchiveOperations`, `ArchiveBatches` and `UnarchiveBatches`. Migration refuses while any of these documents remain. Stopping ServiceControl does not finish persisted work; restart on RavenDB, let the operations finish, stop it, and retry migration.
+- In-flight retry, archive and unarchive work: `RetryBatches`, `RetryBatchNowForwardings`, `ArchiveOperations`, `UnarchiveOperations`, `ArchiveBatches` and `UnarchiveBatches`. The offline command refuses while any of these documents remain. Stopping ServiceControl does not finish persisted work; restart on RavenDB, let the operations finish, stop it, and retry migration. Retry batches resume when ServiceControl starts. An archive or unarchive operation resumes only when the same group action is requested again; if that is impossible, contact Particular support.
 - The `ConnectedApplications` document, written only by versions 6.0 and 6.1. Nothing has read it since 6.2.
 - Broker and audit service version details, which refill on the next throughput collection.
 - Failed message edit locks, which stop one failed message being edited twice. See [Open decisions](#values-that-change-or-merge-in-sql).
@@ -265,7 +265,7 @@ In this order, cheapest first:
 
 9. The source holds no persisted retry batches, forwarding marker, archive operations or batches, or unarchive operations or batches. The check names an example document from each unfinished family. Completed retry history and outstanding retry claims do not cause this refusal.
 
-Checks stop at the first refusal, which names the check. If persisted operations remain, start ServiceControl on RavenDB again, let them finish, stop it, and rerun `--start-data-migration`.
+Checks stop at the first refusal, which names the check. Check 9 runs only offline. If persisted operations remain, start ServiceControl on RavenDB again, let them finish, stop it, and rerun `--start-data-migration`.
 
 ```mermaid
 flowchart LR
