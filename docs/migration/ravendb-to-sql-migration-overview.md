@@ -18,7 +18,7 @@
 
 - **Retention does most of the work.** Error retention is 5 to 45 days and event retention defaults to 14 days, so most of RavenDB ages out on its own within weeks.
 - **What the instance needs to open is copied while it is closed.** This is the *required* data. Most of it is small.
-- **Everything else is copied in the background while it runs.** This is the *optional* data: the unresolved failed messages, the event log and archived and resolved messages.
+- **Everything else is copied in the background while it runs.** This is the *optional* data: the unresolved failed messages, the group comments, the event log and archived and resolved messages.
 - **Anything not copied ages out of RavenDB**, and the customer deletes the old database when ready.
 - **The failed messages copied during the outage are every retry-issued message, whether or not its retry claim remains, and every other failed message that still holds a retry claim.** Unresolved messages that hold no claim copy in the background, however old they are, so a big unresolved backlog does not lengthen the outage.
 - **A big archive does not make the outage longer, as long as RavenDB has indexed every failed message.** The copy finds retry-issued messages through a RavenDB index, and waits for it to catch up first. If the index is broken or incomplete, the copy reads every failed message instead and logs a warning. Then a big archive does make the outage longer.
@@ -139,7 +139,7 @@ The copy goes from RavenDB, through the ServiceControl host, to SQL, because doc
 
 ### What data moves
 
-There are nineteen *categories*: sixteen required and three optional.
+There are nineteen *categories*: fifteen required and four optional.
 
 | Category | Kind | Why |
 | --- | --- | --- |
@@ -158,8 +158,8 @@ There are nineteen *categories*: sixteen required and three optional.
 | Integration events still waiting to be sent | Required | Each is an event a subscriber has not received yet. There are only any if the old instance fell behind or could not reach the broker. They are sent once ServiceControl opens, later than they would have been, except a `MessageFailed` event for a message archived or resolved before the move (see [Rows removed after the copy](#rows-removed-after-the-copy)). RavenDB sends them in no particular order anyway, so no ordering is lost |
 | Custom checks, with their last status | Required | Not every check reports again. An endpoint that is down never does, and a check with no repeat interval reports only when its endpoint starts. Leaving one out could hide a known failure until that endpoint restarts. Results of the six checks the RavenDB persister runs about its own database, matched on id and category, are left out, as harmless skips |
 | Failed error imports, with bodies | Required | Messages taken off the error queue but not ingested. They exist nowhere else and never expire. After the move the "Error Message Ingestion" custom check keeps flagging them and `--import-failed-errors` imports them into SQL. Importing them on RavenDB first is better still |
-| Group comments | Required | Copied after the required failed messages and never waiting for an optional category. Blank comments are not copied. A comment on a group whose messages have not reached SQL yet is removed shortly after ServiceControl opens, an accepted edge case, see [Rows removed after the copy](#rows-removed-after-the-copy) |
 | Unresolved failed messages, with bodies | Optional | Copied once ServiceControl has opened, whatever the age of the message, because an operator is waiting on each one. It has no window and no setting turns it off. A message that already holds a retry claim copied with the required category, so it counts as already present. An existing SQL row always wins, see [Writing to SQL](#writing-to-sql). Group retry, archive and unarchive act only on the messages copied so far, an accepted edge case |
+| Group comments | Optional | Copied in the background right after the unresolved failed messages, before the event log and the archived and resolved messages. It has no window and no setting turns it off. A comment is missing from SQL until this copy reaches it. Blank comments are not copied. The next retention sweep removes a copied comment on a group with no failed message in SQL, see [Rows removed after the copy](#rows-removed-after-the-copy) |
 | Event log | Optional | The history behind the ServicePulse activity feed. On a busy instance it holds a row for every failure, retry and submission |
 | Archived and resolved failed messages, with bodies | Optional | The biggest category by far, and most of the copying time |
 
@@ -178,7 +178,7 @@ There are nineteen *categories*: sixteen required and three optional.
 
 ### Optional data windows
 
-- **Each windowed optional category copies only rows inside its *window*:** events raised within it, or messages archived or resolved within it. The unresolved failed messages have no window. The migration always selects that category and copies every unresolved message however old.
+- **Each windowed optional category copies only rows inside its *window*:** events raised within it, or messages archived or resolved within it. The unresolved failed messages and the group comments have no window. The migration always selects both categories and copies every unresolved message however old.
 - **The window defaults to the instance's own retention period**: `ServiceControl/EventRetentionPeriod` for the event log, `ServiceControl/ErrorRetentionPeriod` for archived and resolved messages. So by default everything RavenDB still holds is copied.
 - **`0` turns a category off before it starts.** A longer window than the retention period copies nothing extra, because older rows would only be deleted by SQL's clean-up.
 - **The window counts back from when the category first started copying**, which the checkpoint records, so a restart copies the same window rather than one that has slid forward.
@@ -384,7 +384,7 @@ Stop ServiceControl before either command. In a container, run it as a one-off `
 
 - **A required category can be abandoned once it has started.** One that never ran cannot, so nothing required is given up blind. If RavenDB is gone first, point back or start over.
 - **An optional category can be abandoned at any time.** That is how to stop a big optional copy short, or get out when RavenDB is gone.
-- **Abandoning cascades** to throughput history (from licensing endpoint records) and endpoint settings (from known endpoints), and the command names each. Group comments are not abandoned with unresolved failed messages.
+- **Abandoning cascades** to throughput history (from licensing endpoint records) and endpoint settings (from known endpoints), and the command names each. Group comments are not abandoned with unresolved failed messages, but they stay Copying until the unresolved failed messages are Done or Abandoned.
 - **A category that failed only on [skips no retry can fix](#skipped-rows) should be abandoned, not retried.** If it stopped early at the threshold, raise the threshold and retry first, because abandoning gives up every unread row too.
 
 > [!IMPORTANT]
@@ -501,7 +501,7 @@ The dry run counts the subscription and endpoint settings merges before anything
 
 ### Rows removed after the copy
 
-- **A group comment on a group that has no failed message in SQL is removed soon after ServiceControl opens**, because the retention sweep deletes a comment whose group has no row. The group has none when its messages are unresolved without a retry claim and the background copy has not reached them, when they are archived or resolved, when they are gone from RavenDB, or when the copy skipped them. The copy names each such comment, in a warning starting `Changed GroupComment/<group id> in category GroupComments on the way into SQL: The group '<group id>' has no copied failed message`, which also quotes the whole comment. This loss is accepted for groups the background copy has not reached yet.
+- **The next retention sweep removes a copied group comment whose group has no failed message in SQL**, because the sweep deletes a comment whose group has no row. The group has none when its messages are archived or resolved, when they are gone from RavenDB, or when the copy skipped them. Comments wait until the unresolved failed messages category is Done or Abandoned, so waiting for that copy alone does not cause comment loss. Abandoning it can leave groups without messages in SQL. Nothing keeps a comment on a group with only archived or resolved messages, even when those messages copy later. The copy names each such comment, in a warning starting `Changed GroupComment/<group id> in category GroupComments on the way into SQL: The group '<group id>' has no copied failed message`, which also quotes the whole comment.
 - **A `MessageFailed` event still waiting to be sent for a message archived or resolved before the move is never sent.** ServiceControl looks the message up when it sends the event. Archived and resolved messages arrive only with the background copy, so the lookup finds nothing, and the event is deleted with no log line. RavenDB would have sent it. The same lookup can fail for an unresolved message the background copy has not reached yet, an accepted edge case.
 - **Unresolved messages from version 6.18 or earlier can expire during the copy.** On those versions, a message that failed again after being archived or resolved kept its expiry. One deleted before the copy reads it is not copied and not counted. No log line names these messages yet.
 
@@ -523,7 +523,7 @@ The dry run counts the subscription and endpoint settings merges before anything
 
 - **Category:** one kind of data copied as a unit, such as known endpoints or the event log.
 - **Required category:** one ServiceControl needs the moment it opens, so it copies while ServiceControl is closed.
-- **Optional category:** one copied in the background after ServiceControl opens. An optional category other than the unresolved failed messages can be shortened or turned off before it starts.
+- **Optional category:** one copied in the background after ServiceControl opens. An optional category other than the unresolved failed messages and the group comments can be shortened or turned off before it starts.
 - **Window:** how far back an optional category copies.
 - **Closed period:** the time ServiceControl is not serving traffic because the required copy is running.
 - **Checkpoint:** the row in SQL recording one category's progress, saved in the same transaction as the rows it describes.

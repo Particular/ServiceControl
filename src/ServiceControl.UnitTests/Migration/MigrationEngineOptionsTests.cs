@@ -35,7 +35,7 @@ class MigrationEngineOptionsTests
             Assert.That(options.ThrottlePause, Is.EqualTo(TimeSpan.FromMilliseconds(100)));
             Assert.That(options.HaltThresholdPercent, Is.EqualTo(5));
             Assert.That(options.HaltThresholdMinimum, Is.EqualTo(100));
-            Assert.That(options.SelectedOptionalCategoryIds, Is.EquivalentTo(new[] { MigrationCategoryIds.UnresolvedFailedMessages, MigrationCategoryIds.EventLog, MigrationCategoryIds.ArchivedAndResolvedFailedMessages }), "both windowed optional categories are copied unless turned off, and the unresolved failed messages always are");
+            Assert.That(options.SelectedOptionalCategoryIds, Is.EquivalentTo(new[] { MigrationCategoryIds.UnresolvedFailedMessages, MigrationCategoryIds.GroupComments, MigrationCategoryIds.EventLog, MigrationCategoryIds.ArchivedAndResolvedFailedMessages }), "both windowed optional categories are copied unless turned off, and the unresolved failed messages and the group comments always are");
             Assert.That(options.EventLogWindow, Is.EqualTo(EventRetention), "the event log window defaults to the event retention period");
             Assert.That(options.ArchivedAndResolvedFailedMessagesWindow, Is.EqualTo(ErrorRetention), "the archived and resolved window defaults to the error retention period");
             Assert.That(options.BodyRetryBackoff, Is.EqualTo(TimeSpan.FromMilliseconds(200)));
@@ -60,7 +60,7 @@ class MigrationEngineOptionsTests
             Assert.That(options.HaltThresholdMinimum, Is.EqualTo(50));
             Assert.That(options.EventLogWindow, Is.EqualTo(TimeSpan.FromDays(2)));
             Assert.That(options.ArchivedAndResolvedFailedMessagesWindow, Is.EqualTo(TimeSpan.FromDays(5.5)));
-            Assert.That(options.SelectedOptionalCategoryIds, Is.EquivalentTo(new[] { MigrationCategoryIds.UnresolvedFailedMessages, MigrationCategoryIds.EventLog, MigrationCategoryIds.ArchivedAndResolvedFailedMessages }));
+            Assert.That(options.SelectedOptionalCategoryIds, Is.EquivalentTo(new[] { MigrationCategoryIds.UnresolvedFailedMessages, MigrationCategoryIds.GroupComments, MigrationCategoryIds.EventLog, MigrationCategoryIds.ArchivedAndResolvedFailedMessages }));
         }
     }
 
@@ -72,16 +72,16 @@ class MigrationEngineOptionsTests
 
         var options = Read();
 
-        Assert.That(options.SelectedOptionalCategoryIds, Is.EquivalentTo(new[] { MigrationCategoryIds.UnresolvedFailedMessages, stillSelected }));
+        Assert.That(options.SelectedOptionalCategoryIds, Is.EquivalentTo(new[] { MigrationCategoryIds.UnresolvedFailedMessages, MigrationCategoryIds.GroupComments, stillSelected }));
     }
 
     [Test]
-    public void The_unresolved_failed_messages_are_selected_when_both_windows_are_zero()
+    public void The_unresolved_failed_messages_and_the_group_comments_are_selected_when_both_windows_are_zero()
     {
         Environment.SetEnvironmentVariable("SERVICECONTROL_MIGRATION_EVENTLOGWINDOW", "0");
         Environment.SetEnvironmentVariable("SERVICECONTROL_MIGRATION_ARCHIVEDANDRESOLVEDFAILEDMESSAGESWINDOW", "0");
 
-        Assert.That(Read().SelectedOptionalCategoryIds, Is.EqualTo(new[] { MigrationCategoryIds.UnresolvedFailedMessages }), "unresolved messages have no window to turn off");
+        Assert.That(Read().SelectedOptionalCategoryIds, Is.EqualTo(new[] { MigrationCategoryIds.UnresolvedFailedMessages, MigrationCategoryIds.GroupComments }), "neither has a window to turn off");
     }
 
     [TestCase("a week")]

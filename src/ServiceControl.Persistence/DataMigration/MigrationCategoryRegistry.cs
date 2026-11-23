@@ -47,12 +47,12 @@ public static class MigrationCategoryRegistry
         new(MigrationCategoryIds.PendingIntegrationEvents, MigrationCategoryKind.Required, CarriesBodies: false, Order: 13),
         new(MigrationCategoryIds.CustomChecks, MigrationCategoryKind.Required, CarriesBodies: false, Order: 14),
         new(MigrationCategoryIds.FailedErrorImports, MigrationCategoryKind.Required, CarriesBodies: true, Order: 15),
-        new(MigrationCategoryIds.GroupComments, MigrationCategoryKind.Required, CarriesBodies: false, Order: 16, MustFollow: MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages),
 
         // Optional, copied in the background once the host is open.
         new(MigrationCategoryIds.UnresolvedFailedMessages, MigrationCategoryKind.Optional, CarriesBodies: true, Order: 1),
-        new(MigrationCategoryIds.EventLog, MigrationCategoryKind.Optional, CarriesBodies: false, Order: 2),
-        new(MigrationCategoryIds.ArchivedAndResolvedFailedMessages, MigrationCategoryKind.Optional, CarriesBodies: true, Order: 3),
+        new(MigrationCategoryIds.GroupComments, MigrationCategoryKind.Optional, CarriesBodies: false, Order: 2, MustFollow: MigrationCategoryIds.UnresolvedFailedMessages),
+        new(MigrationCategoryIds.EventLog, MigrationCategoryKind.Optional, CarriesBodies: false, Order: 3),
+        new(MigrationCategoryIds.ArchivedAndResolvedFailedMessages, MigrationCategoryKind.Optional, CarriesBodies: true, Order: 4),
     ];
 
     public static MigrationCategory? Find(string id) => All.FirstOrDefault(c => c.Id == id);

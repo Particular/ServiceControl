@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using ServiceControl.Hosting.Commands;
 using ServiceControl.MessageFailures;
 using ServiceControl.Persistence.DataMigration;
 using ServiceControl.Persistence.Infrastructure;
@@ -44,6 +45,30 @@ class GroupCommentsMigrationTests : MigrationAcceptanceTest
             Assert.That(comments[kept.Groups.Single().Id], Is.EqualTo("Waiting on the payments team"), "ServicePulse's group list shows the comment on the group it was written for");
             Assert.That(new[] { cleared, neverWritten, spaces }.Select(failure => comments[failure.Groups.Single().Id]), Is.All.Null, "the product shows no comment for a group whose comment was blank");
         }
+    }
+
+    [Test]
+    public async Task A_comment_on_an_unresolved_group_survives_a_retention_sweep_between_the_offline_and_online_copies()
+    {
+        var unresolved = new IngestedFailure();
+        var groupId = unresolved.Groups.Single().Id;
+        await SeedSourceWithBodies((unresolved.ToFailedMessage(), unresolved.Body, unresolved.ContentType));
+        await SeedSourceGroupComments((groupId, "Waiting on the payments team"));
+        MigrationSettings();
+
+        await MigrateCommand.Run(Settings, AllowingAnUnreleasedMigration());
+
+        // The sweep that runs once ServiceControl opens, before the background copy has reached the unresolved message.
+        await RunRetentionSweep();
+        await RunHostUntilTheApiAnswers();
+        await WaitUntil(
+            async () => (await ReadCheckpoint(MigrationCategoryIds.GroupComments))?.State.IsFinished() == true,
+            "the group comments copy finished",
+            TimeSpan.FromMinutes(1));
+        await RunRetentionSweep();
+
+        var comments = (await GroupsStore.GetUnresolvedGroupsByClassifier(unresolved.Groups.Single().Type, null, new PagingInfo())).ToDictionary(view => view.Id, view => view.Comment);
+        Assert.That(comments[groupId], Is.EqualTo("Waiting on the payments team"));
     }
 
     // The prefix is retyped because this project cannot reference the RavenDB persister that declares it.

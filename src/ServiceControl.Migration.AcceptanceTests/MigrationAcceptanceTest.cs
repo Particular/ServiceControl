@@ -117,9 +117,11 @@ abstract class MigrationAcceptanceTest
 
         var targetServiceCollection = new ServiceCollection();
         targetServiceCollection.AddLogging();
+        targetServiceCollection.AddMetrics();
         targetServiceCollection.AddPersistence(Settings);
         targetServiceCollection.AddSingleton<IBodyStoragePersistence>(RecordedBodies);
         targetServiceCollection.AddSingleton(new NServiceBus.CriticalError((_, _) => Task.CompletedTask));
+        targetServiceCollection.AddSingleton<IHostApplicationLifetime, UnstartedApplicationLifetime>();
         targetServices = targetServiceCollection.BuildServiceProvider();
 
         Target = targetServices.GetRequiredService<IMigrationTarget>();
@@ -588,6 +590,24 @@ abstract class MigrationAcceptanceTest
     protected ExternalIntegrationRequestsDataStore ExternalIntegrationStore => targetServices.GetRequiredService<ExternalIntegrationRequestsDataStore>();
     protected ICustomChecksDataStore CustomChecks => targetServices.GetRequiredService<ICustomChecksDataStore>();
     protected IFailedErrorImportDataStore FailedImportStore => targetServices.GetRequiredService<IFailedErrorImportDataStore>();
+    // Resolved from the target services, whose hosted sweeper never starts, so a test decides when a sweep runs.
+    protected async Task RunRetentionSweep()
+    {
+        var sweeper = targetServices.GetRequiredService<IRetentionSweeper>();
+        var attempt = sweeper.TryStartManualSweep(null, null);
+        Assert.That(attempt.Outcome, Is.EqualTo(RetentionSweepStatus.Started));
+        await WaitUntil(() => Task.FromResult(!sweeper.GetStatus().IsRunning), "the retention sweep finished", TimeSpan.FromMinutes(1));
+        Assert.That(sweeper.GetStatus().LastOutcome, Is.EqualTo(RetentionSweepOutcome.Succeeded));
+    }
+
+    sealed class UnstartedApplicationLifetime : IHostApplicationLifetime
+    {
+        public CancellationToken ApplicationStarted => CancellationToken.None;
+        public CancellationToken ApplicationStopping => CancellationToken.None;
+        public CancellationToken ApplicationStopped => CancellationToken.None;
+        public void StopApplication() { }
+    }
+
     protected IGroupsDataStore GroupsStore => targetServices.GetRequiredService<IGroupsDataStore>();
 
     // Built by hand, because its DI constructor needs NServiceBus settings the target services do not have.

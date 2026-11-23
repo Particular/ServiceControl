@@ -36,7 +36,7 @@ class MigrationCategoryRegistryTests
             "NotificationSettings", "TrialEndDate", "RetryOperations",
             "LicensingEndpoints", "LicensingThroughput", "LicensingReportMasks",
             "LicensedEndpointDetails", "UnresolvedAndRetryIssuedFailedMessages",
-            "PendingIntegrationEvents", "CustomChecks", "FailedErrorImports", "GroupComments"
+            "PendingIntegrationEvents", "CustomChecks", "FailedErrorImports"
         }));
     }
 
@@ -51,7 +51,7 @@ class MigrationCategoryRegistryTests
 
         Assert.That(optionalIds, Is.EqualTo(new[]
         {
-            "UnresolvedFailedMessages", "EventLog", "ArchivedAndResolvedFailedMessages"
+            "UnresolvedFailedMessages", "GroupComments", "EventLog", "ArchivedAndResolvedFailedMessages"
         }));
     }
 
@@ -71,7 +71,7 @@ class MigrationCategoryRegistryTests
             ["EndpointSettings"] = "KnownEndpoints",
             // A group comment whose failed messages have not arrived reads as an orphan to the
             // retention sweeper, which deletes it.
-            ["GroupComments"] = "UnresolvedAndRetryIssuedFailedMessages"
+            ["GroupComments"] = "UnresolvedFailedMessages"
         }));
     }
 
@@ -84,12 +84,13 @@ class MigrationCategoryRegistryTests
     }
 
     [Test]
-    public void The_unresolved_failed_messages_are_copied_after_the_host_opens_and_the_group_comments_do_not_wait_for_them()
+    public void The_group_comments_are_copied_after_the_host_opens_and_after_the_unresolved_failed_messages()
     {
         using (Assert.EnterMultipleScope())
         {
             Assert.That(MigrationCategoryRegistry.Find(MigrationCategoryIds.UnresolvedFailedMessages)?.Kind, Is.EqualTo(MigrationCategoryKind.Optional));
-            Assert.That(MigrationCategoryRegistry.Find(MigrationCategoryIds.GroupComments)?.MustFollow, Is.EqualTo(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages));
+            Assert.That(MigrationCategoryRegistry.Find(MigrationCategoryIds.GroupComments)?.Kind, Is.EqualTo(MigrationCategoryKind.Optional));
+            Assert.That(MigrationCategoryRegistry.Find(MigrationCategoryIds.GroupComments)?.MustFollow, Is.EqualTo(MigrationCategoryIds.UnresolvedFailedMessages));
             Assert.That(MigrationCategoryRegistry.Find(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages)?.Kind, Is.EqualTo(MigrationCategoryKind.Required));
         }
     }

@@ -9,7 +9,7 @@ The migration does not move the audit instance or the monitoring instance. The a
 
 ## How the migration runs
 
-Run `--start-data-migration` with ServiceControl stopped to copy the data it needs to open. **This part is your outage**. After the command succeeds, start ServiceControl to copy the unresolved failed messages, the event log and the archived and resolved failed messages in the background. **The migration never writes to RavenDB**.
+Run `--start-data-migration` with ServiceControl stopped to copy the data it needs to open. **This part is your outage**. After the command succeeds, start ServiceControl to copy the unresolved failed messages, the group comments, the event log and the archived and resolved failed messages in the background. **The migration never writes to RavenDB**.
 
 > [!IMPORTANT]
 > Until ServiceControl opens, you can go back to RavenDB and lose nothing. After it opens, you cannot go back.
@@ -147,7 +147,7 @@ If you want less optional data, set a shorter window for the optional categories
 
 By default, the migration copies all the optional data that RavenDB still holds (current retension period setting). A window longer than the retention period copies nothing extra. After a category starts copying, you cannot change its window. To stop it early, abandon it.
 
-The unresolved failed messages have no window and no setting turns them off. They copy once ServiceControl opens, however old they are.
+The unresolved failed messages and the group comments have no window and no setting turns them off. They copy once ServiceControl opens, however old the unresolved messages are. Group comments appear in ServicePulse as their batches commit, after the unresolved failed messages category is Done or Abandoned.
 
 ## Step 4: Run the dry run
 
