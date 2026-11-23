@@ -25,7 +25,7 @@
 
             if (indexCountWithTooMuchLag > 0)
             {
-                return CheckResult.Failed($"At least one index significantly stale. Please run maintenance mode if this custom check persists to ensure index(es) can recover. See log file for more details. Visit https://docs.particular.net/search?q=servicecontrol+troubleshooting for more information.");
+                return CheckResult.Failed($"At least one index is significantly stale. If this custom check persists, pause ingestion so the index(es) can recover: start the instance in maintenance mode for an embedded database, or stop the instance for an external RavenDB server. See log file for more details. Visit https://docs.particular.net/search?q=servicecontrol+troubleshooting for more information.");
             }
 
             return CheckResult.Pass;
@@ -45,12 +45,12 @@
                     if (indexLag > IndexLagThresholdError)
                     {
                         indexCountWithTooMuchLag++;
-                        logger.LogError("Index [{IndexName}] IndexingLag {IndexLag} is above error threshold ({IndexLagThresholdError}). Launch in maintenance mode to let indexes catch up", indexStats.Name, indexLag, IndexLagThresholdError);
+                        logger.LogError("Index [{IndexName}] IndexingLag {IndexLag} is above error threshold ({IndexLagThresholdError}). Pause ingestion to let indexes catch up: use maintenance mode for an embedded database, or stop the instance for an external RavenDB server", indexStats.Name, indexLag, IndexLagThresholdError);
                     }
                     else if (indexLag > IndexLagThresholdWarning)
                     {
                         indexCountWithTooMuchLag++;
-                        logger.LogWarning("Index [{IndexName}] IndexingLag {IndexLag} is above warning threshold ({IndexLagThresholdWarning}). Launch in maintenance mode to let indexes catch up", indexStats.Name, indexLag, IndexLagThresholdWarning);
+                        logger.LogWarning("Index [{IndexName}] IndexingLag {IndexLag} is above warning threshold ({IndexLagThresholdWarning}). Pause ingestion to let indexes catch up: use maintenance mode for an embedded database, or stop the instance for an external RavenDB server", indexStats.Name, indexLag, IndexLagThresholdWarning);
                     }
                 }
             }

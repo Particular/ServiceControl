@@ -51,6 +51,11 @@ namespace ServiceControl.Audit.Persistence.RavenDB
         {
             var databaseConfiguration = GetDatabaseConfiguration(settings);
 
+            if (settings.MaintenanceMode && !databaseConfiguration.ServerConfiguration.UseEmbeddedServer)
+            {
+                throw new InvalidOperationException("Maintenance mode is not supported with an external RavenDB server. Stop the ServiceControl instance and access the database directly.");
+            }
+
             return new RavenPersistence(databaseConfiguration);
         }
 
