@@ -418,6 +418,49 @@ class FailedMessagesMigrationTargetTests : PersistenceTestBase
     }
 
     [Test]
+    public void A_non_retry_issued_message_without_its_claim_flag_fails_the_required_write_naming_the_row()
+    {
+        var document = new IngestedFailure().ToFailedMessage(FailedMessageStatus.Unresolved);
+
+        var exception = Assert.ThrowsAsync<InvalidOperationException>(() => Target.Write(FailedMessagesCategory, BatchOf(WithClaimHeld(RowOf(document, SmallTextBody), null)), Checkpoint()));
+
+        Assert.That(exception.Message, Does.Contain($"'FailedMessages/{document.UniqueMessageId}'").And.Contain(MigrationMetadataKeys.RetryClaimHeld),
+            "the source sets the flag on every row of the required category, claim holders of any status included, so status alone must not excuse a missing one");
+    }
+
+    [Test]
+    public async Task An_unresolved_message_without_its_claim_flag_is_copied_without_a_claim_by_the_optional_write()
+    {
+        var failure = new IngestedFailure();
+
+        var result = await Target.Write(UnresolvedCategory, BatchOf(WithClaimHeld(RowOf(failure.ToFailedMessage(), SmallTextBody), null)), Checkpoint(MigrationCategoryIds.UnresolvedFailedMessages));
+        var claims = await Query(db => db.FailedMessageRetries.AsNoTracking().CountAsync());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.Copied, Is.EqualTo(1));
+            Assert.That(claims, Is.Zero, "the optional source sends no flag, and the claim holders were copied with the required category");
+        }
+    }
+
+    [Test]
+    public async Task An_unresolved_message_whose_claim_flag_is_not_a_bool_fails_the_optional_write_and_stores_nothing()
+    {
+        var document = new IngestedFailure().ToFailedMessage();
+        var row = RowOf(document, SmallTextBody);
+        row = row with { Metadata = new Dictionary<string, object>(row.Metadata) { [MigrationMetadataKeys.RetryClaimHeld] = "true" } };
+
+        var exception = Assert.ThrowsAsync<InvalidOperationException>(() => Target.Write(UnresolvedCategory, BatchOf(row), Checkpoint(MigrationCategoryIds.UnresolvedFailedMessages)));
+        var messages = await Query(db => db.FailedMessages.AsNoTracking().CountAsync());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(exception.Message, Does.Contain($"'FailedMessages/{document.UniqueMessageId}'").And.Contain(MigrationMetadataKeys.RetryClaimHeld).And.Contain(typeof(string).FullName));
+            Assert.That(messages, Is.Zero, "only an absent flag is accepted, so a wrong type is a defect in either category");
+        }
+    }
+
+    [Test]
     public async Task A_retry_issued_message_whose_claim_flag_is_not_a_bool_fails_the_write_and_stores_nothing()
     {
         var document = new IngestedFailure().ToFailedMessage(FailedMessageStatus.RetryIssued);
@@ -866,10 +909,7 @@ class FailedMessagesMigrationTargetTests : PersistenceTestBase
             [MigrationMetadataKeys.LastModified] = new DateTime(2026, 9, 2, 8, 0, 0, DateTimeKind.Utc)
         };
 
-        if (document.Status == FailedMessageStatus.RetryIssued)
-        {
-            metadata[MigrationMetadataKeys.RetryClaimHeld] = true;
-        }
+        metadata[MigrationMetadataKeys.RetryClaimHeld] = document.Status == FailedMessageStatus.RetryIssued;
 
         return new($"FailedMessages/{document.UniqueMessageId}", document, metadata, body);
     }

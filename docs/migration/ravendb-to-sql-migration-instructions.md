@@ -185,6 +185,10 @@ ServiceControl is open and works as usual while the optional categories copy. Yo
 
 If the copy slows down your production work, raise `ServiceControl/Migration/ThrottlePauseMilliseconds` and restart. This is the pause between two background batches. The default is 100 milliseconds.
 
+The unresolved-message copy waits up to ten minutes for the RavenDB failed-message index to become trustworthy. If it stays behind, the copy logs a warning and scans the whole failed-message collection instead. Archived and resolved messages are filtered out, but reading them makes this fallback slower on a large archive. Resume paused indexing in RavenDB Studio to avoid the scan. Restarting the copy preserves its document-id cursor even if the read path changes.
+
+The ten-minute fallback applies only to the background copy. During the offline copy, a stale index still waits under the required category's 30-minute stall watchdog; missing, errored, disabled, or incomplete indexes trigger the full scan.
+
 > [!IMPORTANT]
 > To give up an optional category, use [the abandon command](#to-abandon-a-category).
 

@@ -11,8 +11,8 @@ using ServiceControl.Persistence.DataMigration;
 /// <summary>
 /// Writes failed messages, their failure group rows and a retry claim for each message the source still held one for,
 /// inserting only messages the target does not already hold and never updating one it does. The claims
-/// mirror the source, so a retry by id behaves as it did before the move. A retry-issued row with no bool RetryClaimHeld
-/// value fails the batch. Each category that copies failed messages derives from this and names its category id and
+/// mirror the source, so a retry by id behaves as it did before the move. A row with no bool RetryClaimHeld value fails the
+/// batch, except in a category that sets <see cref="RetryClaimHeldMayBeAbsent" />. Each category that copies failed messages derives from this and names its category id and
 /// which target rows it counts.
 /// </summary>
 abstract class FailedMessagesWriterBase(IMigrationSqlDialect migrationDialect, IBodyStoragePersistence storagePersistence, EFPersisterSettings persisterSettings) : MigrationCategoryWriter<FailedMessage>
@@ -24,6 +24,12 @@ abstract class FailedMessagesWriterBase(IMigrationSqlDialect migrationDialect, I
     /// The rows of the shared failed message table that <see cref="Count" /> counts for this category.
     /// </summary>
     protected abstract IQueryable<FailedMessageEntity> Copied(ServiceControlDbContext dbContext);
+
+    /// <summary>
+    /// Whether a row may arrive without RetryClaimHeld, which then means no claim. A source resolves the flag for every row of a
+    /// required category, so a missing one there is a defect. Only the optional unresolved category, whose rows carry none, sets this.
+    /// </summary>
+    protected virtual bool RetryClaimHeldMayBeAbsent => false;
 
     public override int BatchSize(ServiceControlDbContext dbContext) => migrationDialect.RowsPerStatementFor<FailedMessageEntity>(dbContext);
 
@@ -71,7 +77,7 @@ abstract class FailedMessagesWriterBase(IMigrationSqlDialect migrationDialect, I
                                 externalBodies.Add((row.SourceId, translation.Row, body));
                             }
 
-                            if (SourceHeldRetryClaim(row, translation.Row.Status))
+                            if (SourceHeldRetryClaim(row))
                             {
                                 heldClaims.Add(translation.Row.UniqueMessageId);
                             }
@@ -126,12 +132,12 @@ abstract class FailedMessagesWriterBase(IMigrationSqlDialect migrationDialect, I
     ];
 
     // Throws rather than guess, because a wrong guess either blocks a retry by id or lets one send the message twice.
-    static bool SourceHeldRetryClaim(MigrationRow row, FailedMessageStatus status) =>
+    bool SourceHeldRetryClaim(MigrationRow row) =>
         row.Metadata.GetValueOrDefault(MigrationMetadataKeys.RetryClaimHeld) switch
         {
             bool held => held,
-            null when status != FailedMessageStatus.RetryIssued => false,
-            null => throw new InvalidOperationException($"Row '{row.SourceId}' is retry-issued but arrived without a {MigrationMetadataKeys.RetryClaimHeld} value, which the source resolves for every retry-issued failed message"),
+            null when RetryClaimHeldMayBeAbsent => false,
+            null => throw new InvalidOperationException($"Row '{row.SourceId}' arrived without a {MigrationMetadataKeys.RetryClaimHeld} value, which the source resolves for every row of category {CategoryId}"),
             var other => throw new InvalidOperationException($"Row '{row.SourceId}' carries a {other.GetType().FullName} as its {MigrationMetadataKeys.RetryClaimHeld} value, where the source sets a {typeof(bool).FullName}")
         };
 
@@ -205,6 +211,8 @@ sealed class UnresolvedFailedMessagesWriter(IMigrationSqlDialect migrationDialec
     : FailedMessagesWriterBase(migrationDialect, storagePersistence, persisterSettings)
 {
     public override string CategoryId => MigrationCategoryIds.UnresolvedFailedMessages;
+
+    protected override bool RetryClaimHeldMayBeAbsent => true;
 
     protected override IQueryable<FailedMessageEntity> Copied(ServiceControlDbContext dbContext) =>
         dbContext.FailedMessages.Where(message => message.Status == FailedMessageStatus.Unresolved);
