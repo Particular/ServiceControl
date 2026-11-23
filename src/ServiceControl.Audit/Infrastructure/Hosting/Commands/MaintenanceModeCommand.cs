@@ -16,7 +16,7 @@
             var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings);
             if (!persistenceConfiguration.SupportsMaintenanceMode)
             {
-                throw new InvalidOperationException($"Maintenance mode is not supported by the {settings.StorageType} persister.");
+                throw new InvalidOperationException($"Maintenance mode is not supported by the {settings.StorageType} storage type.");
             }
 
             var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
