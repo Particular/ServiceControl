@@ -2,6 +2,7 @@
 namespace ServiceControl.UnitTests.Migration.Fakes;
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using ServiceControl.Persistence.DataMigration;
@@ -54,7 +55,7 @@ class InMemoryMigrationTargetTests
         {
             Assert.That(result.Copied, Is.EqualTo(1));
             Assert.That(result.Skipped, Is.EqualTo(1));
-            Assert.That(result.SkippedIds, Is.EqualTo(new[] { "rejected" }));
+            Assert.That(result.SkippedRows.Select(row => row.SourceId), Is.EqualTo(new[] { "rejected" }));
             Assert.That(result.SkipReasons, Is.EquivalentTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.BodyUnreadable] = 1 }));
             Assert.That(result.AlreadyPresent, Is.EqualTo(1));
             Assert.That(target.WrittenRows(category.Id), Has.Count.EqualTo(1));

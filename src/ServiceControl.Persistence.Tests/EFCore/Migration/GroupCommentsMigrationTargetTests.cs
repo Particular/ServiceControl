@@ -34,9 +34,9 @@ class GroupCommentsMigrationTargetTests : ErrorIngestionTestBase
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.Copied, Is.EqualTo(1), "a group id exactly as long as its column fits");
-            Assert.That(result.SkippedIds, Is.EqualTo(new[] { $"GroupComment/{tooLong}" }));
+            Assert.That(result.SkippedRows, Is.EqualTo(new[] { new MigrationSkippedRow($"GroupComment/{tooLong}", MigrationSkipReason.ValueTooLong) }));
             Assert.That(result.SkipReasons, Is.EqualTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.ValueTooLong] = 1 }), "an id too long for its column would fail the whole insert and stop the category");
-            Assert.That(await Target.Count(GroupCommentsCategory), Is.EqualTo(1), "--migration-verify reads this count");
+            Assert.That(await Target.Count(GroupCommentsCategory), Is.EqualTo(1));
             Assert.That(details.Single(), Does.EndWith($"takes at most 64 characters and the value holds 65, on document 'GroupComment/{tooLong}'"));
         }
     }

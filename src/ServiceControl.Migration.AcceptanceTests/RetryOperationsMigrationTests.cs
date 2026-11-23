@@ -45,7 +45,7 @@ class RetryOperationsMigrationTests : MigrationAcceptanceTest
         var result = await CopyCategory("RetryOperations");
 
         Assert.That(result.Copied, Is.EqualTo(3));
-        Assert.That(await Target.Count(MigrationCategoryRegistry.Find(MigrationCategoryIds.RetryOperations)), Is.EqualTo(3), "--migration-verify counts both tables, and a count of either table alone would report 2 or 1");
+        Assert.That(await Target.Count(MigrationCategoryRegistry.Find(MigrationCategoryIds.RetryOperations)), Is.EqualTo(3), "the category counts both tables, and a count of either table alone would report 2 or 1");
 
         var stored = (await RetryHistoryStore.GetRetryHistory()).Results;
         Assert.That(stored.HistoricOperations.Select(Columns), Is.EqualTo(history.HistoricOperations.Select(Columns)), "every column of the historic operation arrives as the source holds it");

@@ -89,7 +89,7 @@ class LicensingThroughputKeyCollationTests : PersistenceTestBase
 
         var comparer = ServiceProvider.GetRequiredService<IMigrationSqlDialect>().KeyComparer(typeof(LicensingEndpointEntity), nameof(LicensingEndpointEntity.NormalizedName));
 
-        Assert.That(comparer.Equals(first, second), Is.EqualTo(sqlServerFolds), $"the merge lines and the dry run predict with this comparer, so it must agree with SQL Server on '{first}' and '{second}'");
+        Assert.That(comparer.Equals(first, second), Is.EqualTo(sqlServerFolds), $"the merge lines are found with this comparer, so it must agree with SQL Server on '{first}' and '{second}'");
     }
 
     // Set on both tables, because the writer looks up each day's endpoint by name before it writes, and the test server's default respects accents.

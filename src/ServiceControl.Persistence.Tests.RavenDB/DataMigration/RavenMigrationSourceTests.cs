@@ -14,13 +14,51 @@ using ServiceControl.ExternalIntegrations;
 using ServiceControl.Infrastructure.RavenDB.Subscriptions;
 using ServiceControl.Notifications;
 using ServiceControl.Operations;
+using ServiceControl.Configuration;
 using ServiceControl.Persistence.DataMigration;
+using ServiceControl.Persistence.RavenDB.DataMigration;
 using ServiceControl.Persistence.MessageRedirects;
 using ServiceControl.Persistence.RavenDB.Throughput.Models;
 using RavenLicensingDataStore = Persistence.RavenDB.Throughput.LicensingDataStore;
 
 class RavenMigrationSourceTests : RavenMigrationSourceTestBase
 {
+    [Test]
+    public async Task Configuration_names_the_mode_server_and_both_databases_before_open()
+    {
+        var settings = (RavenPersisterSettings)PersistenceSettings;
+        await using var source = CreateMigrationSource();
+
+        Assert.That(source.Configuration, Is.EqualTo(new MigrationSettingValue[]
+        {
+            new("Mode", "external", "ServiceControl/RavenDB/ConnectionString"),
+            new("Server", settings.ConnectionString, "ServiceControl/RavenDB/ConnectionString"),
+            new("Primary database", settings.DatabaseName, "ServiceControl/RavenDB/DatabaseName"),
+            new("Throughput database", settings.ThroughputDatabaseName, "LicensingComponent/RavenDB/ThroughputDatabaseName")
+        }));
+    }
+
+    [Test]
+    public async Task An_embedded_source_names_its_data_directory_before_open()
+    {
+        var embedded = new RavenPersisterSettings
+        {
+            DatabasePath = @"C:\ServiceControl\DB",
+            DatabaseName = "servicecontrol",
+            ThroughputDatabaseName = "throughput"
+        };
+        await using var source = new RavenMigrationSource(new RavenReadOnlySourceLifecycle(embedded, new SettingsRootNamespace("ServiceControl")));
+
+        Assert.That(source.Configuration.Select(value => (value.Label, value.Value)), Is.EqualTo(new[]
+        {
+            ("Mode", "embedded"),
+            ("Server", embedded.ServerUrl),
+            ("Data directory", @"C:\ServiceControl\DB"),
+            ("Primary database", "servicecontrol"),
+            ("Throughput database", "throughput")
+        }));
+    }
+
     [Test]
     public async Task Reads_endpoint_settings_in_document_id_order_in_batches_of_the_requested_size()
     {
@@ -81,7 +119,7 @@ class RavenMigrationSourceTests : RavenMigrationSourceTestBase
             Assert.That(refusal.Message, Does.Contain("EndpointSettings/zzz-from-another-database"));
             Assert.That(refusal.Message, Does.Contain(DatabaseName), "the operator has to be told which database the cursor was looked for in");
             Assert.That(refusal.Message, Does.Contain("expired"), "an archived or resolved document can expire during an interrupted copy, on any source");
-            Assert.That(refusal.Message, Does.Contain($"--migration-retry {EndpointSettingsCategory.Id}"), "a retry re-reads the category from the start, so it is the way out");
+            Assert.That(refusal.Message, Does.Contain($"--start-data-migration --retry={EndpointSettingsCategory.Id}"), "a retry re-reads the category from the start, so it is the way out");
         });
     }
 

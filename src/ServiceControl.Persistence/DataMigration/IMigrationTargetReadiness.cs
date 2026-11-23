@@ -15,6 +15,11 @@ public interface IMigrationTargetReadiness
     IReadOnlyList<IMigrationStartupCheck> ContributedChecks();
 
     /// <summary>
+    /// The settings the target uses, each with where it came from, with secrets masked. Answers without opening the target.
+    /// </summary>
+    IReadOnlyList<MigrationSettingValue> Configuration { get; }
+
+    /// <summary>
     /// Stamps the marker the first time a host opens on the target, and leaves that first stamp alone on every start after it.
     /// </summary>
     Task RecordHostOpened(CancellationToken cancellationToken = default);

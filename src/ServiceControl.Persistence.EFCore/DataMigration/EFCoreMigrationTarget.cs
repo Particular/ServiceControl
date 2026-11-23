@@ -103,7 +103,7 @@ sealed class EFCoreMigrationTarget(
                 saved,
                 copied,
                 prepared.Skips.Count,
-                [.. prepared.Skips.Select(skip => skip.SourceId)],
+                [.. prepared.Skips.Select(skip => new MigrationSkippedRow(skip.SourceId, skip.Reason))],
                 AlreadyPresent: alreadyPresent,
                 SkipReasons: skipReasons,
                 Merged: prepared.Merges.Count,
@@ -149,7 +149,7 @@ sealed class EFCoreMigrationTarget(
                 // Only a reset that deletes is refused, because an optional category is retried after ServiceControl opens and keeps its rows.
                 if (storeKeyed is not null && await dbContext.GetSetting<DateTime?>(SettingKeys.MigrationHostOpenedOnTarget, token) is not null)
                 {
-                    throw new InvalidOperationException($"Category {reset.CategoryId} cannot be retried, because ServiceControl has opened on this database since the copy and its tables may now hold live rows. A retry deletes every row in them, so it is only possible before ServiceControl first opens on this database.");
+                    throw new InvalidOperationException($"Category {reset.CategoryId} cannot be retried, because ServiceControl has opened on this database since the copy and its tables may now hold live rows. A retry deletes every row in them, so it is only possible before ServiceControl first opens on this database. Run --start-data-migration --abandon={reset.CategoryId} to keep what was copied and give up the rest.");
                 }
 
                 var deletedRows = storeKeyed is null ? 0 : await storeKeyed.DeleteCopiedRows(dbContext, token);

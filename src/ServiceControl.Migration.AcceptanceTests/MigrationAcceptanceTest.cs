@@ -16,8 +16,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
-using NServiceBus.Extensibility;
-using NServiceBus.Transport;
 using NServiceBus.Unicast.Subscriptions;
 using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
 using NUnit.Framework;
@@ -32,7 +30,6 @@ using ServiceControl.Contracts.CustomChecks;
 using ServiceControl.Hosting.Commands;
 using ServiceControl.Infrastructure.WebApi;
 using ServiceControl.MessageFailures;
-using ServiceControl.Migration.Checks;
 using ServiceControl.Monitoring;
 using ServiceControl.Notifications;
 using ServiceControl.Operations;
@@ -47,7 +44,6 @@ using ServiceControl.Persistence.EFCore.Infrastructure;
 using ServiceControl.Persistence.Infrastructure;
 using ServiceControl.Persistence.MessageRedirects;
 using ServiceControl.Persistence.Tests;
-using ServiceControl.Persistence.UnitOfWork;
 using ServiceControl.Recoverability;
 using ServiceControl.Transports.BrokerThroughput;
 using TestHelper;
@@ -91,10 +87,6 @@ abstract class MigrationAcceptanceTest
         SetSourceVariable("SERVICECONTROL_RAVENDB_DATABASENAME", Source.PrimaryDatabase);
         SetSourceVariable("LICENSINGCOMPONENT_RAVENDB_THROUGHPUTDATABASENAME", Source.ThroughputDatabase);
         SetSourceVariable("SERVICECONTROL_ERRORRETENTIONPERIOD", "10.00:00:00");
-#if DEBUG
-        // Cleared because a developer who set it to smoke test the migration would let every test past the release check, which only the test host's own AllowUnreleasedMigration registration may do.
-        SetSourceVariable(RunCommand.AllowUnreleasedMigrationVariable, null);
-#endif
 
         // Settings.Port has no public setter, so the port has to come in as the environment variable a customer would set.
         SetSourceVariable("SERVICECONTROL_PORT", PortUtility.GetAssignedOrAvailablePort(33500).ToString(CultureInfo.InvariantCulture));
@@ -373,20 +365,15 @@ abstract class MigrationAcceptanceTest
     }
 
 
-    // No build carries the whole migration until its last phase ships, so without this marker every copy is refused.
-    protected static Action<WebApplicationBuilder> AllowingAnUnreleasedMigration(Action<WebApplicationBuilder> customize = null) =>
-        builder =>
-        {
-            builder.Services.AddSingleton<AllowUnreleasedMigration>();
-            customize?.Invoke(builder);
-        };
-
-    protected async Task MigrateThenRunHost(Action<WebApplicationBuilder> customize = null)
+    protected async Task MigrateThenRunHost(Action<WebApplicationBuilder> customize = null, int expectedExitCode = 0)
     {
         await StopHost();
-        await MigrateCommand.Run(Settings, AllowingAnUnreleasedMigration(customize));
+        await ExpectExitCode(MigrateCommand.Run(Settings, customize), expectedExitCode);
         await RunHostUntilTheApiAnswers(customize);
     }
+
+    protected static async Task ExpectExitCode(Task<int> migration, int expectedExitCode = 0) =>
+        Assert.That(await migration, Is.EqualTo(expectedExitCode), "the exit code of --start-data-migration, which its verify step sets");
 
     protected async Task RunHostUntilTheApiAnswers(Action<WebApplicationBuilder> customize = null)
     {
@@ -394,7 +381,7 @@ abstract class MigrationAcceptanceTest
 
         var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         hostCancellation = new CancellationTokenSource();
-        runningHost = RunCommand.Run(Settings, AllowingAnUnreleasedMigration(SignallingOnceStarted(started, customize)), hostCancellation.Token);
+        runningHost = RunCommand.Run(Settings, SignallingOnceStarted(started, customize), hostCancellation.Token);
 
         await WaitForEndpointSettingsResponse(TimeSpan.FromMinutes(2));
 
@@ -523,19 +510,6 @@ abstract class MigrationAcceptanceTest
         throw new Exception($"{condition} has not been meet in defined timespan: {timeout})");
     }
 
-    // Copied from RavenMigrationSourceTestBase.CollectBatches, which this project cannot compile.
-    protected static async Task<List<MigrationBatch>> CollectBatches(IMigrationSource source, MigrationCategory category, string resumeAfter = null, int batchSize = 100)
-    {
-        var batches = new List<MigrationBatch>();
-
-        await foreach (var batch in source.Read(category, resumeAfter, batchSize, TestContext.CurrentContext.CancellationToken))
-        {
-            batches.Add(batch);
-        }
-
-        return batches;
-    }
-
     SyncPassCountingLogger syncPasses;
 
     protected void CountSyncPasses(IServiceCollection services)
@@ -577,7 +551,8 @@ abstract class MigrationAcceptanceTest
     }
 
     protected IEndpointSettingsStore EndpointSettingsStore => targetServices.GetRequiredService<IEndpointSettingsStore>();
-    protected IMonitoringDataStore MonitoringDataStore => targetServices.GetRequiredService<IMonitoringDataStore>();
+    protected IMigrationTargetReadiness TargetReadiness => targetServices.GetRequiredService<IMigrationTargetReadiness>();
+    protected IMigrationCheckpointStore CheckpointStore => targetServices.GetRequiredService<IMigrationCheckpointStore>();
     protected IRetryBatchStore RetryBatchStore => targetServices.GetRequiredService<IRetryBatchStore>();
     protected IRetryStagingStore RetryStagingStore => targetServices.GetRequiredService<IRetryStagingStore>();
     protected IFailedMessageRetryDataStore FailedMessageRetryDataStore => targetServices.GetRequiredService<IFailedMessageRetryDataStore>();
@@ -617,7 +592,7 @@ abstract class MigrationAcceptanceTest
             after,
             (int)(after.CopiedCount - (before?.CopiedCount ?? 0)),
             (int)(after.SkippedCount - (before?.SkippedCount ?? 0)),
-            target.SkippedIds,
+            target.SkippedRows,
             (int)(after.AlreadyPresentCount - (before?.AlreadyPresentCount ?? 0)));
     }
 
@@ -633,6 +608,15 @@ abstract class MigrationAcceptanceTest
         {
             Version = existing?.Version ?? 0
         });
+    }
+
+    protected async Task SeedCheckpoint(MigrationCheckpoint checkpoint)
+    {
+        await using var scope = targetServices.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
+
+        var existing = await targetCheckpointStore.Read(checkpoint.CategoryId);
+        await dbContext.UpsertCheckpoint(checkpoint with { Version = existing?.Version ?? 0 });
     }
 
     protected async Task DeleteCheckpoint(string categoryId)
@@ -667,45 +651,7 @@ abstract class MigrationAcceptanceTest
 
     protected IBodyStorage BodyStorage => targetServices.GetRequiredService<IBodyStorage>();
 
-    protected Task Ingest(params IngestedFailure[] failures) =>
-        InBatch(async unitOfWork =>
-        {
-            foreach (var failure in failures)
-            {
-                await unitOfWork.Recoverability.RecordFailedProcessingAttempt(failure.Context, failure.ProcessingAttempt, failure.Groups);
-            }
-        });
-
-    // Ingestion takes the body and its content type from the message context, so only the context changes.
-    protected Task IngestWithBody(IngestedFailure failure, byte[] body, string contentType) =>
-        InBatch(unitOfWork =>
-        {
-            var headers = new Dictionary<string, string>(failure.Headers) { [NServiceBus.Headers.ContentType] = contentType };
-            var context = new MessageContext(failure.MessageId, headers, body, new TransportTransaction(), "receiveAddress", new ContextBag());
-
-            return unitOfWork.Recoverability.RecordFailedProcessingAttempt(context, failure.ProcessingAttempt, failure.Groups);
-        });
-
-    async Task InBatch(Func<IIngestionUnitOfWork, Task> record)
-    {
-        await using var unitOfWork = await targetServices.GetRequiredService<IIngestionUnitOfWorkFactory>().StartNew();
-
-        await record(unitOfWork);
-
-        await unitOfWork.Complete(TestContext.CurrentContext.CancellationToken);
-    }
-
-    protected Task<MigrationCheckpoint> ReadCheckpoint(string categoryId) =>
-        QueryTarget(async dbContext =>
-        {
-            var row = await dbContext.MigrationCheckpoints.AsNoTracking().SingleOrDefaultAsync(checkpoint => checkpoint.CategoryId == categoryId);
-
-            return row is null ? null : new MigrationCheckpoint(
-                row.CategoryId, row.State, row.Cursor,
-                row.CopiedCount, row.SkippedCount, row.SourceTotal, row.SkipReasons,
-                row.StartedAt, row.LastProgressAt, row.SettledAt, row.LastError,
-                row.AlreadyPresentCount, row.Version);
-        });
+    protected Task<MigrationCheckpoint> ReadCheckpoint(string categoryId) => CheckpointStore.Read(categoryId);
 
     protected Task<string> ReadSetting(string key) =>
         QueryTarget(dbContext => dbContext.Settings.AsNoTracking()
@@ -715,7 +661,7 @@ abstract class MigrationAcceptanceTest
 
     sealed class RecordingMigrationTarget(IMigrationTarget inner) : IMigrationTarget
     {
-        public List<string> SkippedIds { get; } = [];
+        public List<MigrationSkippedRow> SkippedRows { get; } = [];
 
         public Task Open(CancellationToken cancellationToken = default) => inner.Open(cancellationToken);
 
@@ -724,7 +670,7 @@ abstract class MigrationAcceptanceTest
         public async Task<MigrationWriteResult> Write(MigrationCategory category, MigrationBatch batch, MigrationCheckpoint checkpointToExtend, CancellationToken cancellationToken = default)
         {
             var result = await inner.Write(category, batch, checkpointToExtend, cancellationToken);
-            SkippedIds.AddRange(result.SkippedIds);
+            SkippedRows.AddRange(result.SkippedRows);
             return result;
         }
 

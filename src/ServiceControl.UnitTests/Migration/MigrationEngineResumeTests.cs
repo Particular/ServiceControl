@@ -32,7 +32,7 @@ class MigrationEngineResumeTests
         var halted = await new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(firstStart), options, NullLogger<MigrationEngine>.Instance)
             .RunCategoryAsync(category);
 
-        // A day later, the cause is fixed and the operator puts the category back as --migration-retry does.
+        // A day later, the cause is fixed and the operator puts the category back as a retry does.
         target.FailOnCallNumber = null;
         await checkpointStore.Upsert(halted with
         {

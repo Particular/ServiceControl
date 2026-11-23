@@ -23,10 +23,31 @@ class MigrationTargetReadinessTests : PersistenceTestBase
     IMigrationTargetReadiness Readiness => ServiceProvider.GetRequiredService<IMigrationTargetReadiness>();
 
     [Test]
-    public void The_target_contributes_the_three_checks_only_it_can_make() =>
-        Assert.That(
-            Readiness.ContributedChecks().Select(check => check.GetType()),
-            Is.EqualTo(new[] { typeof(SchemaIsCurrentCheck), typeof(TargetHoldsNoServiceControlDataCheck), typeof(BodyStorageIsWritableCheck) }));
+    public void The_target_contributes_three_checks_and_shows_its_configuration_with_the_password_masked()
+    {
+        var settings = new ConfiguredSettings
+        {
+            ConnectionString = "Host=pg;Username=sc;Password=hunter2;Database=sc",
+            BodyStorage = new FileSystemBodyStorageSettings { StoragePath = "bodies" }
+        };
+        var readiness = new EFCoreMigrationTargetReadiness(
+            ServiceProvider.GetRequiredService<IServiceScopeFactory>(), ServiceProvider.GetRequiredService<IBodyStoragePersistence>(), TimeProvider.System, settings);
+
+        var configuration = readiness.Configuration.ToDictionary(value => value.Label);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(
+                Readiness.ContributedChecks().Select(check => check.GetType()),
+                Is.EqualTo(new[] { typeof(SchemaIsCurrentCheck), typeof(TargetHoldsNoServiceControlDataCheck), typeof(BodyStorageIsWritableCheck) }));
+            Assert.That(configuration["Connection string"].Value, Does.Contain("*****").And.Not.Contain("hunter2"));
+            Assert.That((configuration["Schema"].Value, configuration["Schema"].Origin), Is.EqualTo(("provider default", "default")));
+            Assert.That(configuration["Body storage"].Value, Is.EqualTo("FileSystem"));
+            Assert.That(configuration["Body storage path"].Value, Is.EqualTo("bodies"));
+        }
+    }
+
+    sealed class ConfiguredSettings : EFPersisterSettings;
 
     [Test]
     public void Every_contributed_check_passes_against_a_migrated_database()
@@ -79,7 +100,7 @@ class MigrationTargetReadinessTests : PersistenceTestBase
         Assert.DoesNotThrowAsync(() => TargetCheck.Run());
     }
 
-    // --migration-abandon writes this row before any copy has run, so on a database that already served on SQL it must not switch the check off.
+    // An abandon writes this row before any copy has run, so on a database that already served on SQL it must not switch the check off.
     [Test]
     public async Task An_abandoned_optional_row_alone_does_not_skip_the_check()
     {

@@ -27,14 +27,14 @@ public static class MigrationCategoryRegistry
     [
         // Required, copied with ServiceControl closed.
         new(MigrationCategoryIds.KnownEndpoints, MigrationCategoryKind.Required, CarriesBodies: false, Order: 1),
-        new(MigrationCategoryIds.EndpointSettings, MigrationCategoryKind.Required, CarriesBodies: false, Order: 2, MustFollow: MigrationCategoryIds.KnownEndpoints),
+        new(MigrationCategoryIds.EndpointSettings, MigrationCategoryKind.Required, CarriesBodies: false, Order: 2, MustFollow: MigrationCategoryIds.KnownEndpoints, MustFollowIsDataLink: true),
         new(MigrationCategoryIds.MessageRedirects, MigrationCategoryKind.Required, CarriesBodies: false, Order: 3),
         new(MigrationCategoryIds.Subscriptions, MigrationCategoryKind.Required, CarriesBodies: false, Order: 4),
         new(MigrationCategoryIds.NotificationSettings, MigrationCategoryKind.Required, CarriesBodies: false, Order: 5),
         new(MigrationCategoryIds.TrialEndDate, MigrationCategoryKind.Required, CarriesBodies: false, Order: 6),
         new(MigrationCategoryIds.RetryOperations, MigrationCategoryKind.Required, CarriesBodies: false, Order: 7),
         new(MigrationCategoryIds.LicensingEndpoints, MigrationCategoryKind.Required, CarriesBodies: false, Order: 8),
-        new(MigrationCategoryIds.LicensingThroughput, MigrationCategoryKind.Required, CarriesBodies: false, Order: 9, MustFollow: MigrationCategoryIds.LicensingEndpoints),
+        new(MigrationCategoryIds.LicensingThroughput, MigrationCategoryKind.Required, CarriesBodies: false, Order: 9, MustFollow: MigrationCategoryIds.LicensingEndpoints, MustFollowIsDataLink: true),
         new(MigrationCategoryIds.LicensingReportMasks, MigrationCategoryKind.Required, CarriesBodies: false, Order: 10),
         new(MigrationCategoryIds.LicensedEndpointDetails, MigrationCategoryKind.Required, CarriesBodies: false, Order: 11),
         new(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages, MigrationCategoryKind.Required, CarriesBodies: true, Order: 12),
@@ -49,4 +49,18 @@ public static class MigrationCategoryRegistry
     ];
 
     public static MigrationCategory? Find(string id) => All.FirstOrDefault(c => c.Id == id);
+
+    /// <summary>
+    /// The kind of the category with this id. An id this build does not know counts as required, because a newer
+    /// build may have written it for a category that must finish.
+    /// </summary>
+    public static MigrationCategoryKind KindOf(string id) => Find(id)?.Kind ?? MigrationCategoryKind.Required;
+
+    /// <summary>
+    /// Every category, then a required one for each checkpoint row under an id this build does not know.
+    /// </summary>
+    public static IEnumerable<MigrationCategory> WithUnknownRows(IReadOnlyList<MigrationCheckpoint> checkpoints) =>
+        All.Concat(checkpoints
+            .Where(checkpoint => Find(checkpoint.CategoryId) is null)
+            .Select(checkpoint => new MigrationCategory(checkpoint.CategoryId, MigrationCategoryKind.Required, CarriesBodies: false, Order: 0)));
 }

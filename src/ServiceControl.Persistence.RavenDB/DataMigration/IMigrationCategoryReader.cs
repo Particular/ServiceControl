@@ -5,6 +5,7 @@ namespace ServiceControl.Persistence.RavenDB.DataMigration;
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using ServiceControl.Persistence.DataMigration;
 
 /// <summary>
@@ -22,4 +23,9 @@ interface IMigrationCategoryReader
     Type DocumentType { get; }
 
     IAsyncEnumerable<MigrationBatch> Read(string? resumeAfter, int batchSize, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// How many rows <see cref="Read" /> would yield for this category.
+    /// </summary>
+    Task<long> Count(CancellationToken cancellationToken = default);
 }

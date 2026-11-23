@@ -70,6 +70,17 @@ public sealed record MigrationEngineOptions(
         };
     }
 
+    /// <summary>
+    /// Reads only the halt thresholds, for the offline copy of the required categories.
+    /// It selects no optional category and never reads a window, because ServicePulse starts those and sets their windows.
+    /// </summary>
+    public static MigrationEngineOptions ForRequiredCopy(SettingsRootNamespace settingsRootNamespace) =>
+        new(
+            TimeSpan.Zero,
+            SettingsReader.Read(settingsRootNamespace, MigrationSettings.HaltThresholdPercentKey, MigrationSettings.DefaultHaltThresholdPercent),
+            SettingsReader.Read(settingsRootNamespace, MigrationSettings.HaltThresholdMinimumKey, MigrationSettings.DefaultHaltThresholdMinimum),
+            []);
+
     static TimeSpan ReadWindow(SettingsRootNamespace settingsRootNamespace, string key, TimeSpan defaultWindow)
     {
         var value = SettingsReader.Read<string>(settingsRootNamespace, key);

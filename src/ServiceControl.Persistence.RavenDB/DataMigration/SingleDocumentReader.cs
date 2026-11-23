@@ -41,7 +41,7 @@ abstract class SingleDocumentReader<TStored, TDocument>(RavenReadOnlySourceLifec
 
         if (resumeAfter is not null)
         {
-            throw new InvalidOperationException($"The migration cannot resume the '{CategoryId}' category after '{resumeAfter}', because its only cursor is '{DocumentId}'. Run --migration-retry {CategoryId} to copy the category again from the start.");
+            throw new InvalidOperationException($"The migration cannot resume the '{CategoryId}' category after '{resumeAfter}', because its only cursor is '{DocumentId}'. Run --start-data-migration --retry={CategoryId} to copy the category again from the start.");
         }
 
         using var session = Lifecycle.OpenSession(databaseName);

@@ -16,10 +16,18 @@
 
   <ItemGroup>
     <PackageReference Include="GitHubActionsTestLogger" />
+    <PackageReference Include="Microsoft.Data.SqlClient" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="NUnit" />
     <PackageReference Include="NUnit.Analyzers" />
     <PackageReference Include="NUnit3TestAdapter" />
+    <PackageReference Include="Npgsql" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\ServiceControl.Persistence.Tests.SqlServer\TestSchema.cs" />
+    <Compile Include="..\ServiceControl.Persistence.Tests.PostgreSql\PostgreSqlSharedContainer.cs" />
   </ItemGroup>
 
 </Project>

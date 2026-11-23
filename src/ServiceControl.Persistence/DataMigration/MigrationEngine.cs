@@ -40,6 +40,21 @@ public sealed class MigrationEngine(
     /// </summary>
     public IReadOnlyDictionary<string, (long Merged, long Changed)> MergedAndChangedThisRun => mergedAndChangedThisRun;
 
+    readonly ConcurrentQueue<(string CategoryId, MigrationSkippedRow Row)> skippedRows = new();
+
+    /// <summary>
+    /// Every row this engine skipped as a fault, with its category and the reason, from the batches it committed.
+    /// Harmless skips are counted in <see cref="BenignSkipsThisRun" /> instead, because they can be very many. Nothing here is saved.
+    /// </summary>
+    public IReadOnlyCollection<(string CategoryId, MigrationSkippedRow Row)> SkippedThisRun => skippedRows;
+
+    readonly ConcurrentDictionary<(string CategoryId, MigrationSkipReason Reason), long> benignSkips = new();
+
+    /// <summary>
+    /// How many harmless skips this engine committed, for each category and reason. Nothing here is saved.
+    /// </summary>
+    public IReadOnlyDictionary<(string CategoryId, MigrationSkipReason Reason), long> BenignSkipsThisRun => benignSkips;
+
     /// <summary>
     /// The categories of one kind to copy, in the order to copy them. Optional categories the operator did not
     /// ask for are left out.
@@ -153,11 +168,13 @@ public sealed class MigrationEngine(
                 // restart re-reads the uncommitted batch and would count these skips twice.
                 var bodySkips = 0;
                 Dictionary<MigrationSkipReason, long>? bodySkipReasons = null;
+                IReadOnlyList<MigrationSkippedRow> bodySkippedRows = [];
                 if (category.CarriesBodies)
                 {
                     var loaded = await bodyLoader.Load(category, batch, cancellationToken);
                     batchToWrite = batch with { Rows = loaded.Rows };
                     bodySkips = loaded.Skipped.Count;
+                    bodySkippedRows = [.. loaded.Skipped.Select(skip => new MigrationSkippedRow(skip.SourceId, skip.Reason))];
                     bodySkipReasons = loaded.Skipped.CountBy(skip => skip.Reason).ToDictionary(count => count.Key, count => (long)count.Value);
                 }
 
@@ -176,6 +193,17 @@ public sealed class MigrationEngine(
                 // The target has committed this row, so every halt below settles from it. A halt settling from the
                 // older version would be refused by the store as a conflict and lose its reason.
                 checkpoint = result.Saved;
+                foreach (var skipped in bodySkippedRows.Concat(result.SkippedRows))
+                {
+                    if (skipped.Reason.IsBenign())
+                    {
+                        benignSkips.AddOrUpdate((category.Id, skipped.Reason), 1, (_, count) => count + 1);
+                    }
+                    else
+                    {
+                        skippedRows.Enqueue((category.Id, skipped));
+                    }
+                }
                 mergedAndChangedThisRun.AddOrUpdate(category.Id, (result.Merged, result.Changed), (_, sum) => (sum.Merged + result.Merged, sum.Changed + result.Changed));
 
                 // The result states the batch's outcome twice, as its own counts and as deltas on the checkpoint

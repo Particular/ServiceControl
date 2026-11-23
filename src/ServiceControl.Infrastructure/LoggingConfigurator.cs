@@ -13,7 +13,7 @@ namespace ServiceControl.Infrastructure
 
     public static class LoggingConfigurator
     {
-        public static void ConfigureLogging(LoggingSettings loggingSettings)
+        public static void ConfigureLogging(LoggingSettings loggingSettings, string logFileName = "logfile.txt", bool logToConsole = true)
         {
             if (!LoggerUtil.IsLoggingTo(Loggers.NLog) || NLog.LogManager.Configuration != null)
             {
@@ -21,16 +21,19 @@ namespace ServiceControl.Infrastructure
             }
 
             var logLevel = loggingSettings.LogLevel.ToNLogLevel();
-            var loggingTo = ConfigureNLog("logfile.txt", loggingSettings.LogPath, loggingSettings.LogLevel.ToNLogLevel());
+            var loggingTo = ConfigureNLog(logFileName, loggingSettings.LogPath, loggingSettings.LogLevel.ToNLogLevel(), logToConsole);
 
-            //using LogManager here rather than LoggerUtil.CreateStaticLogger since this is exclusive to NLog
-            var logger = LogManager.GetLogger("LoggingConfiguration");
-            logger.InfoFormat("Logging to {0} with LogLevel '{1}'", loggingTo, logLevel.Name);
+            if (logToConsole || AppEnvironment.RunningInContainer)
+            {
+                // Uses LogManager rather than LoggerUtil.CreateStaticLogger, because this line is about NLog alone.
+                var logger = LogManager.GetLogger("LoggingConfiguration");
+                logger.InfoFormat("Logging to {0} with LogLevel '{1}'", loggingTo, logLevel.Name);
+            }
         }
 
-        public static string ConfigureNLog(string logFileName, string logPath, LogLevel logLevel)
+        public static string ConfigureNLog(string logFileName, string logPath, LogLevel logLevel, bool logToConsole = true)
         {
-            var nlogConfig = BuildConfiguration(logFileName, logPath, logLevel);
+            var nlogConfig = BuildConfiguration(logFileName, logPath, logLevel, logToConsole);
 
             NLog.LogManager.Configuration = nlogConfig;
 
@@ -39,21 +42,54 @@ namespace ServiceControl.Infrastructure
             return AppEnvironment.RunningInContainer ? "console" : fileTarget.FileName.Render(logEventInfo);
         }
 
-        public static LoggingConfiguration BuildConfiguration(string logFileName, string logPath, LogLevel logLevel)
+        public static string MigrationLogFileName(DateTime localStart) => $"migration-{localStart:yyyy-MM-dd-HHmmss}.txt";
+
+        public static string CreateMigrationLogFile(string logPath, DateTime localStart, bool runningInContainer)
+        {
+            var name = MigrationLogFileName(localStart);
+
+            if (runningInContainer)
+            {
+                return name;
+            }
+
+            try
+            {
+                Directory.CreateDirectory(logPath);
+
+                using (new FileStream(Path.Combine(logPath, name), FileMode.Append, FileAccess.Write))
+                {
+                }
+
+                return name;
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                throw new Exception($"The log folder '{logPath}' cannot be written, so the migration did not start. Set ServiceControl/LogPath to a folder this account can write to.", e);
+            }
+        }
+
+        public static string CurrentLogFile() =>
+            NLog.LogManager.Configuration?.FindTargetByName<FileTarget>("file")?.FileName.Render(LogEventInfo.CreateNullEvent());
+
+        public static LoggingConfiguration BuildConfiguration(string logFileName, string logPath, LogLevel logLevel, bool logToConsole = true)
         {
             //configure NLog
             var nlogConfig = new LoggingConfiguration();
             var simpleLayout = new SimpleLayout("${longdate}|${processtime}|${threadid}|${level}|${logger}|${message}${onexception:|${exception:format=tostring}}");
 
+            // A run that logs only to its own file must keep one file, or the path printed at the end holds only the tail.
+            var archive = logToConsole;
+
             var fileTarget = new FileTarget
             {
                 Name = "file",
-                ArchiveEvery = FileArchivePeriod.Day,
+                ArchiveEvery = archive ? FileArchivePeriod.Day : FileArchivePeriod.None,
                 FileName = Path.Combine(logPath, logFileName),
                 ArchiveSuffixFormat = ".{1:yyyy-MM-dd}.{0:00}",
                 Layout = simpleLayout,
-                MaxArchiveFiles = 14,
-                ArchiveAboveSize = 30 * megaByte
+                MaxArchiveFiles = archive ? 14 : 0,
+                ArchiveAboveSize = archive ? 30 * megaByte : 0
             };
 
             var consoleTarget = new ColoredConsoleTarget
@@ -130,7 +166,10 @@ namespace ServiceControl.Infrastructure
             nlogConfig.LoggingRules.Add(efCoreRule);
             nlogConfig.LoggingRules.Add(auditRule);
 
-            nlogConfig.LoggingRules.Add(new LoggingRule("*", logLevel, consoleTarget));
+            if (logToConsole || AppEnvironment.RunningInContainer)
+            {
+                nlogConfig.LoggingRules.Add(new LoggingRule("*", logLevel, consoleTarget));
+            }
 
             if (!AppEnvironment.RunningInContainer)
             {

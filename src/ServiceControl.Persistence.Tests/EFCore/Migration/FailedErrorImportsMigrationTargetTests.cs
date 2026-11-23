@@ -68,7 +68,7 @@ class FailedErrorImportsMigrationTargetTests : PersistenceTestBase
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(merges, Is.Empty, "--migration-retry re-reads the same documents, and finding its own rows again is not a merge");
+            Assert.That(merges, Is.Empty, "a retry re-reads the same documents, and finding its own rows again is not a merge");
             Assert.That(again.AlreadyPresent, Is.EqualTo(1));
         }
     }

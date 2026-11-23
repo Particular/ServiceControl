@@ -11,26 +11,26 @@ using ServiceBus.Management.Infrastructure.Settings;
 using ServiceControl.Persistence;
 using ServiceControl.Persistence.DataMigration;
 
-[TestFixture]
+[TestFixture(MigrationTestTarget.SqlServer)]
+[TestFixture(MigrationTestTarget.PostgreSql)]
 [NonParallelizable]
-class MigrationCategoryCoverageTests
+class MigrationCategoryCoverageTests(string persisterType)
 {
     Settings settings;
 
     [SetUp]
-    public void SetUp()
+    public async Task SetUp()
     {
         // Both persistence configurations read ErrorRetentionPeriod through the settings reader rather
         // than off the Settings object, so the constructor argument below does not satisfy either of them.
         SetVariable("SERVICECONTROL_ERRORRETENTIONPERIOD", "10.00:00:00");
-        // Registering the SQL Server persistence never connects, so any connection string satisfies it.
-        SetVariable("SERVICECONTROL_DATABASE_CONNECTIONSTRING", "Server=localhost;Database=ServiceControl;Trusted_Connection=True;TrustServerCertificate=True");
+        // Registering the persistence never connects, so any connection string satisfies it.
+        SetVariable("SERVICECONTROL_DATABASE_CONNECTIONSTRING", await MigrationTestTarget.ConnectionString(persisterType));
         SetVariable("SERVICECONTROL_MESSAGEBODY_STORAGETYPE", "FileSystem");
         SetVariable("SERVICECONTROL_MESSAGEBODY_FILESYSTEM_STORAGEPATH",
             Path.Combine(TestContext.CurrentContext.WorkDirectory, "Bodies", Guid.NewGuid().ToString("n")));
 
-        // SQL Server stands in for PostgreSQL too, because both register the same EFCoreMigrationTarget and its writer list does not depend on the provider.
-        settings = new Settings(persisterType: "SQLServer", forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10));
+        settings = new Settings(persisterType: persisterType, forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10));
     }
 
     [TearDown]

@@ -8,7 +8,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ServiceBus.Management.Infrastructure.Settings;
-using ServiceControl.Migration.Checks;
 using ServiceControl.Persistence;
 using ServiceControl.Persistence.DataMigration;
 
@@ -51,7 +50,6 @@ sealed class OptionalCategoryCopier(IServiceProvider services, Settings settings
             return;
         }
 
-        await new MigrationIsReleasedCheck(services.GetService<AllowUnreleasedMigration>()).Run(cancellationToken);
         var target = services.GetRequiredService<IMigrationTarget>();
         await using var source = PersistenceFactory.CreateMigrationSource(settings);
         var copyable = MigrationStartup.CopyableCategoryIds(source.SupportedCategoryIds, target.SupportedCategoryIds);
@@ -78,7 +76,7 @@ sealed class OptionalCategoryCopier(IServiceProvider services, Settings settings
         catch (Exception exception)
         {
             await MigrationStartup.RecordSourceOutage(store, categories, exception, cancellationToken);
-            logger.LogError(exception, "The online migration cannot open its source. ServiceControl remains available. Restart ServiceControl to try again, or abandon the outstanding optional categories.");
+            logger.LogError(exception, "The online migration cannot open its source. ServiceControl remains available. Restart ServiceControl to try again.");
             return;
         }
 

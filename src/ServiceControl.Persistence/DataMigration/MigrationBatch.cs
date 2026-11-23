@@ -9,17 +9,18 @@ using System.Collections.Generic;
 /// </summary>
 public enum MigrationCategoryKind { Required, Optional }
 
-/// <summary>One kind of data, such as endpoint settings, copied as a unit and resumed from its own cursor.</summary>
-/// <param name="Id">The name in <see cref="MigrationCategoryIds" />, which is also the key of its checkpoint row.</param>
-/// <param name="CarriesBodies">Whether its rows have message bodies, which the engine fetches separately when the source does not attach them.</param>
-/// <param name="Order">The order within one kind, counting from 1. Required and optional both start at 1, so the two lists are never sorted together.</param>
-/// <param name="MustFollow">The category that has to finish first, or null when nothing has to. A category whose predecessor is unfinished is recorded as <see cref="MigrationCategoryState.Blocked" /> instead of running.</param>
+/// <summary>
+/// One kind of data, such as endpoint settings, copied as a unit and resumed from its own cursor. It waits as
+/// <see cref="MigrationCategoryState.Blocked" /> while its MustFollow category is unfinished. With MustFollowIsDataLink its rows
+/// need that category's rows, so abandoning that category abandons this one too.
+/// </summary>
 public sealed record MigrationCategory(
     string Id,
     MigrationCategoryKind Kind,
     bool CarriesBodies,
     int Order,
-    string? MustFollow = null);
+    string? MustFollow = null,
+    bool MustFollowIsDataLink = false);
 
 /// <summary>A message body read from the source, as bytes plus its content type.</summary>
 public sealed record MigrationBody(ReadOnlyMemory<byte> Content, string ContentType);

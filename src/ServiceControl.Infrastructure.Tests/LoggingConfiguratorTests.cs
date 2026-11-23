@@ -1,6 +1,7 @@
 #nullable enable
 namespace ServiceControl.Infrastructure.Tests;
 
+using System;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -10,6 +11,7 @@ using NLog.Config;
 using NLog.Extensions.Logging;
 using NLog.Targets;
 using NUnit.Framework;
+using ServiceControl.Configuration;
 using ServiceControl.Infrastructure;
 using ServiceControl.Infrastructure.Auth;
 using LogLevel = NLog.LogLevel;
@@ -21,6 +23,93 @@ public class LoggingConfiguratorTests
 
     static LoggingConfiguration BuildConfig() =>
         LoggingConfigurator.BuildConfiguration("logfile.txt", Path.GetTempPath(), LogLevel.Info);
+
+    static void IgnoreInAContainer()
+    {
+        if (AppEnvironment.RunningInContainer)
+        {
+            Assert.Ignore("In a container the configuration logs to the console and has no file target.");
+        }
+    }
+
+    [Test]
+    public void A_migration_run_logs_only_to_its_own_unarchived_file()
+    {
+        IgnoreInAContainer();
+
+        var config = LoggingConfigurator.BuildConfiguration(LoggingConfigurator.MigrationLogFileName(new DateTime(2026, 11, 19, 10, 10, 3)), Path.GetTempPath(), LogLevel.Info, logToConsole: false);
+        var file = config.FindTargetByName<FileTarget>("file")!;
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(config.LoggingRules.Where(rule => rule.LoggerNamePattern == "*").SelectMany(rule => rule.Targets).Select(target => target.Name), Is.EqualTo(new[] { "file" }));
+            Assert.That(file.FileName.Render(LogEventInfo.CreateNullEvent()), Does.EndWith("migration-2026-11-19-101003.txt"));
+            Assert.That(file.ArchiveEvery, Is.EqualTo(FileArchivePeriod.None));
+            Assert.That(file.ArchiveAboveSize, Is.Zero);
+            Assert.That(file.MaxArchiveFiles, Is.Zero);
+        }
+    }
+
+    [Test]
+    public void A_container_run_touches_no_folder_and_a_second_run_in_the_same_second_keeps_the_first_run_log()
+    {
+        var folder = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        var start = new DateTime(2026, 11, 19, 10, 10, 3);
+
+        try
+        {
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(LoggingConfigurator.CreateMigrationLogFile(folder, start, runningInContainer: true), Is.EqualTo("migration-2026-11-19-101003.txt"));
+                Assert.That(Directory.Exists(folder), Is.False, "a container run logs to the console, so it must not create the log folder");
+            }
+
+            var first = LoggingConfigurator.CreateMigrationLogFile(folder, start, runningInContainer: false);
+            File.WriteAllText(Path.Combine(folder, first), "first run");
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(LoggingConfigurator.CreateMigrationLogFile(folder, start, runningInContainer: false), Is.EqualTo("migration-2026-11-19-101003.txt"));
+                Assert.That(File.ReadAllText(Path.Combine(folder, first)), Is.EqualTo("first run"));
+            }
+        }
+        finally
+        {
+            Directory.Delete(folder, recursive: true);
+        }
+    }
+
+    [Test]
+    public void A_log_folder_that_cannot_be_written_stops_the_run_naming_the_folder_and_the_setting()
+    {
+        var notAFolder = Path.GetTempFileName();
+
+        try
+        {
+            var exception = Assert.Throws<Exception>(() => LoggingConfigurator.CreateMigrationLogFile(Path.Combine(notAFolder, "logs"), DateTime.UtcNow, runningInContainer: false))!;
+
+            Assert.That(exception.Message, Does.Contain(notAFolder).And.Contain("ServiceControl/LogPath"));
+        }
+        finally
+        {
+            File.Delete(notAFolder);
+        }
+    }
+
+    [Test]
+    public void A_normal_log_file_keeps_its_archive_rules()
+    {
+        IgnoreInAContainer();
+
+        var target = BuildConfig().FindTargetByName<FileTarget>("file")!;
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(target.ArchiveEvery, Is.EqualTo(FileArchivePeriod.Day));
+            Assert.That(target.ArchiveAboveSize, Is.Not.Zero);
+            Assert.That(target.MaxArchiveFiles, Is.Not.Zero);
+        }
+    }
 
     [Test]
     public void Audit_target_emits_the_prerendered_event_verbatim()
@@ -112,7 +201,7 @@ public class LoggingConfiguratorTests
         var config = BuildConfig();
         var auditRule = config.LoggingRules.Single(r => r.LoggerNamePattern == AuditPattern);
 
-        Assert.That(auditRule.NameMatches(ServiceControl.Infrastructure.Auth.MessageActionAuditLog.MessageCategory), Is.True);
-        Assert.That(auditRule.NameMatches(ServiceControl.Infrastructure.Auth.MessageActionAuditLog.OperationCategory), Is.True);
+        Assert.That(auditRule.NameMatches(MessageActionAuditLog.MessageCategory), Is.True);
+        Assert.That(auditRule.NameMatches(MessageActionAuditLog.OperationCategory), Is.True);
     }
 }

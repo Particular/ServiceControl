@@ -140,14 +140,14 @@ public sealed class InMemoryMigrationTarget(IMigrationCheckpointStore checkpoint
 
         var copied = 0;
         var alreadyPresent = 0;
-        var skippedIds = new List<string>();
+        var skippedRows = new List<MigrationSkippedRow>();
         var skipReasons = new Dictionary<MigrationSkipReason, long>();
 
         foreach (var row in batch.Rows)
         {
             if (rejectedKeys.TryGetValue(row.SourceId, out var reason))
             {
-                skippedIds.Add(row.SourceId);
+                skippedRows.Add(new MigrationSkippedRow(row.SourceId, reason));
                 skipReasons[reason] = skipReasons.GetValueOrDefault(reason) + 1;
                 continue;
             }
@@ -167,21 +167,26 @@ public sealed class InMemoryMigrationTarget(IMigrationCheckpointStore checkpoint
         // The real targets extend and save the checkpoint in the transaction that writes the rows,
         // so this fake saves it here too.
         var saved = await checkpointStore.Upsert(
-            checkpointToExtend.Extend(copied, skippedIds.Count, alreadyPresent, skipReasons),
+            checkpointToExtend.Extend(copied, skippedRows.Count, alreadyPresent, skipReasons),
             cancellationToken);
 
-        return new MigrationWriteResult(saved, copied, skippedIds.Count, skippedIds, alreadyPresent, skipReasons);
+        return new MigrationWriteResult(saved, copied, skippedRows.Count, skippedRows, alreadyPresent, skipReasons);
     }
 
     public Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default) =>
         Task.FromResult((long)(writtenRowsByCategory.TryGetValue(category.Id, out var rows) ? rows.Count : 0));
 
     /// <summary>
+    /// What ResetForRetry throws instead of saving, as a real target refuses a retry once ServiceControl has opened on it.
+    /// </summary>
+    public Exception RefuseRetryWith { get; set; }
+
+    /// <summary>
     /// Saves the reset through the checkpoint store, so a stale Version throws as on the real target.
     /// It deletes no rows, because no unit test needs that.
     /// </summary>
     public Task<MigrationCheckpoint> ResetForRetry(MigrationCheckpoint reset, CancellationToken cancellationToken = default) =>
-        checkpointStore.Upsert(reset, cancellationToken);
+        RefuseRetryWith is { } refusal ? Task.FromException<MigrationCheckpoint>(refusal) : checkpointStore.Upsert(reset, cancellationToken);
 
     public IReadOnlyCollection<string> SupportedCategoryIds => [.. MigrationCategoryRegistry.All.Select(category => category.Id)];
 

@@ -48,5 +48,14 @@ namespace ServiceControl.UnitTests.Hosting
                 Assert.That(arguments.ErrorIngestionOnly, Is.False);
             });
         }
+
+        [TestCase("", typeof(RunCommand))]
+        [TestCase("--migration-status", typeof(MigrationStatusCommand))]
+        public void Each_flag_selects_its_command(string arguments, Type expected)
+        {
+            var hostArguments = new HostArguments(arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries));
+
+            Assert.That(hostArguments.Command, Is.EqualTo(expected));
+        }
     }
 }

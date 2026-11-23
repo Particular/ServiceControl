@@ -24,7 +24,7 @@ class TrialEndDateMigrationTests : MigrationAcceptanceTest
         {
             Assert.That(result.Copied, Is.EqualTo(1));
             Assert.That(await TrialLicenseDataProvider.GetTrialEndDate(), Is.EqualTo(endDate), "the product's own trial licence store must read back the seeded date");
-            Assert.That(await Target.Count(TrialEndDateCategory), Is.EqualTo(1), "--migration-verify reads this count");
+            Assert.That(await Target.Count(TrialEndDateCategory), Is.EqualTo(1));
         }
     }
 }

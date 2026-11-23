@@ -12,32 +12,31 @@ using ServiceBus.Management.Infrastructure.Settings;
 using ServiceControl.Infrastructure;
 using ServiceControl.Persistence;
 
-[TestFixture]
+[TestFixture(MigrationTestTarget.SqlServer)]
+[TestFixture(MigrationTestTarget.PostgreSql)]
 [NonParallelizable]
-class TwoPersistersInOneProcessTests
+class TwoPersistersInOneProcessTests(string persisterType)
 {
     Settings settings;
     string bodyStoragePath;
 
     [SetUp]
-    public void SetUp()
+    public async Task SetUp()
     {
         bodyStoragePath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Bodies", Guid.NewGuid().ToString("n"));
 
         // Both persistence configurations read ErrorRetentionPeriod through the settings reader rather
         // than off the Settings object, so the constructor argument below does not satisfy either of them.
         SetVariable("SERVICECONTROL_ERRORRETENTIONPERIOD", "10.00:00:00");
-        // Registering the SQL Server persistence never connects, so any connection string satisfies it.
-        SetVariable("SERVICECONTROL_DATABASE_CONNECTIONSTRING",
-            Environment.GetEnvironmentVariable("ServiceControl_Persistence_SqlServer_ConnectionString")
-            ?? "Server=localhost;Database=ServiceControl;Trusted_Connection=True;TrustServerCertificate=True");
+        // Registering the persistence never connects, so any connection string satisfies it.
+        SetVariable("SERVICECONTROL_DATABASE_CONNECTIONSTRING", await MigrationTestTarget.ConnectionString(persisterType));
         SetVariable("SERVICECONTROL_MESSAGEBODY_STORAGETYPE", "FileSystem");
         SetVariable("SERVICECONTROL_MESSAGEBODY_FILESYSTEM_STORAGEPATH", bodyStoragePath);
         SetVariable("SERVICECONTROL_RAVENDB_CONNECTIONSTRING", MigrationSourceServer.ServerUrl);
         SetVariable("SERVICECONTROL_RAVENDB_DATABASENAME", MigrationSourceServer.PrimaryDatabase);
         SetVariable("LICENSINGCOMPONENT_RAVENDB_THROUGHPUTDATABASENAME", MigrationSourceServer.ThroughputDatabase);
 
-        settings = new Settings(persisterType: "SQLServer", forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10));
+        settings = new Settings(persisterType: persisterType, forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10));
     }
 
     [TearDown]
@@ -78,9 +77,7 @@ class TwoPersistersInOneProcessTests
                 "Opening a source must leave the target's settings object exactly where it was.");
         });
 
-        var description = await source.Describe();
-
-        Assert.That(description.Facts.Single(fact => fact.Label == "Primary database").Value, Is.EqualTo(MigrationSourceServer.PrimaryDatabase),
+        Assert.That(source.Configuration.Single(value => value.Label == "Primary database").Value, Is.EqualTo(MigrationSourceServer.PrimaryDatabase),
             "The source read its own RavenDB settings rather than the target's.");
     }
 
@@ -89,7 +86,7 @@ class TwoPersistersInOneProcessTests
     {
         var refusal = Assert.Throws<Exception>(() => PersistenceFactory.Create(settings, maintenanceMode: true));
 
-        Assert.That(refusal.Message, Does.Contain("Maintenance mode is not supported").And.Contain("SQLServer"),
+        Assert.That(refusal.Message, Does.Contain("Maintenance mode is not supported").And.Contain(persisterType),
             "PersistenceFactory's SupportsMaintenanceMode guard is what turns a persister mismatch into a sentence instead of a cast exception. A restructure that drops it compiles and passes every other test.");
     }
 

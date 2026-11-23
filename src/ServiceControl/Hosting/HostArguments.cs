@@ -1,6 +1,7 @@
 namespace Particular.ServiceControl.Hosting
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Reflection;
     using global::ServiceControl.Configuration;
@@ -62,21 +63,41 @@ namespace Particular.ServiceControl.Hosting
                 }
             };
 
+            var abandon = new List<string>();
+            var retry = new List<string>();
+            Abandon = abandon;
+            Retry = retry;
+
             var migrationOptions = new OptionSet
             {
                 {
                     "start-data-migration",
                     "Copy required migration data with ServiceControl stopped",
                     s => Command = typeof(MigrateCommand)
+                },
+                {
+                    "non-interactive",
+                    "Answer every migration prompt yes, and take every other answer from the arguments",
+                    s => NonInteractive = true
+                },
+                {
+                    "abandon=",
+                    "Abandon what a required migration category has not copied, repeatable",
+                    s => abandon.Add(s)
+                },
+                {
+                    "retry=",
+                    "Copy a Failed required migration category again, repeatable",
+                    s => retry.Add(s)
                 }
             };
 
-            var migrationSourceReportOptions = new OptionSet
+            var migrationStatusOptions = new OptionSet
             {
                 {
-                    "migration-source-report",
-                    "Report what a migration would read from the source persistence",
-                    s => Command = typeof(MigrationSourceReportCommand)
+                    "migration-status",
+                    "Report the state of a migration, category by category",
+                    s => Command = typeof(MigrationStatusCommand)
                 }
             };
 
@@ -117,16 +138,16 @@ namespace Particular.ServiceControl.Hosting
                     return;
                 }
 
-                if (ErrorIngestionOnly)
+                migrationStatusOptions.Parse(args);
+
+                if (Command == typeof(MigrationStatusCommand))
                 {
-                    Command = typeof(ErrorIngestionOnlyCommand);
                     return;
                 }
 
-                migrationSourceReportOptions.Parse(args);
-
-                if (Command == typeof(MigrationSourceReportCommand))
+                if (ErrorIngestionOnly)
                 {
+                    Command = typeof(ErrorIngestionOnlyCommand);
                     return;
                 }
 
@@ -146,6 +167,12 @@ namespace Particular.ServiceControl.Hosting
         public bool SkipQueueCreation { get; private set; }
 
         public bool ErrorIngestionOnly { get; private set; }
+
+        public bool NonInteractive { get; private set; }
+
+        public IReadOnlyList<string> Abandon { get; private set; }
+
+        public IReadOnlyList<string> Retry { get; private set; }
 
         public void PrintUsage()
         {

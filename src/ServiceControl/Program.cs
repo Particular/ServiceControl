@@ -13,8 +13,12 @@ try
 {
     ExeConfiguration.PopulateAppSettings(Assembly.GetExecutingAssembly());
 
+    var arguments = new HostArguments(args);
+    var migrating = MigrateCommand.LogsToItsOwnFile(arguments);
+
     var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace);
-    LoggingConfigurator.ConfigureLogging(loggingSettings);
+    var logFileName = migrating ? LoggingConfigurator.CreateMigrationLogFile(loggingSettings.LogPath, TimeProvider.System.GetLocalNow().DateTime, AppEnvironment.RunningInContainer) : "logfile.txt";
+    LoggingConfigurator.ConfigureLogging(loggingSettings, logFileName, logToConsole: !migrating);
     logger = LoggerUtil.CreateStaticLogger(typeof(Program));
 
     AppDomain.CurrentDomain.UnhandledException += (s, e) => logger.LogError(e.ExceptionObject as Exception, "Unhandled exception was caught");
@@ -26,8 +30,6 @@ try
     {
         return exitCode;
     }
-
-    var arguments = new HostArguments(args);
 
     if (arguments.Help)
     {

@@ -38,7 +38,7 @@ class GroupCommentsMigrationTests : MigrationAcceptanceTest
         {
             Assert.That(result.Saved.State, Is.EqualTo(MigrationCategoryState.Complete), "SQL never stores a blank comment, so leaving one behind loses nothing and must not keep ServiceControl closed");
             Assert.That(result.Copied, Is.EqualTo(2), "a comment whose group has no copied message is copied too, and left to the retention sweeper");
-            Assert.That(await Target.Count(GroupCommentsCategory), Is.EqualTo(2), "--migration-verify reads this count");
+            Assert.That(await Target.Count(GroupCommentsCategory), Is.EqualTo(2));
             Assert.That(result.Saved.SkipReasons, Is.EqualTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.BlankGroupComment] = 3 }), "a harmless skip is still counted, so status and verify can show it");
             Assert.That(comments[kept.Groups.Single().Id], Is.EqualTo("Waiting on the payments team"), "ServicePulse's group list shows the comment on the group it was written for");
             Assert.That(new[] { cleared, neverWritten, spaces }.Select(failure => comments[failure.Groups.Single().Id]), Is.All.Null, "the product shows no comment for a group whose comment was blank");

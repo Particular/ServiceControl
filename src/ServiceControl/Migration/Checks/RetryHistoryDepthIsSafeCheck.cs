@@ -14,6 +14,8 @@ class RetryHistoryDepthIsSafeCheck(int retryHistoryDepth) : IMigrationStartupChe
 {
     public string Name => "the retry history depth will not empty a migrated table";
 
+    public string CheckedAgainst => retryHistoryDepth.ToString();
+
     public Task Run(CancellationToken cancellationToken = default)
     {
         // The depth at which RetryHistoryDataStore.TrimHistory deletes every row rather than trimming.

@@ -18,4 +18,9 @@ public interface IMigrationStartupCheck
     /// Runs the check. Throws when it fails, which stops the host before anything is copied.
     /// </summary>
     Task Run(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// What the check compared against, shown beside its name once it passes. Null shows nothing.
+    /// </summary>
+    string? CheckedAgainst => null;
 }

@@ -26,7 +26,7 @@ class FailedErrorImportMigrationTests : MigrationAcceptanceTest
         {
             Assert.That(result.Saved.State, Is.EqualTo(MigrationCategoryState.Complete));
             Assert.That(result.Copied, Is.EqualTo(1));
-            Assert.That(await Target.Count(Category), Is.EqualTo(1), "Count is what --migration-verify reads");
+            Assert.That(await Target.Count(Category), Is.EqualTo(1));
             Assert.That(import.Body, Is.EqualTo(new byte[] { 1, 2, 3 }));
             Assert.That(import.BodyStoredExternally, Is.False);
             Assert.That(import.ExceptionInfo, Is.EqualTo("Deserialization failed"));
@@ -79,7 +79,7 @@ class FailedErrorImportMigrationTests : MigrationAcceptanceTest
         using (Assert.EnterMultipleScope())
         {
             Assert.That(bodiesWritten, Is.EqualTo(1), "the large body is the only one the first copy writes to body storage");
-            Assert.That(second.AlreadyPresent, Is.EqualTo(2), "--migration-retry re-reads from the start, and the rows the first copy wrote are left alone");
+            Assert.That(second.AlreadyPresent, Is.EqualTo(2), "a retry re-reads from the start, and the rows the first copy wrote are left alone");
             Assert.That(await Target.Count(Category), Is.EqualTo(2));
             Assert.That(RecordedBodies.Written, Has.Count.EqualTo(bodiesWritten), "a body is written only for an import the target does not hold yet");
         }

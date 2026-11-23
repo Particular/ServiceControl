@@ -5,7 +5,7 @@ public static class MigrationCategoryStateExtensions
     /// <summary>
     /// Whether the category is done with, so a restart passes over it and it no longer holds the host back: Done,
     /// or Abandoned by the operator. A Failed category (<see cref="IsFailed" />) is not finished. It waits for
-    /// --migration-retry or --migration-abandon, and a category that must follow it stays blocked until then.
+    /// the operator to retry or abandon it, and a category that must follow it stays blocked until then.
     /// </summary>
     public static bool IsFinished(this MigrationCategoryState state) =>
         state is MigrationCategoryState.Complete
@@ -13,11 +13,23 @@ public static class MigrationCategoryStateExtensions
 
     /// <summary>
     /// Whether the category is Failed: it stopped early, or reached the end having skipped rows to faults. It waits
-    /// for the operator to run --migration-retry or --migration-abandon, and no start copies it until then.
+    /// for the operator to retry or abandon it, and no start copies it until then.
     /// </summary>
     public static bool IsFailed(this MigrationCategoryState state) =>
         state is MigrationCategoryState.Halted
               or MigrationCategoryState.CompleteWithErrors;
+
+    /// <summary>
+    /// The word the operator reads for a stored state: Done, Abandoned, Failed or Copying.
+    /// </summary>
+    public static string CustomerState(this MigrationCategoryState state) => state switch
+    {
+        MigrationCategoryState.Complete => "Done",
+        MigrationCategoryState.Abandoned => "Abandoned",
+        MigrationCategoryState.Halted or MigrationCategoryState.CompleteWithErrors => "Failed",
+        MigrationCategoryState.NotStarted or MigrationCategoryState.InProgress or MigrationCategoryState.Blocked => "Copying",
+        _ => state.ToString()
+    };
 }
 
 public static class MigrationSkipReasonExtensions
@@ -44,4 +56,10 @@ public static class MigrationSkipReasonExtensions
                or MigrationSkipReason.ValueTooLong
                or MigrationSkipReason.MalformedValue
                or MigrationSkipReason.BodyMissing;
+
+    /// <summary>
+    /// The words every report prints after the reason's name: ", no retry can fix", ", harmless", or nothing for a fault a retry can fix.
+    /// </summary>
+    public static string RetryNote(this MigrationSkipReason reason) =>
+        reason.IsPermanent() ? ", no retry can fix" : reason.IsBenign() ? ", harmless" : "";
 }

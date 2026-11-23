@@ -33,7 +33,7 @@ public enum MigrationCategoryState
     CompleteWithErrors,
 
     /// <summary>
-    /// The category stopped early. It waits for --migration-retry or --migration-abandon, and no start re-reads it.
+    /// The category stopped early. It waits for the operator to retry or abandon it, and no start re-reads it.
     /// </summary>
     Halted,
 
@@ -51,16 +51,9 @@ public enum MigrationCategoryState
 
 /// <summary>
 /// A category's saved progress: where a restart carries on from, and what the status and verify commands report.
-/// Every count is the total across every run, not this run alone.
+/// Every count is the total across every run, and the skip reasons add up to SkippedCount. A store refuses a save
+/// whose Version the stored row no longer holds, which is the guard against two writers.
 /// </summary>
-/// <param name="Cursor">The point the last committed batch reached. A restart reads the source after it. Null means nothing has been read.</param>
-/// <param name="SourceTotal">No longer written: the engine does not count the source, so this is null on every row it saves. The column stays only because dropping it is a schema change.</param>
-/// <param name="SkipReasons">How many rows each reason skipped. The counts here add up to <paramref name="SkippedCount" />.</param>
-/// <param name="SettledAt">The moment the category stopped running, whatever state it stopped in. Read it beside <paramref name="State" />, because a halt settles too.</param>
-/// <param name="LastError">Why the category stopped or did not run, in the words the operator is shown: a halt, a category it must follow that is not finished, an exception that left an optional category copying, or a source a start could not open, on an optional category still copying or not started. It stays until a start runs the category again.</param>
-/// <param name="AlreadyPresentCount">Rows the target already held, so they were neither copied nor skipped. They still count as accounted for.</param>
-/// <param name="Version">The optimistic concurrency token, which is the guard against two writers. A store sets it on save and refuses a checkpoint carrying a value the stored row no longer holds.</param>
-/// <param name="StartedWindowSeconds">The window, in whole seconds, an optional category started with. It is null until the copier writes it, and always null for a required category.</param>
 public sealed record MigrationCheckpoint(
     string CategoryId,
     MigrationCategoryState State,
@@ -78,21 +71,38 @@ public sealed record MigrationCheckpoint(
     long? StartedWindowSeconds = null)
 {
     /// <summary>
-    /// Adds one batch's outcome to this checkpoint. A target calls it inside the transaction that writes the rows,
-    /// so the saved counts are the real ones.
+    /// The window, in whole seconds, that an optional category started with. It is always null for a required category.
     /// </summary>
-    /// <param name="copied">Rows this batch wrote.</param>
-    /// <param name="skipped">Rows this batch could not write. Every one of them needs a reason.</param>
-    /// <param name="alreadyPresent">Rows this batch found the target already held.</param>
-    /// <param name="skipReasons">How many rows each reason skipped in this batch.</param>
-    /// <returns>A copy with this batch's counts and reasons added to the totals.</returns>
-    /// <exception cref="InvalidOperationException">The reasons do not add up to <paramref name="skipped" />, which would leave the verify command unable to account for a row.</exception>
+    public long? StartedWindowSeconds { get; init; } = StartedWindowSeconds;
+
+    /// <summary>
+    /// The source's row count that --start-data-migration took before the copy, or null when nothing counted the category.
+    /// The copy's progress lines and the Done column of --migration-status show the rows done as a share of it.
+    /// </summary>
+    public long? SourceTotal { get; init; } = SourceTotal;
+
+    /// <summary>
+    /// The moment the category stopped running, in any state. Read it beside State, because a halt settles too.
+    /// </summary>
+    public DateTime? SettledAt { get; init; } = SettledAt;
+
+    /// <summary>
+    /// Why the category stopped or did not run, in the words the operator is shown: a halt, a category it must follow that
+    /// is not finished, an error that left an optional category copying, or a source that would not open. It stays until a start runs the category again.
+    /// </summary>
+    public string? LastError { get; init; } = LastError;
+
+    /// <summary>
+    /// Returns a copy with one batch's counts and skip reasons added to the totals. A target calls it inside the
+    /// transaction that writes the rows, so the saved counts are the real ones. Throws InvalidOperationException when
+    /// the skip reasons do not add up to the skipped rows, because verify could not account for the rest.
+    /// </summary>
     public MigrationCheckpoint Extend(int copied, int skipped, int alreadyPresent, IReadOnlyDictionary<MigrationSkipReason, long>? skipReasons)
     {
         var explained = skipReasons?.Values.Sum() ?? 0;
         if (explained != skipped)
         {
-            throw new InvalidOperationException($"The target reported {skipped} skipped rows in category {CategoryId} but gave reasons for {explained}. Every skipped row needs a reason, or --migration-verify cannot account for it.");
+            throw new InvalidOperationException($"The target reported {skipped} skipped rows in category {CategoryId} but gave reasons for {explained}. Every skipped row needs a reason, or the verify step of --start-data-migration cannot account for it.");
         }
 
         return this with

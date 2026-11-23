@@ -72,7 +72,7 @@ sealed class MigrationBodyLoader(IMigrationSource source, TimeProvider timeProvi
             }
             else if (lastAttemptError is null)
             {
-                logger.LogWarning("Skipped {SourceId} in category {CategoryId} as {Reason}: the source has no body for it, either because it holds the message without one, which a --migration-retry meets again, or because the message expired during the copy",
+                logger.LogWarning("Skipped {SourceId} in category {CategoryId} as {Reason}: the source has no body for it, either because it holds the message without one, which a retry meets again, or because the message expired during the copy",
                     row.SourceId, category.Id, MigrationSkipReason.BodyMissing);
                 skipped.Add((row.SourceId, MigrationSkipReason.BodyMissing));
             }

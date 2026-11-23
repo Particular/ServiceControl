@@ -14,7 +14,7 @@ class MigrationContractShapeTests
     {
         var properties = typeof(MigrationCategory).GetProperties().Select(p => p.Name);
 
-        Assert.That(properties, Is.EquivalentTo(new[] { "Id", "Kind", "CarriesBodies", "Order", "MustFollow" }),
+        Assert.That(properties, Is.EquivalentTo(new[] { "Id", "Kind", "CarriesBodies", "Order", "MustFollow", "MustFollowIsDataLink" }),
             "a source database or target table belongs in that store's own adapter, where a different store pair can map it differently");
     }
 

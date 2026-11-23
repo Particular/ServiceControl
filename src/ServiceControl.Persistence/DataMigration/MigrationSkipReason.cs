@@ -7,6 +7,9 @@ namespace ServiceControl.Persistence.DataMigration;
 /// </summary>
 public enum MigrationSkipReason
 {
+    // Document a new member under Skipped rows in docs/migration/ravendb-to-sql-migration-overview.md, because
+    // the verify step of --start-data-migration tells customers every reason but Unknown is documented there.
+
     /// <summary>
     /// Every attempt to read the message body from the source failed, so the whole message was left out rather than
     /// written without one. A retry reads it again once the cause is fixed.

@@ -8,14 +8,10 @@ using Microsoft.Extensions.Hosting;
 using ServiceControl.Persistence.DataMigration;
 
 /// <summary>
-/// Refuses to start a host that writes failed messages into the database, including the main instance,
-/// an error ingestion only host, or --import-failed-errors, until every required category is Done or Abandoned. An optional category, which copies
-/// in the background once the main host has opened, never holds it back, but a category under an id this build
-/// does not know does. A refusal throws, which fails the start and stops the host. Start such a host only after the
-/// main host has opened, because a database with no checkpoint row yet reads as one no migration has touched.
+/// Throws, which stops the start, when a host that writes failed messages finds a migration whose required copy is not finished.
+/// That is a required or unknown row that is not Done or Abandoned.
+/// A database with no checkpoint row has never been migrated, and an optional category never holds a host back.
 /// </summary>
-/// <param name="checkpointStore">Where the checkpoint rows are read. A database no migration has touched holds none, so the host starts as before.</param>
-/// <param name="hostDescription">Names the host in the refusal, such as "this error ingestion only host".</param>
 sealed class FinishedCopyBeforeAnIngestionNodeOpens(
     IMigrationCheckpointStore checkpointStore,
     string hostDescription) : IHostedLifecycleService
@@ -24,7 +20,7 @@ sealed class FinishedCopyBeforeAnIngestionNodeOpens(
     public async Task StartingAsync(CancellationToken cancellationToken = default)
     {
         var unfinished = (await checkpointStore.ReadAll(cancellationToken))
-            .Where(checkpoint => MigrationCategoryRegistry.Find(checkpoint.CategoryId)?.Kind != MigrationCategoryKind.Optional)
+            .Where(checkpoint => MigrationCategoryRegistry.KindOf(checkpoint.CategoryId) == MigrationCategoryKind.Required)
             .Where(checkpoint => !checkpoint.State.IsFinished())
             .ToArray();
 
@@ -33,9 +29,12 @@ sealed class FinishedCopyBeforeAnIngestionNodeOpens(
             return;
         }
 
-        var detail = string.Join(". ", unfinished.Select(checkpoint => checkpoint.State.IsFailed()
-            ? MigrationStartup.FailedDetail(checkpoint)
-            : $"{checkpoint.CategoryId} is Copying ({checkpoint.State})"));
+        var detail = string.Join(". ", unfinished.Select(checkpoint => checkpoint switch
+        {
+            _ when checkpoint.State.IsFailed() => MigrationStartup.FailedDetail(checkpoint),
+            { State: MigrationCategoryState.Blocked } when MigrationCategoryRegistry.Find(checkpoint.CategoryId)?.MustFollow is { } ahead => $"{checkpoint.CategoryId} is waiting for {ahead} ({checkpoint.State})",
+            _ => $"{checkpoint.CategoryId} is Copying ({checkpoint.State})"
+        }));
 
         const string advice = "With ServiceControl and all ingestion workers stopped, resolve any Failed categories and run --start-data-migration again before starting this host.";
 

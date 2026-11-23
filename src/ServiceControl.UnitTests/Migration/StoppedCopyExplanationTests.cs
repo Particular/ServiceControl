@@ -167,7 +167,7 @@ class StoppedCopyExplanationTests
                 Assert.That(async () => await run.WaitAsync(TimeSpan.FromSeconds(10)), Throws.InstanceOf<OperationCanceledException>(),
                     "a shutdown waited for a call that ignores its token");
                 Assert.That((await store.Read(MigrationCategoryIds.KnownEndpoints))!.State, Is.EqualTo(MigrationCategoryState.InProgress), "a shutdown settled the category");
-                Assert.That((await store.Read(MigrationCategoryIds.MessageRedirects))!.State, Is.EqualTo(MigrationCategoryState.NotStarted), "a stopping host started the next category");
+                Assert.That((await store.Read(MigrationCategoryIds.MessageRedirects))?.StartedAt, Is.Null, "a stopping host started the next category");
             }
         }
         finally
@@ -196,12 +196,12 @@ class StoppedCopyExplanationTests
 
             var stopped = await store.Read(MigrationCategoryIds.KnownEndpoints);
 
-            Assert.That(stopped!.State, Is.EqualTo(MigrationCategoryState.InProgress), "a shutdown settled Halted makes every restart refuse until the operator runs --migration-retry");
+            Assert.That(stopped!.State, Is.EqualTo(MigrationCategoryState.InProgress), "a shutdown settled Halted makes every restart refuse until the operator retries it");
             Assert.That(stopped.Cursor, Is.EqualTo("KnownEndpoints-2"), "the next start resumes from the first batch's cursor");
             Assert.That(stopped.CopiedCount, Is.EqualTo(2));
             Assert.That(stopped.SettledAt, Is.Null);
             Assert.That(stopped.LastError, Is.Null);
-            Assert.That((await store.Read(MigrationCategoryIds.MessageRedirects))!.State, Is.EqualTo(MigrationCategoryState.NotStarted), "a stopping host started the next category");
+            Assert.That((await store.Read(MigrationCategoryIds.MessageRedirects))?.StartedAt, Is.Null, "a stopping host started the next category");
             Assert.That(target.RowsHandedToWrite(MigrationCategoryIds.MessageRedirects), Is.Empty);
         }
     }

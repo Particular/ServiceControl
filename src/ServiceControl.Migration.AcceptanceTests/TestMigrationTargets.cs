@@ -17,9 +17,6 @@ static class TestMigrationTargets
     public static void FailTheSecondMigrationWrite(this WebApplicationBuilder builder) =>
         builder.DecorateMigrationTarget(inner => new FaultingMigrationTarget(inner, failingWrite: 2));
 
-    public static void HaltTheEndpointSettingsCategory(this WebApplicationBuilder builder) =>
-        builder.DecorateMigrationTarget(inner => new FaultingMigrationTarget(inner, failingWrite: 1));
-
     public static void StopAfterTheFirstCategorySettles(this WebApplicationBuilder builder, CancellationTokenSource stopping)
     {
         var registered = builder.Services.Last(service => service.ServiceType == typeof(IMigrationCheckpointStore));

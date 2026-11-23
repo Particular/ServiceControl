@@ -25,13 +25,26 @@ file system body storage unless the path is a shared mount.
 
 MIGRATION
 
-   ServiceControl.exe --start-data-migration
+   ServiceControl.exe --start-data-migration [--non-interactive] [--abandon=<category>]...
+      [--retry=<category>]...
 
-Copies required data from RavenDB into the configured SQL Server or PostgreSQL database.
-Stop ServiceControl and all ingestion workers first. The command never starts the service.
-After a successful offline copy, start ServiceControl to copy optional data in the background.
-Run --start-data-migration again after an interruption to resume from saved progress. The target database records the migration state.
-This build still blocks copying until the complete migration is released.
+Copies the required data from RavenDB into the configured SQL database, with ServiceControl stopped.
+It shows the configuration, runs the checks, counts the rows, copies, then
+verifies. Run it again to resume. After exit 0, start ServiceControl.
+
+   --non-interactive                       Answers yes to every prompt.
+   --abandon=<category>                    Abandons a required category. Repeatable.
+   --retry=<category>                      Retries a Failed required category. Repeatable.
+
+Exits 0 when verified, 1 when stopped or a category is unfinished, 2 when rows were not read.
+Outside a container it logs to migration-<date>-<time>.txt in the log folder.
+
+MIGRATION STATUS
+
+   ServiceControl.exe --migration-status
+
+Shows each category's state, row counts, progress and last error. Read-only, so it runs while
+ServiceControl is running.
 
 SERVICE INSTALL AND UNINSTALL AND CONFIGURATION OPTIONS
 

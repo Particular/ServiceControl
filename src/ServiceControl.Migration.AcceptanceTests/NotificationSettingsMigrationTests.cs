@@ -43,7 +43,7 @@ class NotificationSettingsMigrationTests : MigrationAcceptanceTest
             Assert.That(collections, Does.ContainKey(collection).And.Not.ContainKey(otherCollection), "the test proves nothing unless the seed landed in the collection this case names");
             Assert.That(result.Copied, Is.EqualTo(1));
             Assert.That(JsonSerializer.Serialize(settings.Email), Is.EqualTo(JsonSerializer.Serialize(seeded)), "LoadSettings reads through GetSetting<EmailNotifications>, so every field must survive that read");
-            Assert.That(await Target.Count(NotificationSettingsCategory), Is.EqualTo(1), "--migration-verify reads this count");
+            Assert.That(await Target.Count(NotificationSettingsCategory), Is.EqualTo(1));
         }
     }
 

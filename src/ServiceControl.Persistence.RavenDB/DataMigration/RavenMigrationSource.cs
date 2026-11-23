@@ -6,12 +6,11 @@ using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Particular.LicensingComponent.Contracts;
-using Raven.Client.Documents.Operations;
 using Raven.Client.ServerWide.Operations;
+using ServiceControl.Configuration;
 using ServiceControl.Operations.BodyStorage.RavenAttachments;
 using ServiceControl.Persistence.DataMigration;
 using ServiceControl.Persistence.RavenDB.DataMigration.Readers;
@@ -47,49 +46,16 @@ sealed class RavenMigrationSource(RavenReadOnlySourceLifecycle lifecycle) : IMig
 
     public IReadOnlyList<IMigrationStartupCheck> ContributedChecks() => [];
 
-    public async Task<MigrationSourceDescription> Describe(CancellationToken cancellationToken = default)
-    {
-        var settings = lifecycle.Settings;
-        var build = await lifecycle.DocumentStore.Maintenance.Server.SendAsync(new GetBuildNumberOperation(), cancellationToken);
+    // Read once at creation, so each origin matches the settings the lifecycle was built from.
+    public IReadOnlyList<MigrationSettingValue> Configuration { get; } = ReadConfiguration(lifecycle.Settings, lifecycle.SettingsRoot);
 
-        var server = settings.UseEmbeddedServer
-            ? new MigrationSourceFact("Server", settings.ServerUrl, $"{lifecycle.SettingsRoot}/{RavenBootstrapper.DatabaseMaintenancePortKey}")
-            : new MigrationSourceFact("Server", settings.ConnectionString, $"{lifecycle.SettingsRoot}/{RavenBootstrapper.ConnectionStringKey}");
+    public async Task<string> Version(CancellationToken cancellationToken = default) =>
+        (await lifecycle.DocumentStore.Maintenance.Server.SendAsync(new GetBuildNumberOperation(), cancellationToken)).ProductVersion;
 
-        return new MigrationSourceDescription(build.ProductVersion,
-        [
-            new MigrationSourceFact("Mode", settings.UseEmbeddedServer ? "embedded" : "external"),
-            server,
-            new MigrationSourceFact("Primary database", settings.DatabaseName, $"{lifecycle.SettingsRoot}/{RavenBootstrapper.DatabaseNameKey}"),
-            new MigrationSourceFact("Throughput database", settings.ThroughputDatabaseName, $"{ThroughputSettings.SettingsNamespace}/{ThroughputSettings.DatabaseNameKey}")
-        ]);
-    }
-
-    public async Task<IReadOnlyList<MigrationSourceInventoryEntry>> Inventory(CancellationToken cancellationToken = default)
-    {
-        var entries = new List<MigrationSourceInventoryEntry>();
-
-        foreach (var databaseName in new[] { lifecycle.Settings.DatabaseName, lifecycle.Settings.ThroughputDatabaseName })
-        {
-            var statistics = await lifecycle.DocumentStore.Maintenance.ForDatabase(databaseName).SendAsync(new GetCollectionStatisticsOperation(), cancellationToken);
-            entries.AddRange(statistics.Collections.Select(collection => new MigrationSourceInventoryEntry(databaseName, collection.Key, collection.Value)));
-        }
-
-        return entries;
-    }
-
-    // Counted through the reader the copy uses, not from RavenDB's collection statistics, because a collection does not map one to one onto a category.
-    public async Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default)
-    {
-        var total = 0L;
-
-        await foreach (var batch in Read(category, resumeAfter: null, batchSize: CountBatchSize, cancellationToken))
-        {
-            total += batch.Rows.Count;
-        }
-
-        return total;
-    }
+    public Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default) =>
+        readers.TryGetValue(category.Id, out var reader)
+            ? reader.Count(cancellationToken)
+            : throw new NotSupportedException($"The migration source cannot yet read the '{category.Id}' category.");
 
     public IAsyncEnumerable<MigrationBatch> Read(
         MigrationCategory category,
@@ -131,6 +97,24 @@ sealed class RavenMigrationSource(RavenReadOnlySourceLifecycle lifecycle) : IMig
 
     public ValueTask DisposeAsync() => lifecycle.DisposeAsync();
 
-    // Counting only adds up row counts, so this size changes nothing but how often the stream stops to hand one back.
-    const int CountBatchSize = 1024;
+    static IReadOnlyList<MigrationSettingValue> ReadConfiguration(RavenPersisterSettings settings, SettingsRootNamespace settingsRoot)
+    {
+        var connectionStringOrigin = MigrationSettingValue.OriginOf(settingsRoot, RavenBootstrapper.ConnectionStringKey);
+        List<MigrationSettingValue> values = [new("Mode", settings.UseEmbeddedServer ? "embedded" : "external", connectionStringOrigin)];
+
+        if (settings.UseEmbeddedServer)
+        {
+            values.Add(new("Server", settings.ServerUrl, MigrationSettingValue.OriginOf(settingsRoot, RavenBootstrapper.DatabaseMaintenancePortKey)));
+            values.Add(new("Data directory", settings.DatabasePath!, MigrationSettingValue.OriginOf(settingsRoot, RavenBootstrapper.DatabasePathKey)));
+        }
+        else
+        {
+            values.Add(new("Server", settings.ConnectionString, connectionStringOrigin));
+        }
+
+        values.Add(new("Primary database", settings.DatabaseName, MigrationSettingValue.OriginOf(settingsRoot, RavenBootstrapper.DatabaseNameKey)));
+        values.Add(new("Throughput database", settings.ThroughputDatabaseName, MigrationSettingValue.OriginOf(ThroughputSettings.SettingsNamespace, ThroughputSettings.DatabaseNameKey)));
+
+        return values;
+    }
 }

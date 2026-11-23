@@ -38,7 +38,7 @@ class CustomCheckMigrationTests : MigrationAcceptanceTest
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.Copied, Is.EqualTo(2));
-            Assert.That(await Target.Count(MigrationCategoryRegistry.Find(MigrationCategoryIds.CustomChecks)!), Is.EqualTo(2), "Count is what --migration-verify reads");
+            Assert.That(await Target.Count(MigrationCategoryRegistry.Find(MigrationCategoryIds.CustomChecks)!), Is.EqualTo(2));
             Assert.That(Guid.Parse(failing.Id!), Is.EqualTo(IdOf(Endpoint, "Sales.HealthCheck")), "a live report of the same check upserts on this id, so it replaces the copied row rather than adding a second");
             Assert.That(failing.Status, Is.EqualTo(Status.Fail));
             Assert.That(failing.Category, Is.EqualTo("Ping"));

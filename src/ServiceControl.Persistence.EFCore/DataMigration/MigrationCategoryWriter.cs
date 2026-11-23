@@ -22,6 +22,12 @@ abstract class MigrationCategoryWriter<TDocument> : IMigrationCategoryWriter whe
         PrepareDocuments(dbContext, [.. batch.Rows.Select(row => (row, DocumentOf(row)))], cancellationToken);
 
     /// <summary>
+    /// The source row that stored each key while this process ran, for <see cref="Writers.KeyMerges" />.
+    /// It lets a later batch report a second source row with a stored key as a merge.
+    /// </summary>
+    protected Dictionary<string, string> KeyWriters { get; } = new(StringComparer.Ordinal);
+
+    /// <summary>
     /// Does what <see cref="IMigrationCategoryWriter.Prepare" /> promises, for rows already cast.
     /// </summary>
     protected abstract Task<PreparedBatch> PrepareDocuments(ServiceControlDbContext dbContext, IReadOnlyList<(MigrationRow Row, TDocument Document)> documents, CancellationToken cancellationToken = default);

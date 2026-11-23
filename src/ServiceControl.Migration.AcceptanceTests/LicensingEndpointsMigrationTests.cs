@@ -66,7 +66,7 @@ class LicensingEndpointsMigrationTests : MigrationAcceptanceTest
         var second = await CopyCategory("LicensingEndpoints");
 
         Assert.That(second.AlreadyPresent, Is.EqualTo(1));
-        Assert.That(second.Skipped, Is.Zero, "an endpoint the target already holds was not lost, and counting it as a skip makes --migration-verify subtract it twice");
+        Assert.That(second.Skipped, Is.Zero, "an endpoint the target already holds was not lost, and counting it as a skip makes verify subtract it twice");
     }
 
     [Test]
@@ -120,7 +120,7 @@ class LicensingEndpointsMigrationTests : MigrationAcceptanceTest
             Assert.That(stored.SanitizedName, Is.Empty, "a null sanitized name takes the empty string the product itself stores");
             Assert.That(stored.NormalizedSanitizedName, Is.Empty);
             Assert.That(result.Copied, Is.EqualTo(1));
-            Assert.That(result.SkippedIds, Is.EqualTo(new[] { "/Broker" }));
+            Assert.That(result.SkippedRows.Select(row => row.SourceId), Is.EqualTo(new[] { "/Broker" }));
             Assert.That(result.SkipReasons![MigrationSkipReason.RequiredValueMissing], Is.EqualTo(1), "Name and NormalizedName are NOT NULL and the product has no value of its own for a nameless endpoint, so the row is skipped and counted rather than halting the category");
         }
     }

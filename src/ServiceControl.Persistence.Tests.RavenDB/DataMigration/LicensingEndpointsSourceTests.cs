@@ -89,7 +89,7 @@ class LicensingEndpointsSourceTests : RavenMigrationSourceTestBase
         {
             Assert.That(rows.Select(row => row.SourceId), Has.None.StartsWith("LegacySettings/"), "the product reads endpoints only from the EndpointDocuments collection, so a document of any other kind is not an endpoint");
             Assert.That(rows, Has.Count.EqualTo(1));
-            Assert.That(count, Is.EqualTo(rows.Count), "the count reads what the copy reads, so --migration-verify expects no row for the stray document");
+            Assert.That(count, Is.EqualTo(rows.Count), "the count reads what the copy reads, so verify expects no row for the stray document");
         }
     }
 }

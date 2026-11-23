@@ -2,7 +2,6 @@ namespace ServiceControl.Persistence.Tests.RavenDB.DataMigration;
 
 using System;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -16,8 +15,6 @@ using Raven.Client.ServerWide.Operations;
 using ServiceControl.Configuration;
 using ServiceControl.MessageFailures;
 using ServiceControl.Operations.BodyStorage.RavenAttachments;
-using ServiceControl.Persistence.DataMigration;
-using ServiceControl.Persistence.RavenDB;
 using ServiceControl.Persistence.RavenDB.DataMigration;
 using ServiceControl.Persistence.Tests;
 
@@ -183,43 +180,6 @@ class ReadOnlySourceLifecycleTests
         Assert.That(afterFailure.Message, Does.Contain("is not open"), "A failed Open must dispose what it created. The caller never received a source, so nothing else can, and on the embedded path what leaks is a live RavenDB server process holding the customer's data directory.");
 
         await lifecycle.DisposeAsync();
-    }
-    [Test]
-    public async Task A_source_describes_itself_as_facts_naming_the_setting_each_came_from()
-    {
-        await using var source = new RavenMigrationSource(new RavenReadOnlySourceLifecycle(sourceSettings, SettingsRoot));
-        await source.Open();
-        var description = await source.Describe();
-        var facts = description.Facts.ToDictionary(fact => fact.Label);
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(description.Version, Does.StartWith("6."));
-            Assert.That(facts["Mode"].Value, Is.EqualTo("external"));
-            Assert.That(facts["Primary database"].Value, Is.EqualTo(databaseName));
-            Assert.That(facts["Primary database"].SettingKey, Is.EqualTo("ServiceControl/RavenDB/DatabaseName"));
-            Assert.That(facts["Throughput database"].Value, Is.EqualTo($"{databaseName}-throughput"));
-        });
-    }
-
-    [Test]
-    public async Task An_unopened_source_refuses_to_describe_itself()
-    {
-        await using var source = new RavenMigrationSource(new RavenReadOnlySourceLifecycle(sourceSettings, SettingsRoot));
-
-        var exception = Assert.ThrowsAsync<InvalidOperationException>(async () => await source.Describe());
-
-        Assert.That(exception.Message, Does.Contain("is not open"), "Separating construction from Open is what lets a host register a source in its container, and it buys a state where nothing is connected yet. That state has to fail loudly rather than return an empty description.");
-    }
-
-    [Test]
-    public async Task The_source_inventories_every_collection_by_database()
-    {
-        await using var source = new RavenMigrationSource(new RavenReadOnlySourceLifecycle(sourceSettings, SettingsRoot));
-        await source.Open();
-        var inventory = await source.Inventory();
-
-        Assert.That(inventory.Single(entry => entry.Scope == databaseName && entry.Name == "FailedMessages").Count, Is.EqualTo(1));
     }
 
     [Test]

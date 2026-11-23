@@ -120,7 +120,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability
 
                 Assert.That(exception.Message, Does.Contain("has not finished")
                     .And.Contain(MigrationCategoryIds.KnownEndpoints)
-                    .And.Contain("--migration-abandon KnownEndpoints"));
+                    .And.Contain("--abandon=KnownEndpoints"));
             }
             finally
             {

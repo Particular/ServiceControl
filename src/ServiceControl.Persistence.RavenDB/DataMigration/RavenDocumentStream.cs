@@ -67,7 +67,7 @@ static class RavenDocumentStream
         if (resumeAfter is not null && !await session.Advanced.ExistsAsync(resumeAfter, cancellationToken))
         {
             throw new InvalidOperationException(
-                $"The migration cannot resume the '{categoryId}' category after '{resumeAfter}', because the RavenDB database '{databaseName}' no longer holds a document with that id. The likeliest cause is that the document expired and RavenDB deleted it while the copy was interrupted, which can happen to any archived or resolved message. Run --migration-retry {categoryId} to copy the category again from the start. If RavenDB was instead restored from a backup or the migration now reads a different database, point it back at the database this copy started from and restart.");
+                $"The migration cannot resume the '{categoryId}' category after '{resumeAfter}', because the RavenDB database '{databaseName}' no longer holds a document with that id. The likeliest cause is that the document expired and RavenDB deleted it while the copy was interrupted, which can happen to any archived or resolved message. Run --start-data-migration --retry={categoryId} to copy the category again from the start. If RavenDB was instead restored from a backup or the migration now reads a different database, point it back at the database this copy started from and restart.");
         }
     }
 

@@ -25,7 +25,7 @@ class When_the_copy_merges_or_changes_rows : MigrationAcceptanceTest
             new SubscriptionRow("MyMessages.OrderPlaced", new Version(2, 0, 0), "Billing@BILLING01", "Billing"));
         var summaries = new SummaryLines();
 
-        await MigrateCommand.Run(MigrationSettings(), AllowingAnUnreleasedMigration(builder => builder.Services.AddSingleton<ILoggerProvider>(summaries)));
+        await ExpectExitCode(MigrateCommand.Run(MigrationSettings(), builder => builder.Services.AddSingleton<ILoggerProvider>(summaries)));
 
         using (Assert.EnterMultipleScope())
         {

@@ -64,7 +64,7 @@ class PendingIntegrationEventsMigrationTargetTests : PersistenceTestBase
         {
             Assert.That(result.Copied, Is.EqualTo(1));
             Assert.That(result.SkipReasons[MigrationSkipReason.RequiredValueMissing], Is.EqualTo(1), "both columns are NOT NULL, and a throw would stop the category at this batch");
-            Assert.That(await Target.Count(Category), Is.EqualTo(1), "Count is what --migration-verify reads, so it must see the row the copy wrote");
+            Assert.That(await Target.Count(Category), Is.EqualTo(1), "the count must see the row the copy wrote");
         }
     }
 
@@ -82,7 +82,7 @@ class PendingIntegrationEventsMigrationTargetTests : PersistenceTestBase
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.Copied, Is.EqualTo(1));
-            Assert.That(result.SkippedIds, Is.EqualTo(new[] { "ExternalIntegrationDispatchRequests/1" }));
+            Assert.That(result.SkippedRows.Select(row => row.SourceId), Is.EqualTo(new[] { "ExternalIntegrationDispatchRequests/1" }));
             Assert.That(result.SkipReasons[MigrationSkipReason.ValueTooLong], Is.EqualTo(1), "one value longer than its column fails the whole statement, so it is skipped instead");
             Assert.That(await Target.Count(Category), Is.EqualTo(1));
         }

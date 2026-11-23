@@ -38,7 +38,7 @@ class SubscriptionsMigrationTargetTests : PersistenceTestBase
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.Copied, Is.EqualTo(1), "a value exactly as long as its column fits");
-            Assert.That(result.SkippedIds, Is.EqualTo(new[] { "s/2", "s/3", "s/4" }));
+            Assert.That(result.SkippedRows.Select(row => row.SourceId), Is.EqualTo(new[] { "s/2", "s/3", "s/4" }));
             Assert.That(result.SkipReasons, Is.EqualTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.ValueTooLong] = 3 }),
                 "an over-long value would fail the whole insert and halt the category");
             Assert.That(details, Is.EqualTo(new[]
@@ -171,7 +171,7 @@ class SubscriptionsMigrationTargetTests : PersistenceTestBase
                 "Subscriptions.TransportAddress is NOT NULL and the document has no value for it",
                 "Subscriptions.MessageType is NOT NULL and the document has no value for it"
             }), "the target logs this line, so it has to name the column that is missing");
-            Assert.That(result.SkippedIds, Is.EqualTo(new[] { "s/1", "s/2" }));
+            Assert.That(result.SkippedRows.Select(row => row.SourceId), Is.EqualTo(new[] { "s/1", "s/2" }));
             Assert.That(result.SkipReasons, Is.EqualTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.RequiredValueMissing] = 2 }));
             Assert.That(await StoredSubscriptions(), Is.EqualTo(new[] { ("MyMessages.OrderPlaced", "Shipping@SHIP01", "Shipping") }));
         }

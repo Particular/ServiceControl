@@ -54,6 +54,24 @@ sealed class FailedMessagesReader(RavenReadOnlySourceLifecycle lifecycle) : Migr
         }
     }
 
+    /// <summary>
+    /// Counts the unresolved and retry issued messages through <see cref="FailedMessageViewIndex" />, so the count does not read
+    /// every message. When the index cannot be trusted it falls back to reading every row, as <see cref="Read" /> does.
+    /// </summary>
+    public override async Task<long> Count(CancellationToken cancellationToken = default)
+    {
+        var databaseName = Lifecycle.Settings.DatabaseName;
+
+        if (!await IndexHoldsEveryCopiedFailedMessage(databaseName, cancellationToken))
+        {
+            return await base.Count(cancellationToken);
+        }
+
+        using var session = Lifecycle.OpenSession(databaseName);
+
+        return await Query(session).WhereIn(nameof(FailedMessage.Status), StatusValues(MigrationCategoryRegistry.UnresolvedAndRetryIssuedStatuses)).LongCountAsync(cancellationToken);
+    }
+
     async IAsyncEnumerable<MigrationBatch> ThroughIndex(
         string databaseName,
         string? resumeAfter,

@@ -58,7 +58,7 @@ class RetryOperationsMigrationTargetTests : PersistenceTestBase
         {
             Assert.That(fourHundredCodePoints, Has.Length.EqualTo(401), "the emoji request id is one UTF-16 unit over the column, and 400 code points");
             Assert.That(result.Copied, Is.EqualTo(countsCodePoints ? 3 : 2), "a value exactly as long as its column fits, in either table");
-            Assert.That(result.SkippedIds, Is.EqualTo(countsCodePoints ? new[] { "historic/2", "pending/1", "pending/2" } : new[] { "historic/2", "historic/3", "pending/1", "pending/2" }),
+            Assert.That(result.SkippedRows.Select(row => row.SourceId), Is.EqualTo(countsCodePoints ? new[] { "historic/2", "pending/1", "pending/2" } : new[] { "historic/2", "historic/3", "pending/1", "pending/2" }),
                 "400 code points fit a column that counts code points, and a skip there would lose a retry operation the database could hold");
             Assert.That(result.SkipReasons, Is.EqualTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.ValueTooLong] = countsCodePoints ? 3 : 4 }), "an over-long value would fail the whole insert and halt the category");
             Assert.That(stored.HistoricOperations.Select(operation => operation.RequestId), Is.EquivalentTo(countsCodePoints ? new[] { new string('r', 400), fourHundredCodePoints } : new[] { new string('r', 400) }));
@@ -88,7 +88,7 @@ class RetryOperationsMigrationTargetTests : PersistenceTestBase
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.SkippedIds, Is.EqualTo(refused ? new[] { "historic/1", "pending/1" } : Array.Empty<string>()), "only a database that refuses the character fails the statement over it");
+            Assert.That(result.SkippedRows.Select(row => row.SourceId), Is.EqualTo(refused ? new[] { "historic/1", "pending/1" } : Array.Empty<string>()), "only a database that refuses the character fails the statement over it");
             Assert.That(stored.HistoricOperations.Select(operation => operation.RequestId), Is.EquivalentTo(refused ? new[] { "group-3" } : new[] { "group-1", "group-3" }));
             Assert.That(stored.UnacknowledgedOperations.Select(operation => operation.RequestId), Is.EquivalentTo(refused ? new[] { "group-4" } : new[] { "group-2", "group-4" }));
 
@@ -124,7 +124,7 @@ class RetryOperationsMigrationTargetTests : PersistenceTestBase
                 "HistoricRetryOperations.RequestId is NOT NULL and the document has no value for it",
                 "UnacknowledgedRetryOperations.RequestId is NOT NULL and the document has no value for it"
             }), "the target logs this line, so it has to name the table the operation was bound for");
-            Assert.That(result.SkippedIds, Is.EqualTo(new[] { "historic/1", "pending/1" }));
+            Assert.That(result.SkippedRows.Select(row => row.SourceId), Is.EqualTo(new[] { "historic/1", "pending/1" }));
             Assert.That(result.SkipReasons, Is.EqualTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.RequiredValueMissing] = 2 }));
             Assert.That(result.Copied, Is.EqualTo(2));
             Assert.That(stored.HistoricOperations.Select(operation => operation.RequestId), Is.EqualTo(new[] { "group-1" }));

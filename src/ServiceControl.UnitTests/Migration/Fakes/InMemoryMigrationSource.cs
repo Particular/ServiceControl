@@ -21,7 +21,9 @@ public sealed class InMemoryMigrationSource : IMigrationSource
     TaskCompletionSource? heldBodyReads;
     int bodyReadsInFlight;
 
-    public MigrationSourceDescription Description { get; set; } = new("in-memory", [new MigrationSourceFact("Store", "in memory")]);
+    public IReadOnlyList<MigrationSettingValue> Configuration { get; set; } = [];
+
+    public string Version { get; set; } = "in-memory";
 
     public void Seed(string categoryId, params MigrationRow[] rows) => rowsByCategory[categoryId] = [.. rows];
 
@@ -73,18 +75,52 @@ public sealed class InMemoryMigrationSource : IMigrationSource
         }
     }
 
-    public Task Open(CancellationToken cancellationToken = default) => Task.CompletedTask;
+    /// <summary>
+    /// What Open throws, or null to open normally.
+    /// </summary>
+    public Exception? OpenFailure { get; set; }
+
+    /// <summary>
+    /// Whether Open was called, even when it threw.
+    /// </summary>
+    public bool Opened { get; private set; }
+
+    public Task Open(CancellationToken cancellationToken = default)
+    {
+        Opened = true;
+        return OpenFailure is { } failure ? Task.FromException(failure) : Task.CompletedTask;
+    }
 
     public IReadOnlyList<IMigrationStartupCheck> ContributedChecks() => [];
 
-    public Task<MigrationSourceDescription> Describe(CancellationToken cancellationToken = default) => Task.FromResult(Description);
+    Task<string> IMigrationSource.Version(CancellationToken cancellationToken) => Task.FromResult(Version);
 
-    public Task<IReadOnlyList<MigrationSourceInventoryEntry>> Inventory(CancellationToken cancellationToken = default) =>
-        Task.FromResult<IReadOnlyList<MigrationSourceInventoryEntry>>(
-            [.. rowsByCategory.Select(pair => new MigrationSourceInventoryEntry("memory", pair.Key, pair.Value.Count))]);
+    /// <summary>
+    /// The categories this source claims it cannot read. They are left out of <see cref="SupportedCategoryIds" />.
+    /// </summary>
+    public HashSet<string> Unsupported { get; } = [];
 
-    public Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default) =>
-        Task.FromResult<long>(rowsByCategory.TryGetValue(category.Id, out var rows) ? rows.Count : 0);
+    /// <summary>
+    /// Every category Count was called for, in call order, once per call.
+    /// </summary>
+    public List<string> CountedCategories { get; } = [];
+
+    /// <summary>
+    /// The count to report for a category instead of its seeded rows, so a test can show a large backlog without seeding it.
+    /// </summary>
+    public Dictionary<string, long> CountOverrides { get; } = [];
+
+    public Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default)
+    {
+        CountedCategories.Add(category.Id);
+
+        if (CountOverrides.TryGetValue(category.Id, out var overridden))
+        {
+            return Task.FromResult(overridden);
+        }
+
+        return Task.FromResult<long>(rowsByCategory.TryGetValue(category.Id, out var rows) ? rows.Count : 0);
+    }
 
     public async IAsyncEnumerable<MigrationBatch> Read(
         MigrationCategory category,
@@ -157,9 +193,9 @@ public sealed class InMemoryMigrationSource : IMigrationSource
         }
     }
 
-    // Every registered category, not just the seeded ones: Seed writes rowsByCategory after construction,
+    // Every registered category outside Unsupported, not just the seeded ones: Seed writes rowsByCategory after construction,
     // and the interface promises an answer that does not change across Open.
-    public IReadOnlyCollection<string> SupportedCategoryIds => [.. MigrationCategoryRegistry.All.Select(category => category.Id)];
+    public IReadOnlyCollection<string> SupportedCategoryIds => [.. MigrationCategoryRegistry.All.Select(category => category.Id).Where(id => !Unsupported.Contains(id))];
 
     public IReadOnlyDictionary<string, Type> DocumentTypes => MigrationCategoryRegistry.All.ToDictionary(category => category.Id, _ => typeof(object));
 

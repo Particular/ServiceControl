@@ -192,7 +192,7 @@ class LicensingThroughputMigrationTests : MigrationAcceptanceTest
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.Copied, Is.EqualTo(1));
-            Assert.That(result.SkippedIds, Is.EqualTo(new[] { "/Broker|2026-01-01" }));
+            Assert.That(result.SkippedRows.Select(row => row.SourceId), Is.EqualTo(new[] { "/Broker|2026-01-01" }));
             Assert.That(result.SkipReasons![MigrationSkipReason.RequiredValueMissing], Is.EqualTo(1), "a nameless endpoint's day has no NormalizedName to key under, so it is skipped and counted rather than halting the category");
         }
     }

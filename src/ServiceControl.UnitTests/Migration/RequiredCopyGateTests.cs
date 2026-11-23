@@ -42,6 +42,7 @@ class RequiredCopyGateTests
 
         Assert.That(exception.Message, Does.Contain($"{UnknownCategoryId} is ").And.Contain(state.ToString()),
             "an id this build does not know is required until it is known to be optional, as the ingestion gate already decides");
+        Assert.That(exception.Message, Does.Not.Contain("--retry="), "the arguments refuse an id this build does not know, so naming them would send the operator to a refusal");
     }
 
     [Test]
@@ -104,23 +105,7 @@ class RequiredCopyGateTests
     }
 
     [Test]
-    public void The_refusal_reads_to_its_end_as_a_sentence_and_says_how_to_get_back()
-    {
-        var exception = Assert.Throws<Exception>(() => MigrationStartup.RefuseIfAnyCategoryDidNotComplete([EndpointSettings], [Checkpoint(MigrationCategoryState.Halted)], NewSettings()));
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(exception.Message, Does.Contain($"--migration-retry {MigrationCategoryIds.EndpointSettings}").And.Contain($"--migration-abandon {MigrationCategoryIds.EndpointSettings}"),
-                "a Failed category waits for the operator, so a refusal naming neither command leaves them restarting for ever");
-            Assert.That(exception.Message, Does.Not.Contain("the copy resumes from its last committed batch"), "a restart no longer copies a Failed category");
-            Assert.That(exception.Message, Does.Contain("both with ServiceControl stopped. Nothing has opened on SQLServer yet")
-                .And.EndWith("returns the instance to RavenDB with no loss."),
-                "the operator reads the whole message, and the rollback instructions are at the end of it");
-        });
-    }
-
-    [Test]
-    public void Every_failed_required_category_is_named_with_its_skips_and_both_commands()
+    public void Every_failed_required_category_is_named_with_its_skips_and_both_arguments()
     {
         var withErrors = Checkpoint(MigrationCategoryState.CompleteWithErrors, MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages) with
         {
@@ -133,7 +118,7 @@ class RequiredCopyGateTests
                 [MigrationSkipReason.BodyMissing] = 1
             }
         };
-        var halted = Checkpoint(MigrationCategoryState.Halted, MigrationCategoryIds.MessageRedirects) with { LastError = "TimeoutException at cursor r-7: the target did not answer" };
+        var halted = Checkpoint(MigrationCategoryState.Halted, MigrationCategoryIds.MessageRedirects) with { LastError = MigrationStartup.StallExplanation(MigrationCategoryIds.MessageRedirects) };
 
         var exception = Assert.Throws<Exception>(() => MigrationStartup.RefuseIfAnyCategoryDidNotComplete(
             [MessageRedirects, UnresolvedAndRetryIssuedFailedMessages], [halted, withErrors], NewSettings()));
@@ -142,16 +127,36 @@ class RequiredCopyGateTests
         {
             foreach (var categoryId in new[] { MigrationCategoryIds.MessageRedirects, MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages })
             {
-                Assert.That(exception.Message, Does.Contain($"--migration-retry {categoryId} once the cause is fixed").And.Contain($"--migration-abandon {categoryId} to keep what was copied"),
+                Assert.That(exception.Message, Does.Contain($"pass --non-interactive and --retry={categoryId} or --abandon={categoryId}"),
                     $"one start gives every required category its go, so the refusal has to name every Failed one, {categoryId} included");
             }
 
-            Assert.That(exception.Message, Does.Contain($"{MigrationCategoryIds.MessageRedirects} is Failed (Halted)").And.Contain("the target did not answer"));
+            Assert.That(exception.Message, Does.Contain($"{MigrationCategoryIds.MessageRedirects} is Failed (Halted)"));
+            Assert.That(exception.Message, Does.Contain($"committed nothing for {MigrationStartup.ClosedWindowProgress.StallLimit.TotalMinutes:0.#} minutes")
+                .And.Contain("looking for a setting to change; run --start-data-migration again"),
+                "the stall is on the row, and the refusal is where the operator reads it");
+            Assert.That(exception.Message, Does.Contain($"--abandon={MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages}. Nothing has opened on SQLServer yet")
+                .And.EndWith("returns the instance to RavenDB with no loss."),
+                "the operator reads the whole message, and the rollback instructions are at the end of it");
             Assert.That(exception.Message, Does.Contain($"{MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages} is Failed (CompleteWithErrors) after copying 40 and skipping 6"));
             Assert.That(exception.Message, Does.Contain("RequiredValueMissing 2, no retry can fix"), "a row no retry can store is a reason to abandon, and the operator has to be told which");
             Assert.That(exception.Message, Does.Contain("BodyUnreadable 3").And.Not.Contain("BodyUnreadable 3, no retry can fix"), "an unreadable body may read on the next try");
             Assert.That(exception.Message, Does.Contain("BodyMissing 1, no retry can fix"), "a body the source does not hold is missing again on every retry");
         }
+    }
+
+    [Test]
+    public void A_retried_category_counts_the_rows_an_earlier_pass_left_in_the_target()
+    {
+        var retried = Checkpoint(MigrationCategoryState.CompleteWithErrors, MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages) with
+        {
+            CopiedCount = 0,
+            SkippedCount = 15,
+            AlreadyPresentCount = 18
+        };
+
+        Assert.That(MigrationStartup.FailedState(retried), Does.StartWith($"{MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages} is Failed (CompleteWithErrors) after copying 0 and skipping 15, with 18 already in the target"));
+        Assert.That(MigrationStartup.FailedState(retried with { AlreadyPresentCount = 0 }), Does.Not.Contain("already in the target"));
     }
 
     [Test]
@@ -165,22 +170,10 @@ class RequiredCopyGateTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(exception.Message, Does.Contain($"{MigrationCategoryIds.EndpointSettings} is Blocked").And.Contain("must follow KnownEndpoints"));
-            Assert.That(exception.Message, Does.Contain($"--migration-retry {MigrationCategoryIds.KnownEndpoints}"));
-            Assert.That(exception.Message, Does.Not.Contain($"--migration-retry {MigrationCategoryIds.EndpointSettings}").And.Not.Contain($"--migration-abandon {MigrationCategoryIds.EndpointSettings}"),
+            Assert.That(exception.Message, Does.Contain($"--retry={MigrationCategoryIds.KnownEndpoints}"));
+            Assert.That(exception.Message, Does.Not.Contain($"--retry={MigrationCategoryIds.EndpointSettings}").And.Not.Contain($"--abandon={MigrationCategoryIds.EndpointSettings}"),
                 "a category that never got its go has nothing to retry; it runs once the one ahead of it is dealt with");
         }
-    }
-
-    [Test]
-    public void A_stalled_category_is_refused_with_the_limit_its_row_records()
-    {
-        var stalled = Checkpoint(MigrationCategoryState.Halted) with { LastError = MigrationStartup.StallExplanation(MigrationCategoryIds.EndpointSettings) };
-
-        var exception = Assert.Throws<Exception>(() => MigrationStartup.RefuseIfAnyCategoryDidNotComplete([EndpointSettings], [stalled], NewSettings()));
-
-        Assert.That(exception.Message, Does.Contain($"committed nothing for {MigrationStartup.ClosedWindowProgress.StallLimit.TotalMinutes:0.#} minutes")
-            .And.Contain("looking for a setting to change; run --migration-retry EndpointSettings"),
-            "the stall is on the row, and the refusal is where the operator reads it");
     }
 
     // The last thing said before the cutover is one way, and the only place a skipped total appears at all.
@@ -207,80 +200,69 @@ class RequiredCopyGateTests
             Assert.That(entry.Level, Is.EqualTo(LogLevel.Warning), "rows left behind are not an informational matter");
             Assert.That(entry.Message, Does.Contain("6 skipped"), "the total is the number the operator decides on");
             Assert.That(entry.Message, Does.Contain("PastRetention 3").And.Contain("RequiredValueMissing 2").And.Contain("BodyUnreadable 1"), "a total with no reasons cannot be acted on");
-            Assert.That(entry.Message, Does.Contain("stay only in the source database").And.Contain($"--migration-retry {MigrationCategoryIds.EndpointSettings} re-reads them"),
+            Assert.That(entry.Message, Does.Contain("stay only in the source database").And.Contain($"--start-data-migration --retry={MigrationCategoryIds.EndpointSettings} re-reads them"),
                 "without this the operator either waits for a copy that is already over or never learns the rows can still come across");
             Assert.That(entry.Message, Does.Contain("No retry can fix the RequiredValueMissing ones"), "the retry brings the unreadable bodies across but leaves these behind again");
         });
     }
 
+    // A Failed row comes back untouched on every start, so every refused restart reports it again.
     [Test]
-    public void A_failed_category_whose_faults_no_retry_can_fix_is_pointed_at_abandon()
+    public void A_failed_category_whose_faults_no_retry_can_fix_is_pointed_at_abandon_on_every_start()
     {
         var logger = new CapturingLogger();
 
-        MigrationStartup.ReportWhatTheCopyLeftBehind(
-            [Settled(MigrationCategoryState.CompleteWithErrors, copied: 7, skipped: 5, new Dictionary<MigrationSkipReason, long>
-            {
-                [MigrationSkipReason.PastRetention] = 3,
-                [MigrationSkipReason.RequiredValueMissing] = 2
-            })],
-            logger,
-            RunStartedAt,
-            NothingMergedOrChanged);
+        var reasons = new Dictionary<MigrationSkipReason, long>
+        {
+            [MigrationSkipReason.PastRetention] = 3,
+            [MigrationSkipReason.RequiredValueMissing] = 2
+        };
+        var failedEarlier = Settled(MigrationCategoryState.CompleteWithErrors, copied: 7, skipped: 5, reasons)
+            with
+        { SettledAt = RunStartedAt.AddMinutes(-5) };
+
+        MigrationStartup.ReportWhatTheCopyLeftBehind([failedEarlier], logger, RunStartedAt, NothingMergedOrChanged);
 
         var entry = logger.Entries.Single();
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
-            Assert.That(entry.Message, Does.Contain("no retry can fix them").And.Contain($"--migration-abandon {MigrationCategoryIds.EndpointSettings}"),
-                "a retry re-reads the whole category and ends Failed on the same rows");
-            Assert.That(entry.Message, Does.Not.Contain("--migration-retry"), "harmless skips are not a reason to retry either");
-        });
+            Assert.That(entry.Message, Does.Contain("no retry can fix them").And.Contain($"--start-data-migration --abandon={MigrationCategoryIds.EndpointSettings}"),
+                "the advice has to show on every refused start, not only the first, and a retry re-reads the whole category and ends Failed on the same rows");
+            Assert.That(entry.Message, Does.Not.Contain("--retry="), "harmless skips are not a reason to retry either, and no retry can store a row missing a required value");
+            Assert.That(entry.Message, Does.Not.Contain("before this copy pass began"), "the refusal right after this line calls the same category Failed");
+        }
     }
 
     [Test]
-    public void A_halted_category_whose_faults_no_retry_can_fix_is_told_abandon_gives_up_every_row_not_yet_read()
+    public void A_halted_category_is_told_abandon_gives_up_every_row_not_yet_read_and_which_faults_no_retry_can_fix()
     {
         var logger = new CapturingLogger();
 
-        MigrationStartup.ReportWhatTheCopyLeftBehind(
-            [Settled(MigrationCategoryState.Halted, copied: 7, skipped: 120, new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.MalformedValue] = 120 })
-                with { LastError = "Halted: 120 of 127 rows skipped in this run exceeds the configured threshold of 5% and 100 rows." }],
-            logger,
-            RunStartedAt,
-            NothingMergedOrChanged);
+        var permanentFaults = Settled(MigrationCategoryState.Halted, copied: 7, skipped: 120, new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.MalformedValue] = 120 })
+            with
+        { LastError = "Halted: 120 of 127 rows skipped in this run exceeds the configured threshold of 5% and 100 rows." };
+        var fixableFaults = Settled(MigrationCategoryState.Halted, copied: 7, skipped: 120, new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.BodyUnreadable] = 120 })
+            with
+        { CategoryId = MigrationCategoryIds.KnownEndpoints };
 
-        var entry = logger.Entries.Single();
+        MigrationStartup.ReportWhatTheCopyLeftBehind([permanentFaults, fixableFaults], logger, RunStartedAt, NothingMergedOrChanged);
 
-        Assert.Multiple(() =>
+        Assert.That(logger.Entries, Has.Count.EqualTo(2));
+        var permanent = logger.Entries[0].Message;
+        var fixable = logger.Entries[1].Message;
+
+        using (Assert.EnterMultipleScope())
         {
-            Assert.That(entry.Message, Does.Contain("stopped before the end").And.Contain("every row not yet read"),
+            Assert.That(permanent, Does.Contain("stopped before the end").And.Contain("every row not yet read"),
                 "a halted category never read the rows after its cursor, so abandon gives up far more than the skipped ones");
-            Assert.That(entry.Message, Does.Contain(MigrationSettings.HaltThresholdPercentKey).And.Contain(MigrationSettings.HaltThresholdMinimumKey)
-                .And.Contain($"--migration-retry {MigrationCategoryIds.EndpointSettings}"), "raising the threshold and retrying copies every row the faults do not stop");
-            Assert.That(entry.Message, Does.Contain("No retry can fix the MalformedValue ones"));
-            Assert.That(entry.Message, Does.Not.Contain("gives up the rest"));
-        });
-    }
-
-    [Test]
-    public void A_halted_category_with_faults_a_retry_can_fix_is_also_told_what_abandon_gives_up()
-    {
-        var logger = new CapturingLogger();
-
-        MigrationStartup.ReportWhatTheCopyLeftBehind(
-            [Settled(MigrationCategoryState.Halted, copied: 7, skipped: 120, new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.BodyUnreadable] = 120 })],
-            logger,
-            RunStartedAt,
-            NothingMergedOrChanged);
-
-        var entry = logger.Entries.Single();
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(entry.Message, Does.Contain("every row not yet read").And.Contain($"--migration-retry {MigrationCategoryIds.EndpointSettings}"));
-            Assert.That(entry.Message, Does.Not.Contain("No retry can fix"), "an unreadable body may read on the next try");
-        });
+            Assert.That(permanent, Does.Contain(MigrationSettings.HaltThresholdPercentKey).And.Contain(MigrationSettings.HaltThresholdMinimumKey)
+                .And.Contain($"--start-data-migration --retry={MigrationCategoryIds.EndpointSettings}"), "raising the threshold and retrying copies every row the faults do not stop");
+            Assert.That(permanent, Does.Contain("No retry can fix the MalformedValue ones"));
+            Assert.That(permanent, Does.Not.Contain("gives up the rest"));
+            Assert.That(fixable, Does.Contain("every row not yet read").And.Contain($"--start-data-migration --retry={MigrationCategoryIds.KnownEndpoints}"));
+            Assert.That(fixable, Does.Not.Contain("No retry can fix"), "an unreadable body may read on the next try");
+        }
     }
 
     [Test]
@@ -294,29 +276,8 @@ class RequiredCopyGateTests
 
         MigrationStartup.ReportWhatTheCopyLeftBehind([stoppedByAnException], logger, RunStartedAt, NothingMergedOrChanged);
 
-        Assert.That(logger.Entries.Single().Message, Does.Contain($"--migration-retry {MigrationCategoryIds.EndpointSettings} re-reads them").And.Not.Contain("--migration-abandon"),
+        Assert.That(logger.Entries.Single().Message, Does.Contain($"--start-data-migration --retry={MigrationCategoryIds.EndpointSettings} re-reads them").And.Not.Contain("--abandon="),
             "no fault skip stands in the way of a retry, so the exception's cause is what the operator fixes");
-    }
-
-    [Test]
-    public void A_done_category_with_harmless_skips_is_not_offered_a_retry()
-    {
-        var logger = new CapturingLogger();
-
-        MigrationStartup.ReportWhatTheCopyLeftBehind(
-            [Settled(MigrationCategoryState.Complete, copied: 7, skipped: 3, new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.PastRetention] = 3 })],
-            logger,
-            RunStartedAt,
-            NothingMergedOrChanged);
-
-        var entry = logger.Entries.Single();
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(entry.Message, Does.Contain("3 skipped").And.Contain("PastRetention 3"));
-            Assert.That(entry.Message, Does.Contain("harmless").And.Contain("stay only in the source database"));
-            Assert.That(entry.Message, Does.Not.Contain("--migration-retry"), "a Done category cannot be retried, so offering it sends the operator to a command that refuses");
-        });
     }
 
     [Test]
@@ -343,6 +304,9 @@ class RequiredCopyGateTests
 
         Assert.Multiple(() =>
         {
+            Assert.That(message, Does.Contain("8 skipped").And.Contain("SourceStorageCheck 6"));
+            Assert.That(message, Does.Contain("harmless").And.Contain("stay only in the source database"));
+            Assert.That(message, Does.Not.Contain("--retry="), "a Done category cannot be retried, so offering it sends the operator to a command that refuses");
             Assert.That(message, Does.Contain(MigrationStartup.HarmlessSkipExplanations[MigrationSkipReason.SourceStorageCheck]).And.Contain(MigrationStartup.HarmlessSkipExplanations[MigrationSkipReason.BlankGroupComment]));
             Assert.That(message, Does.Not.Contain(MigrationStartup.HarmlessSkipExplanations[MigrationSkipReason.PastRetention]), "a reason the category did not skip for would give the operator a false reason");
         });
@@ -395,49 +359,9 @@ class RequiredCopyGateTests
         });
     }
 
+    // A category this run actually settled must keep the ordinary wording, or the fix below would silence every report.
     [Test]
     public void A_category_that_skipped_nothing_says_so_without_raising_a_warning()
-    {
-        var logger = new CapturingLogger();
-
-        MigrationStartup.ReportWhatTheCopyLeftBehind([Settled(MigrationCategoryState.Complete, copied: 7, skipped: 0, null)], logger, RunStartedAt, NothingMergedOrChanged);
-
-        var entry = logger.Entries.Single();
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(entry.Level, Is.EqualTo(LogLevel.Information), "a clean copy warning about nothing trains the operator to ignore the warning that matters");
-            Assert.That(entry.Message, Does.Contain("nothing skipped"));
-        });
-    }
-
-    // Restarting a migrated instance used to reprint the whole copy summary in the present tense, so an operator
-    // restarting to change a setting read "7 copied" and had no way to tell the copy had not run again.
-    [Test]
-    public void A_category_an_earlier_run_finished_is_not_reported_as_copied_again()
-    {
-        var logger = new CapturingLogger();
-
-        var alreadyDone = Settled(MigrationCategoryState.Complete, copied: 7, skipped: 0, null)
-            with
-        { SettledAt = RunStartedAt.AddMinutes(-5) };
-
-        MigrationStartup.ReportWhatTheCopyLeftBehind([alreadyDone], logger, RunStartedAt, NothingMergedOrChanged);
-
-        var entry = logger.Entries.Single();
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(entry.Message, Does.Contain("already finished before this start"), "without this the line is indistinguishable from a copy that just ran");
-            Assert.That(entry.Message, Does.Contain("This start copied nothing"), "the operator needs to know nothing was written to a target that is already serving");
-            Assert.That(entry.Message, Does.Contain("7"), "the historical total is still worth stating, just not as this run's work");
-            Assert.That(entry.Level, Is.EqualTo(LogLevel.Information));
-        });
-    }
-
-    // A category this run actually settled must keep the ordinary wording, or the fix above would silence every report.
-    [Test]
-    public void A_category_this_run_finished_is_still_reported_as_copied()
     {
         var logger = new CapturingLogger();
 
@@ -447,28 +371,36 @@ class RequiredCopyGateTests
 
         MigrationStartup.ReportWhatTheCopyLeftBehind([justDone], logger, RunStartedAt, NothingMergedOrChanged);
 
-        Assert.That(logger.Entries.Single().Message, Does.Contain("7 copied").And.Not.Contain("already finished"));
+        var entry = logger.Entries.Single();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(entry.Level, Is.EqualTo(LogLevel.Information), "a clean copy warning about nothing trains the operator to ignore the warning that matters");
+            Assert.That(entry.Message, Does.Contain("nothing skipped").And.Contain("7 copied").And.Not.Contain("before this copy pass began"));
+        });
     }
 
-    // A Failed row comes back untouched on every start, so every refused restart reports it again.
-    [Test]
-    public void A_category_an_earlier_run_left_failed_is_not_reported_as_finished()
+    // Restarting a migrated instance used to reprint the whole copy summary in the present tense, so an operator
+    // restarting to change a setting read "7 copied" and had no way to tell the copy had not run again.
+    [TestCase(MigrationCategoryState.Complete, "already Done before this copy pass began")]
+    public void A_category_finished_before_this_pass_is_not_reported_as_copied_again(MigrationCategoryState state, string finishedBefore)
     {
         var logger = new CapturingLogger();
 
-        var failedEarlier = Settled(MigrationCategoryState.CompleteWithErrors, copied: 7, skipped: 2, new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.RequiredValueMissing] = 2 })
+        var alreadyDone = Settled(state, copied: 7, skipped: 0, null)
             with
         { SettledAt = RunStartedAt.AddMinutes(-5) };
 
-        MigrationStartup.ReportWhatTheCopyLeftBehind([failedEarlier], logger, RunStartedAt, NothingMergedOrChanged);
+        MigrationStartup.ReportWhatTheCopyLeftBehind([alreadyDone], logger, RunStartedAt, NothingMergedOrChanged);
 
         var entry = logger.Entries.Single();
 
         Assert.Multiple(() =>
         {
-            Assert.That(entry.Message, Does.Not.Contain("already finished"), "the refusal right after this line calls the same category Failed");
-            Assert.That(entry.Message, Does.Contain($"--migration-abandon {MigrationCategoryIds.EndpointSettings}").And.Not.Contain("--migration-retry"),
-                "the advice has to show on every refused start, not only the first, and no retry can store a row missing a required value");
+            Assert.That(entry.Message, Does.Contain(finishedBefore), "an abandon in this run settles before the pass too, so the line must not credit an earlier run");
+            Assert.That(entry.Message, Does.Contain("This pass copied nothing"), "the operator needs to know nothing was written to a target that is already serving");
+            Assert.That(entry.Message, Does.Contain("7"), "the historical total is still worth stating, just not as this run's work");
+            Assert.That(entry.Level, Is.EqualTo(LogLevel.Information));
         });
     }
 

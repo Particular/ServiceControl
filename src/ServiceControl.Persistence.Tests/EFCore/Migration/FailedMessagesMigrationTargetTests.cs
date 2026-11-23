@@ -220,7 +220,11 @@ class FailedMessagesMigrationTargetTests : PersistenceTestBase
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.Copied, Is.EqualTo(1));
-            Assert.That(result.SkippedIds, Is.EquivalentTo(new[] { $"FailedMessages/{badTimeSent.UniqueMessageId}", $"FailedMessages/{noFailureDetails.UniqueMessageId}" }));
+            Assert.That(result.SkippedRows, Is.EquivalentTo(new[]
+            {
+                new MigrationSkippedRow($"FailedMessages/{badTimeSent.UniqueMessageId}", MigrationSkipReason.MalformedValue),
+                new MigrationSkippedRow($"FailedMessages/{noFailureDetails.UniqueMessageId}", MigrationSkipReason.RequiredValueMissing)
+            }));
             Assert.That(result.SkipReasons, Is.EqualTo(new Dictionary<MigrationSkipReason, long>
             {
                 [MigrationSkipReason.MalformedValue] = 1,
@@ -252,7 +256,7 @@ class FailedMessagesMigrationTargetTests : PersistenceTestBase
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.Copied, Is.EqualTo(2), "values exactly as long as their columns fit, and MessageType keeps its last 450 characters as ingestion does, so neither is skipped for length");
-            Assert.That(result.SkippedIds, Is.EqualTo(new[] { $"FailedMessages/{longConversation.UniqueMessageIdString}", $"FailedMessages/{longGroupType.UniqueMessageIdString}" }));
+            Assert.That(result.SkippedRows.Select(row => row.SourceId), Is.EqualTo(new[] { $"FailedMessages/{longConversation.UniqueMessageIdString}", $"FailedMessages/{longGroupType.UniqueMessageIdString}" }));
             Assert.That(result.SkipReasons, Is.EqualTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.ValueTooLong] = 2 }), "an over-long value would fail the whole insert and halt the category");
             Assert.That(copiedIds, Is.EquivalentTo(new[] { fitsExactly.UniqueMessageId, longMessageType.UniqueMessageId }));
             Assert.That(groupOwners, Is.EquivalentTo(new[] { fitsExactly.UniqueMessageId, longMessageType.UniqueMessageId }), "a message whose group row cannot be stored is skipped whole, not copied without its group");
@@ -581,7 +585,7 @@ class FailedMessagesMigrationTargetTests : PersistenceTestBase
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.Copied, Is.EqualTo(1));
-            Assert.That(result.SkippedIds, Is.EqualTo(new[] { $"FailedMessages/{longContentType.UniqueMessageId}" }));
+            Assert.That(result.SkippedRows.Select(row => row.SourceId), Is.EqualTo(new[] { $"FailedMessages/{longContentType.UniqueMessageId}" }));
             Assert.That(result.SkipReasons, Is.EqualTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.ValueTooLong] = 1 }), "an over-long content type would fail the whole insert and halt the category");
         }
     }

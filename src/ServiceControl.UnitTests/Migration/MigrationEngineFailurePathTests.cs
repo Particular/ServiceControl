@@ -93,7 +93,7 @@ class MigrationEngineFailurePathTests
         target.FailOnCallNumber = null;
         var untouched = await BuildEngine(source, checkpointStore, target).RunCategoryAsync(category);
 
-        // The reset --migration-retry writes: a re-read from the start that keeps only when the category first started.
+        // The reset a retry writes: a re-read from the start that keeps only when the category first started.
         await checkpointStore.Upsert(untouched with
         {
             State = MigrationCategoryState.NotStarted,
@@ -276,7 +276,7 @@ class MigrationEngineFailurePathTests
                 Assert.That(row.CopiedCount, Is.EqualTo(2));
                 Assert.That(row.SettledAt, Is.Null);
                 Assert.That(row.LastError, Does.Contain("Simulated failure"));
-                Assert.That(row.LastError, Does.Not.Contain("--migration-abandon").And.Not.Contain("--migration-retry"));
+                Assert.That(row.LastError, Does.Not.Contain("--abandon=").And.Not.Contain("--retry="));
             }
         }
     }

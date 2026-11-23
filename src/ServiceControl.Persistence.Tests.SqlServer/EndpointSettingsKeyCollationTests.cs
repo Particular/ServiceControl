@@ -163,7 +163,7 @@ class EndpointSettingsKeyCollationTests : PersistenceTestBase
             Assert.That(
                 ServiceProvider.GetRequiredService<IMigrationSqlDialect>().KeyComparer(typeof(EndpointSettingsEntity), nameof(EndpointSettingsEntity.Name)).Equals("Sales", "sales"),
                 Is.EqualTo(!databaseIgnoresCase),
-                "the dry run predicts merges with this comparer, so it follows the same column the statement does");
+                "the writer finds merges with this comparer, so it follows the same column the statement does");
         }
     }
 }

@@ -321,7 +321,7 @@ class MigrationEngineHaltTests
             // 120 skips in 600 rows is the first point past both the floor and 5%.
             Assert.That(checkpoint.LastError, Does.Contain("120 of 600").And.Contain("5%").And.Contain("100 rows"));
             // The engine cannot know which commands a category may take, so the readers of the row add them.
-            Assert.That(checkpoint.LastError, Does.Not.Contain("--migration-retry").And.Not.Contain("--migration-abandon").And.Not.Contain("restart to resume"));
+            Assert.That(checkpoint.LastError, Does.Not.Contain("--retry=").And.Not.Contain("--abandon=").And.Not.Contain("restart to resume"));
         }
     }
 }

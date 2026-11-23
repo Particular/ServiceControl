@@ -43,7 +43,7 @@ class MigrationValueLengthTests : PersistenceTestBase
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.Copied, Is.EqualTo(1), "450 code points fit a varchar(450) column though they are 900 UTF-16 units, and a skip here would be permanent");
-            Assert.That(result.SkippedIds, Is.EqualTo(new[] { "KnownEndpoints/2" }));
+            Assert.That(result.SkippedRows.Select(row => row.SourceId), Is.EqualTo(new[] { "KnownEndpoints/2" }));
             Assert.That((await MonitoringDataStore.GetAllKnownEndpoints()).Select(endpoint => endpoint.EndpointDetails.Name), Is.EqualTo(new[] { Repeat(450) }));
             Assert.That(details, Is.EqualTo(new[]
             {

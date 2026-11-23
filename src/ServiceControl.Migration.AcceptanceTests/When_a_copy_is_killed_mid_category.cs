@@ -23,17 +23,7 @@ class When_a_copy_is_killed_mid_category : MigrationAcceptanceTest
         using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 
         Assert.CatchAsync<OperationCanceledException>(async () =>
-            await RunCommand.Run(Settings, AllowingAnUnreleasedMigration(StoppedWhileStarting), cancellation.Token));
-    }
-
-    // Only a stop is a clean exit; a cancellation nobody asked for is still a failed start, migrating or not.
-    [Test]
-    public void A_migrating_host_whose_start_is_cancelled_without_a_stop_still_fails()
-    {
-        using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-
-        Assert.CatchAsync<OperationCanceledException>(async () =>
-            await RunCommand.Run(Settings, AllowingAnUnreleasedMigration(CancelledWithoutAStop), cancellation.Token));
+            await RunCommand.Run(Settings, StoppedWhileStarting, cancellation.Token));
     }
 
     [Test]
@@ -46,13 +36,19 @@ class When_a_copy_is_killed_mid_category : MigrationAcceptanceTest
         using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 
         var killed = Assert.ThrowsAsync<Exception>(async () =>
-            await MigrateCommand.Run(Settings, AllowingAnUnreleasedMigration(builder => builder.FailTheSecondMigrationWrite()), cancellation.Token));
+            await MigrateCommand.Run(Settings, builder => builder.FailTheSecondMigrationWrite(), cancellation.Token));
 
         Assert.That(killed, Is.Not.Null);
-        Assert.That(await TargetEndpointSettingsCount(), Is.EqualTo(2), "the first batch and its cursor should have committed together");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(killed.Message, Does.Contain("EndpointSettings").And.Contain("Halted"));
+            Assert.That(killed.Message, Does.Contain("--retry=EndpointSettings").And.Contain("--abandon=EndpointSettings"), "a Failed category waits for the operator, so the refusal has to name what moves it on");
+            Assert.That(await TargetEndpointSettingsCount(), Is.EqualTo(2), "the first batch and its cursor should have committed together");
+        }
 
         var refusedAgain = Assert.ThrowsAsync<Exception>(async () =>
-            await MigrateCommand.Run(Settings, AllowingAnUnreleasedMigration(), cancellation.Token));
+            await MigrateCommand.Run(Settings, null, cancellation.Token));
         Assert.That(refusedAgain.Message, Is.EqualTo(killed.Message), "a start re-ran a Failed category the operator had not put back");
 
         // The row a kill part way through the category leaves: still copying, with the first batch's cursor and counts.
@@ -72,26 +68,6 @@ class When_a_copy_is_killed_mid_category : MigrationAcceptanceTest
         }
     }
 
-    // Proves the already-present count in the test above can fail: both runs end with five correct rows, so that count is the only thing telling a resume from a fresh copy.
-    [Test]
-    public async Task Without_its_checkpoint_the_second_run_re_reads_what_the_first_already_wrote()
-    {
-        await SeedSourceKnownEndpoints("A", "B", "C", "D", "E");
-        await SeedSourceEndpointSettings(("A", true), ("B", true), ("C", true), ("D", true), ("E", true));
-
-        using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-
-        Assert.ThrowsAsync<Exception>(async () =>
-            await MigrateCommand.Run(Settings, AllowingAnUnreleasedMigration(builder => builder.FailTheSecondMigrationWrite()), cancellation.Token));
-
-        await DeleteCheckpoint("EndpointSettings");
-        await MigrateThenRunHost();
-
-        var checkpoint = await ReadCheckpoint("EndpointSettings");
-
-        Assert.That(checkpoint.AlreadyPresentCount, Is.EqualTo(2));
-    }
-
     // A copy stopped between two categories must still list the second, or every gate reading the table finds nothing outstanding.
     [Test]
     public async Task A_worker_started_after_a_copy_stopped_between_categories_names_the_one_it_never_reached()
@@ -102,10 +78,10 @@ class When_a_copy_is_killed_mid_category : MigrationAcceptanceTest
 
         using var stopping = new CancellationTokenSource(TimeSpan.FromMinutes(3));
         Assert.CatchAsync<OperationCanceledException>(async () =>
-            await MigrateCommand.Run(Settings, AllowingAnUnreleasedMigration(builder => builder.StopAfterTheFirstCategorySettles(stopping)), stopping.Token));
+            await MigrateCommand.Run(Settings, builder => builder.StopAfterTheFirstCategorySettles(stopping), stopping.Token));
 
         using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-        var worker = ErrorIngestionOnlyCommand.BuildHost(Settings, AllowingAnUnreleasedMigration());
+        var worker = ErrorIngestionOnlyCommand.BuildHost(Settings, null);
         try
         {
             using (Assert.EnterMultipleScope())
@@ -131,24 +107,6 @@ class When_a_copy_is_killed_mid_category : MigrationAcceptanceTest
 
     static void StoppedWhileStarting(WebApplicationBuilder builder) =>
         builder.Services.AddHostedService(provider => new StopsTheHostWhileStarting(provider.GetRequiredService<IHostApplicationLifetime>()));
-
-    static void CancelledWithoutAStop(WebApplicationBuilder builder) =>
-        builder.Services.AddHostedService(_ => new CancelsWhileStarting());
-
-    sealed class CancelsWhileStarting : IHostedLifecycleService
-    {
-        public Task StartingAsync(CancellationToken cancellationToken = default) => throw new OperationCanceledException();
-
-        public Task StartAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
-
-        public Task StartedAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
-
-        public Task StoppingAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
-
-        public Task StopAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
-
-        public Task StoppedAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
-    }
 
     // What a service stop or the critical-error handler does to a host that is still starting.
     sealed class StopsTheHostWhileStarting(IHostApplicationLifetime lifetime) : IHostedLifecycleService

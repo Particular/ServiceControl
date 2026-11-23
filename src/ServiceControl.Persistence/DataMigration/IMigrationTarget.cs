@@ -37,9 +37,9 @@ public interface IMigrationTarget
     Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Saves a reset checkpoint so its category can be copied again, and returns it with its new version.
-    /// Where the database makes the row keys, it also deletes the rows already copied, so none are copied twice.
+    /// Saves a reset checkpoint so its category can be copied again, and returns it with its new version, deleting the rows already copied where the database makes the row keys.
     /// Throws <see cref="MigrationCheckpointConflictException" /> if another writer saved the checkpoint first.
+    /// Throws InvalidOperationException and changes nothing for a category whose rows it would delete once a host has opened on the target.
     /// </summary>
     Task<MigrationCheckpoint> ResetForRetry(MigrationCheckpoint reset, CancellationToken cancellationToken = default);
 
@@ -56,8 +56,13 @@ public interface IMigrationTarget
 }
 
 /// <summary>
-/// What the target did with one batch, and the checkpoint it saved with it. Every skipped row has a reason in SkipReasons.
-/// Merged counts the rows inside AlreadyPresent that the target dropped because their key matched another row's.
-/// Changed counts the rows inside Copied whose stored value differs from the source's on purpose. The target logs each merged and changed row.
+/// A row the copy left out, named by its id in the source and the reason.
 /// </summary>
-public sealed record MigrationWriteResult(MigrationCheckpoint Saved, int Copied, int Skipped, IReadOnlyList<string> SkippedIds, int AlreadyPresent = 0, IReadOnlyDictionary<MigrationSkipReason, long>? SkipReasons = null, int Merged = 0, int Changed = 0);
+public sealed record MigrationSkippedRow(string SourceId, MigrationSkipReason Reason);
+
+/// <summary>
+/// What the target did with one batch, and the checkpoint it saved with it. Merged counts the rows inside AlreadyPresent
+/// that the target dropped because their key matched another row's. Changed counts the rows inside Copied whose stored value
+/// differs from the source's on purpose.
+/// </summary>
+public sealed record MigrationWriteResult(MigrationCheckpoint Saved, int Copied, int Skipped, IReadOnlyList<MigrationSkippedRow> SkippedRows, int AlreadyPresent = 0, IReadOnlyDictionary<MigrationSkipReason, long>? SkipReasons = null, int Merged = 0, int Changed = 0);

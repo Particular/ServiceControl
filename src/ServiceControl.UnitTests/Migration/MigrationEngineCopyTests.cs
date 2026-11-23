@@ -78,7 +78,7 @@ class MigrationEngineCopyTests
     public async Task A_category_that_read_fewer_rows_than_the_source_holds_still_settles_complete()
     {
         // The row says the source held 10 and the source yields 2. The engine judges only its own accounting,
-        // so a read that ends early is not something it can see, and only --migration-verify shows it.
+        // so a read that ends early is not something it can see, and only the verify step shows it.
         var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
         var source = new InMemoryMigrationSource();
         source.Seed(category.Id, Row("d"), Row("e"));
@@ -109,7 +109,7 @@ class MigrationEngineCopyTests
             Assert.That(category.Kind, Is.EqualTo(MigrationCategoryKind.Optional));
             Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Halted));
             Assert.That(checkpoint.LastError, Does.Contain("read 4 rows").And.Contain("accounted for 3"));
-            Assert.That(checkpoint.LastError, Does.Not.Contain("--migration-retry").And.Not.Contain("--migration-abandon"));
+            Assert.That(checkpoint.LastError, Does.Not.Contain("--retry=").And.Not.Contain("--abandon="));
         }
     }
 
@@ -124,7 +124,7 @@ class MigrationEngineCopyTests
             Assert.That(category.Kind, Is.EqualTo(MigrationCategoryKind.Required));
             Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Halted));
             Assert.That(checkpoint.LastError, Does.Contain("read 4 rows").And.Contain("accounted for 3"));
-            Assert.That(checkpoint.LastError, Does.Not.Contain("--migration-retry").And.Not.Contain("--migration-abandon"));
+            Assert.That(checkpoint.LastError, Does.Not.Contain("--retry=").And.Not.Contain("--abandon="));
         }
     }
 
@@ -268,7 +268,7 @@ class MigrationEngineCopyTests
     }
 
     // Reports one row of every batch merged and two of the rest changed.
-    sealed class MergingTarget(IMigrationCheckpointStore checkpointStore) : IMigrationTarget
+    internal sealed class MergingTarget(IMigrationCheckpointStore checkpointStore) : IMigrationTarget
     {
         public Task Open(CancellationToken cancellationToken = default) => Task.CompletedTask;
 

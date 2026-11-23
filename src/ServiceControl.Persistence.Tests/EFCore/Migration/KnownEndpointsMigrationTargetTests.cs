@@ -78,7 +78,7 @@ class KnownEndpointsMigrationTargetTests : PersistenceTestBase
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.Copied, Is.EqualTo(1));
-            Assert.That(result.SkippedIds, Is.EquivalentTo(new[] { "KnownEndpoints/2", "KnownEndpoints/3" }));
+            Assert.That(result.SkippedRows.Select(row => row.SourceId), Is.EquivalentTo(new[] { "KnownEndpoints/2", "KnownEndpoints/3" }));
             Assert.That(result.SkipReasons[MigrationSkipReason.RequiredValueMissing], Is.EqualTo(2), "KnownEndpoints.Name and Host are NOT NULL, and a throw here would halt a required category");
             Assert.That((await MonitoringDataStore.GetAllKnownEndpoints()).Select(endpoint => endpoint.EndpointDetails.Name), Is.EqualTo(new[] { "Sales.Orders" }));
         }
@@ -98,7 +98,7 @@ class KnownEndpointsMigrationTargetTests : PersistenceTestBase
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.Copied, Is.EqualTo(1), "a value exactly as long as its column fits");
-            Assert.That(result.SkippedIds, Is.EqualTo(new[] { "KnownEndpoints/2", "KnownEndpoints/3" }));
+            Assert.That(result.SkippedRows.Select(row => row.SourceId), Is.EqualTo(new[] { "KnownEndpoints/2", "KnownEndpoints/3" }));
             Assert.That(result.SkipReasons, Is.EqualTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.ValueTooLong] = 2 }), "an over-long value would fail the whole insert and halt the category");
             Assert.That((await MonitoringDataStore.GetAllKnownEndpoints()).Select(endpoint => endpoint.EndpointDetails.Name), Is.EqualTo(new[] { new string('n', 450) }));
             Assert.That(details, Is.EqualTo(new[]

@@ -50,7 +50,7 @@ class LicensingThroughputMigrationTargetTests : PersistenceTestBase
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.Copied, Is.EqualTo(1));
-            Assert.That(result.SkippedIds, Is.EqualTo(new[] { "long/Broker|2026-01-01" }));
+            Assert.That(result.SkippedRows.Select(row => row.SourceId), Is.EqualTo(new[] { "long/Broker|2026-01-01" }));
             Assert.That(result.SkipReasons, Is.EqualTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.ValueTooLong] = 1 }), "the target cannot hold an endpoint with this name, so the day must be skipped here rather than fail the whole batch at the endpoint check");
             Assert.That(details, Is.EqualTo(new[]
             {
@@ -197,7 +197,7 @@ class LicensingThroughputMigrationTargetTests : PersistenceTestBase
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(refused.Message, Does.Contain(MigrationCategoryIds.LicensingThroughput).And.Contain("only possible before ServiceControl first opens on this database"));
+            Assert.That(refused.Message, Does.Contain(MigrationCategoryIds.LicensingThroughput).And.Contain("only possible before ServiceControl first opens on this database").And.Contain("--start-data-migration --abandon=LicensingThroughput"));
             Assert.That(await StoredCounts(), Is.EqualTo(new[] { 100L }), "the days may now include counts the running instance collected, so deleting them would lose live throughput");
             Assert.That((stored!.Version, stored.State, stored.Cursor, stored.CopiedCount), Is.EqualTo((copied.Version, copied.State, copied.Cursor, copied.CopiedCount)), "a refused reset saves nothing");
         }
@@ -279,7 +279,7 @@ class LicensingThroughputMigrationTargetTests : PersistenceTestBase
     static MigrationBatch BatchOf(params (string Id, object Document)[] rows) =>
         new([.. rows.Select(row => new MigrationRow(row.Id, row.Document, new Dictionary<string, object>()))], rows[^1].Id);
 
-    // The reset --migration-retry makes.
+    // The reset a retry makes.
     static MigrationCheckpoint ResetForRetry(MigrationCheckpoint checkpoint) => checkpoint with
     {
         State = MigrationCategoryState.NotStarted,

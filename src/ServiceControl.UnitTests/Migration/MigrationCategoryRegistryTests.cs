@@ -56,23 +56,23 @@ class MigrationCategoryRegistryTests
     }
 
     [Test]
-    public void Three_categories_declare_a_MustFollow()
+    public void Three_categories_declare_a_MustFollow_and_two_of_them_need_its_data()
     {
         var declared = MigrationCategoryRegistry.All
-            .Where(c => c.MustFollow is not null)
-            .ToDictionary(c => c.Id, c => c.MustFollow);
+            .Where(c => c.MustFollow is not null || c.MustFollowIsDataLink)
+            .ToDictionary(c => c.Id, c => (c.MustFollow, c.MustFollowIsDataLink));
 
-        Assert.That(declared, Is.EqualTo(new Dictionary<string, string?>
+        Assert.That(declared, Is.EqualTo(new Dictionary<string, (string?, bool)>
         {
             // A cascading foreign key: throughput rows cannot exist before their endpoint row.
-            ["LicensingThroughput"] = "LicensingEndpoints",
+            ["LicensingThroughput"] = ("LicensingEndpoints", true),
             // Keeps settings back while known endpoints are unfinished. The heartbeat sync is kept off
             // the copied settings because both categories finish before the host opens.
-            ["EndpointSettings"] = "KnownEndpoints",
+            ["EndpointSettings"] = ("KnownEndpoints", true),
             // A group comment whose failed messages have not arrived reads as an orphan to the
             // retention sweeper, which deletes it.
-            ["GroupComments"] = "UnresolvedAndRetryIssuedFailedMessages"
-        }));
+            ["GroupComments"] = ("UnresolvedAndRetryIssuedFailedMessages", false)
+        }), "abandoning a predecessor abandons only the categories whose rows hang off its rows, so group comments wait for failed messages only for ordering");
     }
 
     [Test]

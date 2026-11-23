@@ -5,10 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ServiceBus.Management.Infrastructure.Settings;
-using ServiceControl.Migration.Checks;
 using ServiceControl.Persistence;
 using ServiceControl.Persistence.DataMigration;
 
@@ -24,149 +22,9 @@ static class MigrationStartup
         [.. sourceSupports.Intersect(targetSupports, StringComparer.Ordinal)];
 
     /// <summary>
-    /// Runs the checks and required copy without starting ServiceControl. A completed required copy can succeed
-    /// without its source; optional checkpoints retain the outage for the online phase.
-    /// Throws if a check refuses or a required category does not finish. The caller must not start the host.
-    /// </summary>
-    public static async Task RunRequiredCopy(IServiceProvider services, Settings settings, CancellationToken cancellationToken = default)
-    {
-        await MigrationStartupCheckRunner.Run(
-        [
-            new MigrationIsReleasedCheck(services.GetService<AllowUnreleasedMigration>()),
-            new MigrationPairIsSupportedCheck(settings)
-        ], cancellationToken);
-
-        var loggerFactory = services.GetRequiredService<ILoggerFactory>();
-        var logger = loggerFactory.CreateLogger(typeof(MigrationStartup));
-        var target = services.GetRequiredService<IMigrationTarget>();
-        var checkpointStore = services.GetRequiredService<IMigrationCheckpointStore>();
-        var timeProvider = services.GetRequiredService<TimeProvider>();
-
-        await using var source = PersistenceFactory.CreateMigrationSource(settings);
-
-        var copyable = CopyableCategoryIds(source.SupportedCategoryIds, target.SupportedCategoryIds);
-
-        var options = await RunChecksAndOpenTarget(services, settings, cancellationToken);
-
-        var engine = new MigrationEngine(
-            source,
-            target,
-            checkpointStore,
-            timeProvider,
-            options,
-            loggerFactory.CreateLogger<MigrationEngine>());
-
-        var toCopy = engine.SelectCategories(MigrationCategoryKind.Required)
-            .Where(category => copyable.Contains(category.Id))
-            .ToArray();
-
-        var deferred = engine.SelectCategories(MigrationCategoryKind.Required)
-            .Where(category => !copyable.Contains(category.Id))
-            .Select(category => category.Id)
-            .ToArray();
-
-        var checkpoints = await checkpointStore.ReadAll(cancellationToken);
-        var unfinishedOutsideTheCopy = UnfinishedRowsOutsideTheCopy(checkpoints, toCopy);
-        var requiredCopySettled = RequiredCopyIsSettled(checkpoints, toCopy);
-
-        try
-        {
-            await MigrationStartupCheckRunner.Run([SourceOpens(source)], cancellationToken);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        // Safe to open without the source, because every required category is settled and only the background copy of the optional ones reads it.
-        catch (Exception exception) when (requiredCopySettled)
-        {
-            // The runner's wrapper describes a refused run, which this is not, and it would land on the rows.
-            var cause = exception.InnerException ?? exception;
-
-            logger.LogError(cause,
-                "The {SourcePersistenceType} migration source could not be opened. Every required category this build copies is Done or Abandoned and no unknown required row is unfinished, so the offline command can complete. Outstanding optional checkpoints carry the error; start ServiceControl to continue the online migration.",
-                PersistenceFactory.MigrationSourcePersistenceType);
-
-            await RecordSourceOutage(checkpointStore, engine.SelectCategories(MigrationCategoryKind.Optional), cause, cancellationToken);
-            return;
-        }
-        catch (Exception exception)
-        {
-            throw new Exception($"{exception.Message} {NoWayOutWithoutTheSource(settings)}", exception.InnerException);
-        }
-
-        await MigrationStartupCheckRunner.Run(source.ContributedChecks(), cancellationToken);
-
-        logger.LogInformation(
-            "Offline migration: copying {CopyCount} required categories with ServiceControl stopped ({DeferredCount} not yet implemented: {Deferred})",
-            toCopy.Length, deferred.Length, string.Join(", ", deferred));
-
-        // Seed both phases before copying so startup can detect a copy interrupted between categories.
-        foreach (var category in toCopy.Concat(engine.SelectCategories(MigrationCategoryKind.Optional)))
-        {
-            if (await checkpointStore.Read(category.Id, cancellationToken) is null)
-            {
-                await checkpointStore.Upsert(new MigrationCheckpoint(category.Id, MigrationCategoryState.NotStarted, null, 0, 0, null, null, null, null, null, null), cancellationToken);
-            }
-        }
-
-        // Captured before the copy so the report can tell a category this run finished from one an earlier run did.
-        var runStartedAt = timeProvider.GetUtcNow().UtcDateTime;
-
-        var finished = await CopyOrExplainWhyItStopped(
-            RunRequiredCategories(engine, toCopy, checkpointStore, timeProvider, logger, cancellationToken),
-            settings);
-
-        ReportWhatTheCopyLeftBehind(finished, logger, runStartedAt, engine.MergedAndChangedThisRun);
-
-        RefuseIfAnyCategoryDidNotComplete(toCopy, finished, unfinishedOutsideTheCopy, settings);
-    }
-
-    /// <summary>
-    /// Runs every startup check in the order they have to run, and opens the target and the source as two of
-    /// them. The order is what the operator sees: a check that costs nothing comes before one that connects to a
-    /// database, and the source's own checks run last because they need it open.
-    /// </summary>
-    public static async Task<MigrationEngineOptions> RunChecksAndOpen(IServiceProvider services, Settings settings, IMigrationSource source, CancellationToken cancellationToken = default)
-    {
-        var options = await RunChecksAndOpenTarget(services, settings, cancellationToken);
-
-        await MigrationStartupCheckRunner.Run([SourceOpens(source)], cancellationToken);
-
-        await MigrationStartupCheckRunner.Run(source.ContributedChecks(), cancellationToken);
-
-        return options;
-    }
-
-    /// <summary>
-    /// Runs every startup check that does not need the source, in the order they have to run, ending with
-    /// opening the target. A check that costs nothing comes before one that connects to a database. The target
-    /// is open when this returns, and the source has not been touched.
-    /// </summary>
-    public static async Task<MigrationEngineOptions> RunChecksAndOpenTarget(IServiceProvider services, Settings settings, CancellationToken cancellationToken = default)
-    {
-        var target = services.GetRequiredService<IMigrationTarget>();
-        var readiness = services.GetRequiredService<IMigrationTargetReadiness>();
-        var categories = new OptionalCategoryWindowsAreValidCheck(settings.EventsRetentionPeriod, settings.ErrorRetentionPeriod);
-
-        await MigrationStartupCheckRunner.Run(
-        [
-            categories,
-            new RetryHistoryDepthIsSafeCheck(settings.RetryHistoryDepth),
-            .. readiness.ContributedChecks(),
-            new Step("the migration target opens", target.Open)
-        ], cancellationToken);
-
-        return categories.Options;
-    }
-
-    /// <summary>
-    /// Records on each optional category's checkpoint that the source could not be opened, so status and verify
-    /// read the outage from the rows. The required copy calls it on a start that
-    /// opens without the source, and the background copier calls it when its own open fails. It changes no
-    /// state, cursor or count: a row still copying gains the error as its <see cref="MigrationCheckpoint.LastError" />,
-    /// a category with no row gets a new not-started row carrying the error, and a row that is Done, Failed or
-    /// Abandoned is left alone. The next start that resumes a row clears the error.
+    /// Records on each optional category's checkpoint that the source could not be opened, so status and verify read the outage from the rows.
+    /// Only the background copier calls it, when its own open fails.
+    /// It changes no state, cursor or count, but a category with no row gets a new NotStarted row carrying the error.
     /// </summary>
     internal static async Task RecordSourceOutage(IMigrationCheckpointStore checkpointStore, IReadOnlyList<MigrationCategory> optionalCategories, Exception exception, CancellationToken cancellationToken = default)
     {
@@ -190,8 +48,7 @@ static class MigrationStartup
     /// <summary>
     /// Copies the required categories one after another under the stall watchdog and returns where each one ended,
     /// in the same order. A category that commits nothing for <see cref="ClosedWindowProgress.StallLimit" /> is
-    /// stopped and settled Halted, and the categories after it still get their go. Before copying anything it saves
-    /// a not-started checkpoint for every category that has none, as <see cref="MigrationEngine.RunCategories" /> does.
+    /// stopped and settled Halted, and the categories after it still get their go.
     /// </summary>
     internal static async Task<IReadOnlyList<MigrationCheckpoint>> RunRequiredCategories(
         MigrationEngine engine,
@@ -201,15 +58,6 @@ static class MigrationStartup
         ILogger logger,
         CancellationToken cancellationToken = default)
     {
-        // The gates that keep a host off an unfinished copy read only the rows that exist.
-        foreach (var category in categories)
-        {
-            if (await checkpointStore.Read(category.Id, cancellationToken) is null)
-            {
-                await checkpointStore.Upsert(new MigrationCheckpoint(category.Id, MigrationCategoryState.NotStarted, null, 0, 0, null, null, null, null, null, null), cancellationToken);
-            }
-        }
-
         await using var progress = new ClosedWindowProgress(checkpointStore, timeProvider, logger, [.. categories.Select(category => category.Id)], cancellationToken);
 
         var results = new List<MigrationCheckpoint>(categories.Count);
@@ -348,22 +196,40 @@ static class MigrationStartup
     /// </summary>
     internal static IReadOnlyList<MigrationCheckpoint> UnfinishedRowsOutsideTheCopy(IReadOnlyList<MigrationCheckpoint> checkpoints, IReadOnlyList<MigrationCategory> toCopy) =>
     [.. checkpoints
-        .Where(checkpoint => MigrationCategoryRegistry.Find(checkpoint.CategoryId)?.Kind != MigrationCategoryKind.Optional)
+        .Where(checkpoint => MigrationCategoryRegistry.KindOf(checkpoint.CategoryId) == MigrationCategoryKind.Required)
         .Where(checkpoint => toCopy.All(category => category.Id != checkpoint.CategoryId))
         .Where(checkpoint => !checkpoint.State.IsFinished())];
 
-    internal static string FailedDetail(MigrationCheckpoint checkpoint)
+    /// <summary>
+    /// What a Failed category copied and skipped, with its skip reasons and error, but not what to run next.
+    /// </summary>
+    internal static string FailedState(MigrationCheckpoint checkpoint)
     {
         var reasons = checkpoint.SkipReasons is { Count: > 0 } counts
-            ? $" ({string.Join("; ", counts.Select(reason => $"{reason.Key} {reason.Value}{(reason.Key.IsPermanent() ? ", no retry can fix" : reason.Key.IsBenign() ? ", harmless" : "")}"))})"
+            ? $" ({string.Join("; ", counts.Select(reason => $"{reason.Key} {reason.Value}{reason.Key.RetryNote()}"))})"
             : "";
 
-        return $"{checkpoint.CategoryId} is Failed ({checkpoint.State}) after copying {checkpoint.CopiedCount} and skipping {checkpoint.SkippedCount}{reasons}{LastErrorClause(checkpoint)}; " +
-            $"run --migration-retry {checkpoint.CategoryId} once the cause is fixed, which copies the category again from the start, or --migration-abandon {checkpoint.CategoryId} to keep what was copied and give up the rest, both with ServiceControl stopped";
+        return $"{checkpoint.CategoryId} is Failed ({checkpoint.State}) after copying {checkpoint.CopiedCount} and skipping {checkpoint.SkippedCount}{reasons}{AlreadyInTheTarget(checkpoint, "with")}{LastErrorClause(checkpoint)}";
+    }
+
+    /// <summary>
+    /// The rows a pass found already in the target, such as rows an earlier pass copied before a retry, joined on with <paramref name="joiner" />.
+    /// Empty when there are none.
+    /// </summary>
+    internal static string AlreadyInTheTarget(MigrationCheckpoint checkpoint, string joiner) =>
+        checkpoint.AlreadyPresentCount > 0 ? $", {joiner} {checkpoint.AlreadyPresentCount} already in the target" : "";
+
+    internal static string FailedDetail(MigrationCheckpoint checkpoint)
+    {
+        var whatToRun = MigrationCategoryRegistry.Find(checkpoint.CategoryId) is null
+            ? $"this build does not know {checkpoint.CategoryId}, so run --start-data-migration with the build that created it to retry or abandon it"
+            : $"run --start-data-migration again with ServiceControl stopped to retry it once the cause is fixed, which copies the category again from the start, or to abandon it, which keeps what was copied and gives up the rest. Without a console, pass --non-interactive and --retry={checkpoint.CategoryId} or --abandon={checkpoint.CategoryId}";
+
+        return $"{FailedState(checkpoint)}; {whatToRun}";
     }
 
     static string CopyingDetail(MigrationCheckpoint checkpoint) =>
-        $"{checkpoint.CategoryId} is {checkpoint.State} after copying {checkpoint.CopiedCount} and skipping {checkpoint.SkippedCount}{LastErrorClause(checkpoint)}";
+        $"{checkpoint.CategoryId} is {checkpoint.State} after copying {checkpoint.CopiedCount} and skipping {checkpoint.SkippedCount}{AlreadyInTheTarget(checkpoint, "with")}{LastErrorClause(checkpoint)}";
 
     // Trimmed because the refusal punctuates each category's sentence itself.
     static string LastErrorClause(MigrationCheckpoint checkpoint) =>
@@ -386,13 +252,13 @@ static class MigrationStartup
                 continue;
             }
 
-            // A category already finished when this run began is returned without being run, so its counts are
-            // an earlier run's. A Failed one is returned untouched too, but it is not finished, so it falls through.
+            // A category finished before this pass began, by an earlier run, an earlier pass or an abandon, is returned without being run.
+            // A Failed one is returned untouched too, but it is not finished, so it falls through.
             if (checkpoint.State.IsFinished() && checkpoint.SettledAt is { } settledAt && settledAt < runStartedAt)
             {
                 logger.LogInformation(
-                    "{CategoryId}: already finished before this start, by a run that copied {Copied} and skipped {Skipped}. This start copied nothing.",
-                    checkpoint.CategoryId, checkpoint.CopiedCount, checkpoint.SkippedCount);
+                    "{CategoryId}: already {State} before this copy pass began, with {Copied} copied and {Skipped} skipped. This pass copied nothing.",
+                    checkpoint.CategoryId, checkpoint.State.CustomerState(), checkpoint.CopiedCount, checkpoint.SkippedCount);
                 continue;
             }
 
@@ -463,16 +329,16 @@ static class MigrationStartup
         if (faults.Length > 0 && checkpoint.State == MigrationCategoryState.Halted)
         {
             return $"The copy stopped before the end of the category, so these and every row not yet read stay only in the source database. " +
-                $"If it stopped because the skips passed the halt threshold, raise {MigrationSettings.HaltThresholdPercentKey} or {MigrationSettings.HaltThresholdMinimumKey}, or fix their cause, then run --migration-retry {checkpoint.CategoryId}, which copies the category again from the start.{cannotFix} " +
-                $"--migration-abandon {checkpoint.CategoryId} keeps what was copied and gives up every row not yet read, not only these.";
+                $"If it stopped because the skips passed the halt threshold, raise {MigrationSettings.HaltThresholdPercentKey} or {MigrationSettings.HaltThresholdMinimumKey}, or fix their cause, then run --start-data-migration --retry={checkpoint.CategoryId}, which copies the category again from the start.{cannotFix} " +
+                $"--start-data-migration --abandon={checkpoint.CategoryId} keeps what was copied and gives up every row not yet read, not only these.";
         }
 
         if (faults.Length > 0 && permanent.Length == faults.Length)
         {
-            return $"They stay only in the source database, and no retry can fix them, so --migration-abandon {checkpoint.CategoryId} keeps what was copied and gives up the rest.";
+            return $"They stay only in the source database, and no retry can fix them, so --start-data-migration --abandon={checkpoint.CategoryId} keeps what was copied and gives up the rest.";
         }
 
-        return $"They stay only in the source database until --migration-retry {checkpoint.CategoryId} re-reads them once the cause is fixed.{cannotFix}";
+        return $"They stay only in the source database until --start-data-migration --retry={checkpoint.CategoryId} re-reads them once the cause is fixed.{cannotFix}";
     }
 
     internal static string StallExplanation(string stalledCategoryId) =>
@@ -481,19 +347,30 @@ static class MigrationStartup
     static string RollbackAdvice(Settings settings) =>
         $"Nothing has opened on {settings.PersistenceType} yet, so pointing PersistenceType back at {PersistenceFactory.MigrationSourcePersistenceType} discards the partial copy and returns the instance to {PersistenceFactory.MigrationSourcePersistenceType} with no loss.";
 
-    static string NoWayOutWithoutTheSource(Settings settings) =>
-        $"If the {PersistenceFactory.MigrationSourcePersistenceType} source is already gone, a required category that is Failed or has started copying can be given up with --migration-abandon <category>, with ServiceControl stopped. " +
-        $"A required category that never started cannot be abandoned: while one is outstanding ServiceControl has never opened on {settings.PersistenceType}, so pointing PersistenceType back at {PersistenceFactory.MigrationSourcePersistenceType}, or starting over against an empty {settings.PersistenceType} database, loses nothing it has served.";
+    internal static string NoWayOutWithoutTheSource(Settings settings) =>
+        $"A required category is unfinished, so if the {PersistenceFactory.MigrationSourcePersistenceType} source is already gone, it must be restored to finish the migration. " +
+        $"While one is outstanding ServiceControl has never opened on {settings.PersistenceType}, so pointing PersistenceType back at {PersistenceFactory.MigrationSourcePersistenceType}, or starting over against an empty {settings.PersistenceType} database, loses nothing it has served.";
 
-    static Step SourceOpens(IMigrationSource source) => new("the migration source opens", source.Open);
+    internal static Step SourceOpens(IMigrationSource source)
+    {
+        var version = "";
+
+        return new("the migration source opens", async cancellationToken =>
+        {
+            await source.Open(cancellationToken);
+            version = await source.Version(cancellationToken);
+        }, () => string.Join(", ", source.Configuration.Where(value => value.Label is "Mode" or "Server").Select(value => value.Value).Append(version)));
+    }
 
     /// <summary>
     /// Makes opening the target or the source look like a startup check, so a failure to connect is reported in
     /// the same words as a check that refused, and in its place in the order.
     /// </summary>
-    sealed class Step(string name, Func<CancellationToken, Task> run) : IMigrationStartupCheck
+    internal sealed class Step(string name, Func<CancellationToken, Task> run, Func<string> checkedAgainst = null) : IMigrationStartupCheck
     {
         public string Name => name;
+
+        public string CheckedAgainst => checkedAgainst?.Invoke();
 
         public Task Run(CancellationToken cancellationToken = default) => run(cancellationToken);
     }

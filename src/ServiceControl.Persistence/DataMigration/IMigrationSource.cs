@@ -12,8 +12,8 @@ using System.Threading.Tasks;
 public interface IMigrationSource : IAsyncDisposable
 {
     /// <summary>
-    /// Connects to the source read-only. Every other member except <see cref="SupportedCategoryIds" /> throws
-    /// until this has run.
+    /// Connects to the source read-only. Every other member except <see cref="SupportedCategoryIds" /> and
+    /// <see cref="Configuration" /> throws until this has run.
     /// </summary>
     Task Open(CancellationToken cancellationToken = default);
 
@@ -23,17 +23,17 @@ public interface IMigrationSource : IAsyncDisposable
     IReadOnlyList<IMigrationStartupCheck> ContributedChecks();
 
     /// <summary>
-    /// What the source report and the dry run print about the source.
+    /// The settings the source reads, each with where it came from. Answers before Open, so printing them opens nothing.
     /// </summary>
-    Task<MigrationSourceDescription> Describe(CancellationToken cancellationToken = default);
+    IReadOnlyList<MigrationSettingValue> Configuration { get; }
 
     /// <summary>
-    /// A count of everything the source holds, including data no category copies.
+    /// The version of the server the source reads. Call it after Open.
     /// </summary>
-    Task<IReadOnlyList<MigrationSourceInventoryEntry>> Inventory(CancellationToken cancellationToken = default);
+    Task<string> Version(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// How many rows the source holds for one category, which --migration-verify reports.
+    /// How many rows the source holds for one category, which the verify step of --start-data-migration reports.
     /// </summary>
     Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default);
 

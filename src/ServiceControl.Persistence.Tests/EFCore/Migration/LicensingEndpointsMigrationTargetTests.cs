@@ -47,7 +47,7 @@ class LicensingEndpointsMigrationTargetTests : PersistenceTestBase
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.Copied, Is.EqualTo(1), "a value exactly as long as its column fits");
-            Assert.That(result.SkippedIds, Is.EqualTo(new[] { "Endpoint/2", "Endpoint/3" }));
+            Assert.That(result.SkippedRows.Select(row => row.SourceId), Is.EqualTo(new[] { "Endpoint/2", "Endpoint/3" }));
             Assert.That(result.SkipReasons, Is.EqualTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.ValueTooLong] = 2 }), "an over-long value would fail the whole insert and halt the category");
             Assert.That((await LicensingDataStore.GetAllEndpoints(includePlatformEndpoints: true)).Select(endpoint => endpoint.Id.Name), Is.EqualTo(new[] { new string('n', 300) }));
             Assert.That(details, Has.Count.EqualTo(2));

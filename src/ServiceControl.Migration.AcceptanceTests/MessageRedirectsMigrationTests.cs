@@ -31,7 +31,7 @@ class MessageRedirectsMigrationTests : MigrationAcceptanceTest
         Assert.That(redirects.Select(r => (r.FromPhysicalAddress, r.ToPhysicalAddress, r.LastModified)),
             Is.EquivalentTo(seeded.Select(r => (r.FromPhysicalAddress, r.ToPhysicalAddress, r.LastModified))),
             "each redirect keeps its own destination and the time it was last changed");
-        Assert.That(await Target.Count(MigrationCategoryRegistry.Find(MigrationCategoryIds.MessageRedirects)!), Is.EqualTo(3), "--migration-verify reads this count");
+        Assert.That(await Target.Count(MigrationCategoryRegistry.Find(MigrationCategoryIds.MessageRedirects)!), Is.EqualTo(3));
     }
 
     [TestCase("old1", "old1")]
@@ -63,7 +63,7 @@ class MessageRedirectsMigrationTests : MigrationAcceptanceTest
 
         var result = await CopyCategory("MessageRedirects");
         Assert.That(result.Saved.State, Is.EqualTo(MigrationCategoryState.CompleteWithErrors), "one fault skip ends a required category Failed");
-        Assert.That(result.SkippedIds, Is.EqualTo(new[] { "old1", "messageredirects#2" }), "a redirect with no source address is named by its place in the document");
+        Assert.That(result.SkippedRows.Select(row => row.SourceId), Is.EqualTo(new[] { "old1", "messageredirects#2" }), "a redirect with no source address is named by its place in the document");
 
         var checkpoint = await ReadCheckpoint("MessageRedirects");
         Assert.That(checkpoint.CopiedCount, Is.EqualTo(1), "a skip copies the rest of the batch, where a throw would have stopped it");

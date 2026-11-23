@@ -17,6 +17,18 @@ abstract class RavenMigrationSourceTestBase : RavenPersistenceTestBase
 
     protected async Task<IMigrationSource> OpenMigrationSource()
     {
+        var source = CreateMigrationSource();
+
+        await source.Open();
+
+        return source;
+    }
+
+    /// <summary>
+    /// Creates the source the way the host does, from settings, without opening it.
+    /// </summary>
+    protected IMigrationSource CreateMigrationSource()
+    {
         var settings = (RavenPersisterSettings)PersistenceSettings;
         (string Name, string Value)[] variables =
         [
@@ -49,8 +61,6 @@ abstract class RavenMigrationSourceTestBase : RavenPersistenceTestBase
                 }
             }
         }
-
-        await source.Open();
 
         return source;
     }

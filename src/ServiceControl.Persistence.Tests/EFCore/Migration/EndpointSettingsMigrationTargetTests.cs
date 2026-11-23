@@ -95,7 +95,7 @@ class EndpointSettingsMigrationTargetTests : PersistenceTestBase
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.Copied, Is.EqualTo(2), "a name exactly as long as its column fits");
-            Assert.That(result.SkippedIds, Is.EqualTo(new[] { "EndpointSettings/2" }));
+            Assert.That(result.SkippedRows.Select(row => row.SourceId), Is.EqualTo(new[] { "EndpointSettings/2" }));
             Assert.That(result.SkipReasons, Is.EqualTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.ValueTooLong] = 1 }), "an over-long value would fail the whole insert and halt the category");
             Assert.That(await TrackInstancesFor(new string('s', 450)), Is.True);
             Assert.That(await TrackInstancesFor("Billing"), Is.False);

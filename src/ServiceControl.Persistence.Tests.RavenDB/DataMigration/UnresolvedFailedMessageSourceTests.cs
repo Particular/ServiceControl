@@ -314,7 +314,7 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
     }
 
     [Test]
-    public async Task Reads_the_whole_collection_instead_of_waiting_for_an_errored_index()
+    public async Task Reads_and_counts_the_whole_collection_when_the_index_is_errored()
     {
         var unindexable = await SeedFailedMessage(FailedMessageWithATimeSentThatIsNotADate());
         await DocumentStore.WaitForIndexingAllowingErrorsAsync(TestContext.CurrentContext.CancellationToken);
@@ -323,9 +323,16 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
         // An errored index stops part way, so this one stays unindexed and the index stays stale.
         var stored = await SeedFailedMessage(new IngestedFailure().ToFailedMessage(FailedMessageStatus.Unresolved));
 
-        var rows = await ReadAll().WaitAsync(TimeSpan.FromSeconds(30), TestContext.CurrentContext.CancellationToken);
+        await using var source = await OpenMigrationSource();
 
-        Assert.That(rows.Select(row => row.SourceId), Is.EquivalentTo(new[] { unindexable.Id, stored.Id }), "an errored index never catches up, so waiting for it would keep ServiceControl closed for good");
+        var count = await source.Count(Category);
+        var batches = await CollectBatches(source, Category).WaitAsync(TimeSpan.FromSeconds(30), TestContext.CurrentContext.CancellationToken);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(batches.SelectMany(batch => batch.Rows).Select(row => row.SourceId), Is.EquivalentTo(new[] { unindexable.Id, stored.Id }), "an errored index never catches up, so waiting for it would keep ServiceControl closed for good");
+            Assert.That(count, Is.EqualTo(2), "an errored index cannot count, so the count reads every row instead");
+        }
     }
 
     [Test]

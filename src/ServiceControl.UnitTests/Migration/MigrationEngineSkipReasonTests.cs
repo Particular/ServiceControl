@@ -117,6 +117,34 @@ class MigrationEngineSkipReasonTests
     }
 
     [Test]
+    public async Task Fault_skips_are_listed_with_category_and_reason_and_harmless_ones_only_counted()
+    {
+        var source = new InMemoryMigrationSource();
+        source.Seed(MigrationCategoryIds.KnownEndpoints, Row("a"), Row("b"), Row("c"));
+        source.Seed(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages, Row("FailedMessages/1"));
+        source.SetBody("FailedMessages/1", null);
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore);
+        target.RejectKey("a", MigrationSkipReason.PastRetention);
+        target.RejectKey("b", MigrationSkipReason.PastRetention);
+        target.RejectKey("c", MigrationSkipReason.RequiredValueMissing);
+        var options = new MigrationEngineOptions(TimeSpan.Zero, 100, 100, []) { BodyRetryBackoff = TimeSpan.Zero };
+        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
+
+        await engine.RunCategories([MigrationCategoryRegistry.Find(MigrationCategoryIds.KnownEndpoints)!, MigrationCategoryRegistry.Find(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages)!]);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(engine.SkippedThisRun, Is.EquivalentTo(new[]
+            {
+                (MigrationCategoryIds.KnownEndpoints, new MigrationSkippedRow("c", MigrationSkipReason.RequiredValueMissing)),
+                (MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages, new MigrationSkippedRow("FailedMessages/1", MigrationSkipReason.BodyMissing))
+            }), "a row the target refused and a row the body loader skipped are both listed under their own category");
+            Assert.That(engine.BenignSkipsThisRun, Is.EquivalentTo(new Dictionary<(string, MigrationSkipReason), long> { [(MigrationCategoryIds.KnownEndpoints, MigrationSkipReason.PastRetention)] = 2 }));
+        }
+    }
+
+    [Test]
     public async Task A_target_whose_skip_reasons_do_not_add_up_to_its_skips_halts_the_category()
     {
         var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.KnownEndpoints)!;
@@ -182,7 +210,7 @@ class MigrationEngineSkipReasonTests
             Assert.That(settled.State, Is.EqualTo(MigrationCategoryState.Halted));
             Assert.That(stored!.State, Is.EqualTo(MigrationCategoryState.Halted));
             Assert.That(stored.LastError, Does.Contain("reported copying 10").And.Contain("but the checkpoint it committed moved by"));
-            Assert.That(stored.LastError, Does.Not.Contain("--migration-retry").And.Not.Contain("--migration-abandon"));
+            Assert.That(stored.LastError, Does.Not.Contain("--retry=").And.Not.Contain("--abandon="));
         }
     }
 
