@@ -4,6 +4,7 @@
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
+    using Persistence;
     using Settings;
 
     // the /api endpoint is used for service-to-service communication. This currently needs to be anonymous
@@ -74,9 +75,9 @@
                     settings.AuditQueue,
                     settings.ForwardAuditMessages
                 },
-                Persistence = new
+                Storage = new
                 {
-                    PersistenceType = settings.StorageType
+                    StorageType = PersistenceManifestLibrary.Find(settings.StorageType)?.Name
                 },
                 Plugins = new
                 {

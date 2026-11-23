@@ -123,7 +123,7 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
                 "audit_queue": "audit",
                 "forward_audit_messages": false
               },
-              "persistence": { "persistence_type": "PostgreSQL" },
+              "storage": { "storage_type": "PostgreSQL" },
               "plugins": {}
             }
             """;
