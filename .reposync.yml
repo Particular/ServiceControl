@@ -1,1 +1,2 @@
-
+exclusions:
+- .release/.templates/default/create/footer.sbn
