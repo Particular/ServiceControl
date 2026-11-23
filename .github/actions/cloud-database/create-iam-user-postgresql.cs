@@ -1,4 +1,4 @@
-#:package Npgsql@10.0.3
+#:package Npgsql@10.0.4
 
 // Creates a login that signs in with an IAM token and can create its own schema in the test database. A role that is granted rds_iam can no longer sign in with a password.
 

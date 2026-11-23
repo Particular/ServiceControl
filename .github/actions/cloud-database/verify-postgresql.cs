@@ -1,4 +1,4 @@
-#:package Npgsql@10.0.3
+#:package Npgsql@10.0.4
 
 // Waits until the server actually accepts connections on the test database.
 

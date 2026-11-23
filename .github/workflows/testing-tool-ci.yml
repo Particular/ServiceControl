@@ -27,12 +27,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v6.1.0
+        uses: actions/setup-dotnet@v6
         with:
           global-json-file: global.json
 
@@ -40,7 +40,7 @@ jobs:
         run: dotnet build tools/testing-tool/TestingTool.slnx --configuration Release
 
       - name: Build container image
-        uses: docker/build-push-action@v7.2.0
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: tools/testing-tool/Dockerfile
