@@ -13,8 +13,33 @@ static class GuidedMigration
 {
     static readonly IMigrationStep[] Steps = [new ConfigurationStep(), new ChecksStep(), new RowsToCopyStep(), new StartTheCopyStep(), new CopyStep(), new FailedCategoriesStep(), new VerifyStep()];
 
+    // The Particular Software logo, drawn from the Website repository's logo.svg.
+    static readonly string[] Banner =
+    [
+        "         ..:::::.....:.",
+        "     .:@@@@@@@@@@@@o:..oo:",
+        "   :@@@@@o:.....::o@@@@..@@:",
+        " :@@@@o.  .:::::.  .:o:. .@@@.",
+        ":@@@@:  .o@@@@@@@:       :@@@@.",
+        "@@@@.  .@@@@@@@@@:   :o@@@@@@@@     Particular Software",
+        "@@@.   o@@@@@@@@@o   :@@@@@@@@@     ServiceControl data migration",
+        ".@o    :@@@@@@@@@@:   .o@@@@@@.",
+        "       .@@@@@@@@@@@o.    ....",
+        "        .@@@@@@@@@@@@@o:..  ..::",
+        "          :@@@@@@@@@@@@@@@@@@@@.",
+        "            :o@@@@@@@@@@@@@@@:",
+        "               .::oo@@@@oo:."
+    ];
+
     public static async Task<int> Run(MigrationRun run, CancellationToken cancellationToken = default)
     {
+        foreach (var line in Banner)
+        {
+            run.Console.WriteLine(line);
+        }
+
+        run.Console.WriteLine();
+
         if (!run.Console.Confirm("Stop ServiceControl and every ingestion worker. Continue?", run.Arguments.NonInteractive, cancellationToken))
         {
             return 1;
