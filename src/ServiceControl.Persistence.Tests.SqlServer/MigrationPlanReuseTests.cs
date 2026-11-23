@@ -67,7 +67,8 @@ class MigrationPlanReuseTests : PersistenceTestBase
         var row = new MigrationRow($"FailedMessages/{document.UniqueMessageId}", document, new Dictionary<string, object>
         {
             [MigrationMetadataKeys.StatusChangedAt] = new DateTime(2026, 9, 1, 8, 0, 0, DateTimeKind.Utc),
-            [MigrationMetadataKeys.LastModified] = new DateTime(2026, 9, 2, 8, 0, 0, DateTimeKind.Utc)
+            [MigrationMetadataKeys.LastModified] = new DateTime(2026, 9, 2, 8, 0, 0, DateTimeKind.Utc),
+            [MigrationMetadataKeys.RetryClaimHeld] = false
         }, new MigrationBody("<order>1</order>"u8.ToArray(), "text/xml"));
 
         return new MigrationBatch([row], row.SourceId);

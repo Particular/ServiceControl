@@ -287,6 +287,8 @@ flowchart LR
 - **Both source databases are opened through one `IDocumentStore`**, which is why they must be on the same server or cluster.
 - **Upgrade on RavenDB first**, so the build doing the copy is the one that last ran against the source. Nothing checks this.
 - **Distance to the source sets the pace.** Each message body is one round trip, and they are not batched. Egress out of RavenDB Cloud is billed to the customer.
+- **The unresolved background copy waits up to ten minutes for a trustworthy failed-message index.** The budget covers index readiness and repeated stale count checks. At the limit, it logs a warning and reads the whole failed-message collection, including archived and resolved messages, filtering for unresolved messages. This preserves completeness but can make a large archive slow the background copy. Both paths use document-id cursors, so a restart can switch paths without gaps or duplicates. Caller cancellation stops the read instead of selecting the fallback.
+- **The required copy has no ten-minute index fallback.** It waits for the index under the required copy's existing 30-minute stall watchdog. This avoids automatically expanding the outage into a full archive scan merely because indexing is slow. Missing, errored, disabled, or incomplete indexes still select the full-collection fallback.
 
 ### Writing to SQL
 

@@ -12,8 +12,9 @@ using ServiceControl.Persistence.DataMigration;
 /// Reads the retry-issued messages and the messages that hold a retry claim, which are copied while ServiceControl is closed: every
 /// retry-issued message, whether or not its retry claim remains, and then every other message that still holds a retry claim,
 /// whatever its status. The unresolved messages without a claim are <see cref="UnresolvedFailedMessagesReader" />'s.
+/// The required copy's stall watchdog bounds its stale-index wait; it does not switch to a full scan on an index-readiness timeout.
 /// </summary>
-sealed class FailedMessagesReader(RavenReadOnlySourceLifecycle lifecycle) : FailedMessageStatusReader(lifecycle, MigrationCategoryRegistry.RetryIssuedStatuses)
+sealed class FailedMessagesReader(RavenReadOnlySourceLifecycle lifecycle) : FailedMessageStatusReader(lifecycle, MigrationCategoryRegistry.RetryIssuedStatuses, indexBudget: null)
 {
     public override string CategoryId => MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages;
 

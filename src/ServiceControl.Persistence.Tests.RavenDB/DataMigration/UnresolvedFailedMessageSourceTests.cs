@@ -3,6 +3,7 @@ namespace ServiceControl.Persistence.Tests.RavenDB.DataMigration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Raven.Client.Documents.Indexes;
@@ -15,6 +16,7 @@ using ServiceControl.Operations;
 using ServiceControl.Persistence.DataMigration;
 using ServiceControl.Persistence.RavenDB;
 using ServiceControl.Persistence.RavenDB.DataMigration;
+using ServiceControl.Persistence.RavenDB.DataMigration.Readers;
 
 [TestFixture]
 class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
@@ -168,7 +170,7 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
         await using var source = await OpenMigrationSource();
         var batches = await CollectBatches(source, Category, batchSize: 2);
 
-        Assert.That(batches, Is.Empty, "the copy runs while ServiceControl is closed, so reading the archive only to drop it makes the outage grow with the archive");
+        Assert.That(batches, Is.Empty, "reading the archive only to drop it would make the copy slower with the archive for nothing");
     }
 
     [Test]
@@ -227,6 +229,77 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
             Assert.That(finishedWhileStale, Is.False, "a query on an index that has not caught up leaves out the messages it has not indexed yet");
             Assert.That(rows.Select(row => row.SourceId), Is.EqualTo(new[] { stored.Id }));
         }
+    }
+
+    [Test]
+    public async Task Reads_the_whole_collection_once_a_paused_index_has_stayed_behind_for_the_whole_budget()
+    {
+        var stored = await SeedFailedMessage(new IngestedFailure().ToFailedMessage(FailedMessageStatus.Archived));
+        await CompleteDatabaseOperation();
+        await DocumentStore.Maintenance.SendAsync(new StopIndexOperation(IndexName), TestContext.CurrentContext.CancellationToken);
+
+        using (var session = DocumentStore.OpenAsyncSession())
+        {
+            (await session.LoadAsync<FailedMessage>(stored.Id, TestContext.CurrentContext.CancellationToken)).Status = FailedMessageStatus.Unresolved;
+            await session.SaveChangesAsync(TestContext.CurrentContext.CancellationToken);
+        }
+
+        var rows = await ReadWithBudget(TimeSpan.FromSeconds(2), null, TestContext.CurrentContext.CancellationToken).WaitAsync(TimeSpan.FromSeconds(60), TestContext.CurrentContext.CancellationToken);
+
+        Assert.That(rows.Select(row => row.SourceId), Is.EqualTo(new[] { stored.Id }), "the index never saw the message become unresolved, so only a full read finds it");
+    }
+
+    [Test]
+    public async Task A_full_read_after_the_budget_resumes_from_a_cursor_the_index_issued_with_no_row_repeated_or_skipped()
+    {
+        var ids = await SeedInIdOrder(
+            FailedMessageStatus.Unresolved, FailedMessageStatus.Archived, FailedMessageStatus.Unresolved,
+            FailedMessageStatus.RetryIssued, FailedMessageStatus.Unresolved, FailedMessageStatus.Unresolved);
+
+        await using var source = await OpenMigrationSource();
+        var first = (await CollectBatches(source, Category, batchSize: 2))[0];
+
+        await DocumentStore.Maintenance.SendAsync(new StopIndexOperation(IndexName), TestContext.CurrentContext.CancellationToken);
+        var late = await SeedFailedMessage(new IngestedFailure().ToFailedMessage(FailedMessageStatus.Unresolved));
+        var resumed = await ReadWithBudget(TimeSpan.FromSeconds(2), first.Cursor, TestContext.CurrentContext.CancellationToken).WaitAsync(TimeSpan.FromSeconds(60), TestContext.CurrentContext.CancellationToken);
+
+        var expected = new[] { ids[4], ids[5], late.Id }.OrderBy(id => id, StringComparer.Ordinal).ToList();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(first.Rows.Select(row => row.SourceId), Is.EqualTo(new[] { ids[0], ids[2] }));
+            Assert.That(resumed.Select(row => row.SourceId), Is.EqualTo(expected), "the full read starts after the same document id the index path saved, and also finds what the stale index had not seen");
+        }
+    }
+
+    [Test]
+    public async Task A_full_read_after_the_budget_still_refuses_a_cursor_this_source_never_issued()
+    {
+        await SeedInIdOrder(FailedMessageStatus.Unresolved);
+        await DocumentStore.Maintenance.SendAsync(new StopIndexOperation(IndexName), TestContext.CurrentContext.CancellationToken);
+        await SeedFailedMessage(new IngestedFailure().ToFailedMessage(FailedMessageStatus.Unresolved));
+        const string cursor = "FailedMessages/zzz-from-another-database";
+
+        var refusal = Assert.ThrowsAsync<InvalidOperationException>(() => ReadWithBudget(TimeSpan.FromSeconds(1), cursor, TestContext.CurrentContext.CancellationToken).WaitAsync(TimeSpan.FromSeconds(60), TestContext.CurrentContext.CancellationToken));
+
+        Assert.That(refusal.Message, Does.Contain(Category.Id).And.Contain(cursor));
+    }
+
+    [Test]
+    public async Task Cancelling_while_the_index_is_behind_stops_the_read_instead_of_falling_back_to_a_full_read()
+    {
+        await SeedInIdOrder(FailedMessageStatus.Unresolved);
+        await DocumentStore.Maintenance.SendAsync(new StopIndexOperation(IndexName), TestContext.CurrentContext.CancellationToken);
+        await SeedFailedMessage(new IngestedFailure().ToFailedMessage(FailedMessageStatus.Unresolved));
+
+        using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestContext.CurrentContext.CancellationToken);
+        var reading = ReadWithBudget(TimeSpan.FromMinutes(5), null, cancellation.Token);
+
+        await Task.Delay(TimeSpan.FromSeconds(2), TestContext.CurrentContext.CancellationToken);
+        Assert.That(reading.IsCompleted, Is.False, "the read must be waiting on the index for the test to prove anything");
+        await cancellation.CancelAsync();
+
+        Assert.That(async () => await reading.WaitAsync(TimeSpan.FromSeconds(15), TestContext.CurrentContext.CancellationToken), Throws.InstanceOf<OperationCanceledException>(), "the caller asked to stop, which a timeout fallback would answer with rows");
     }
 
     [Test]
@@ -303,7 +376,7 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
 
         var rows = await ReadAll().WaitAsync(TimeSpan.FromSeconds(30), TestContext.CurrentContext.CancellationToken);
 
-        Assert.That(rows.Select(row => row.SourceId), Is.EqualTo(new[] { stored.Id }), "a disabled index never catches up, so waiting for it would keep ServiceControl closed for good");
+        Assert.That(rows.Select(row => row.SourceId), Is.EqualTo(new[] { stored.Id }), "a disabled index never catches up, so waiting for it would never end");
     }
 
     [Test]
@@ -318,7 +391,7 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
 
         var rows = await ReadAll().WaitAsync(TimeSpan.FromSeconds(30), TestContext.CurrentContext.CancellationToken);
 
-        Assert.That(rows.Select(row => row.SourceId), Is.EquivalentTo(new[] { unindexable.Id, stored.Id }), "an errored index never catches up, so waiting for it would keep ServiceControl closed for good");
+        Assert.That(rows.Select(row => row.SourceId), Is.EquivalentTo(new[] { unindexable.Id, stored.Id }), "an errored index never catches up, so waiting for it would never end");
     }
 
     [Test]
@@ -880,6 +953,22 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
         await using var source = await OpenMigrationSource();
 
         return (await CollectBatches(source, Category)).SelectMany(batch => batch.Rows).ToList();
+    }
+
+    // Reads through a reader with a short index budget, because the production one is ten minutes.
+    async Task<List<MigrationRow>> ReadWithBudget(TimeSpan budget, string resumeAfter, CancellationToken cancellationToken)
+    {
+        await using var lifecycle = new RavenReadOnlySourceLifecycle((RavenPersisterSettings)PersistenceSettings, new SettingsRootNamespace("ServiceControl"));
+        await lifecycle.Open(TestContext.CurrentContext.CancellationToken);
+
+        var rows = new List<MigrationRow>();
+
+        await foreach (var batch in new UnresolvedFailedMessagesReader(lifecycle, budget).Read(resumeAfter, 100, cancellationToken))
+        {
+            rows.AddRange(batch.Rows);
+        }
+
+        return rows;
     }
 
     // RavenDB streams in id order, so statuses are handed out by sorted id rather than by seeding order.

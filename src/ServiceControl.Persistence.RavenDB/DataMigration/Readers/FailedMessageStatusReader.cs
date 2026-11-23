@@ -25,12 +25,21 @@ using ServiceControl.Persistence.DataMigration;
 /// Reads the failed messages with one of a category's statuses. The archived and resolved messages in the same collection can
 /// outnumber the others many times, so it queries <see cref="FailedMessageViewIndex" /> for just these statuses instead of reading them all.
 /// </summary>
-abstract class FailedMessageStatusReader(RavenReadOnlySourceLifecycle lifecycle, IReadOnlyCollection<FailedMessageStatus> statuses) : MigrationCategoryReader<FailedMessage>(lifecycle)
+abstract class FailedMessageStatusReader(RavenReadOnlySourceLifecycle lifecycle, IReadOnlyCollection<FailedMessageStatus> statuses, TimeSpan? indexBudget) : MigrationCategoryReader<FailedMessage>(lifecycle)
 {
     /// <summary>
-    /// Waits for <see cref="FailedMessageViewIndex" /> to catch up, then streams the messages with the category's statuses in id
+    /// How long a reader that runs after ServiceControl has opened waits for the index before it reads the whole collection. Ten
+    /// minutes is a chosen tolerance, not a measured catch-up time: a large index rebuild can take longer, and then the slower read, which the
+    /// copy's throttle paces and no outage depends on, is accepted rather than leaving the unresolved messages uncopied.
+    /// </summary>
+    protected static readonly TimeSpan OnlineIndexBudget = TimeSpan.FromMinutes(10);
+
+    /// <summary>
+    /// Waits for <see cref="FailedMessageViewIndex" /> to catch up, up to the reader's index budget, then streams the messages with the category's statuses in id
     /// order, starting after <paramref name="resumeAfter" />. When the index is missing, errored or disabled, or does not hold
-    /// every failed message with a status some category copies, it logs a warning and reads the whole collection instead.
+    /// every failed message with a status some category copies, or when the budget runs out first, it logs a warning and reads the
+    /// whole collection instead. A reader with no budget leaves cancellation to its caller, so slow indexing alone does not
+    /// turn the required copy's outage into a read of the whole archive.
     /// Both ways use the document id as the cursor, so a copy can switch from one to the other between runs.
     /// Throws <see cref="InvalidOperationException" /> when the source holds no document with the id in <paramref name="resumeAfter" />,
     /// or when a failed message has a status no category copies.
@@ -78,7 +87,31 @@ abstract class FailedMessageStatusReader(RavenReadOnlySourceLifecycle lifecycle,
 
     // A full read passes a document RavenDB could not index to the target to skip, and refuses a status no category copies,
     // but a query on the index sees neither, so either kind of document sends the copy back to a full read.
+    // The budget covers the whole check, the waits, the repeats on a stale count and the requests in between alike. It cancels a
+    // token linked to the caller's, and only a cancellation the caller did not ask for becomes the fallback.
     async Task<bool> IndexHoldsEveryCopiedFailedMessage(string databaseName, CancellationToken cancellationToken)
+    {
+        using var budget = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+        if (indexBudget is { } limit)
+        {
+            budget.CancelAfter(limit);
+        }
+
+        try
+        {
+            return await IndexHoldsEveryCopiedFailedMessageWithin(databaseName, budget.Token);
+        }
+#pragma warning disable PS0020 // The try runs on the budget's linked token, so the caller's own token is the one that must not be set for this to be the budget's cancellation
+        catch (OperationCanceledException) when (budget.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+#pragma warning restore PS0020
+        {
+            logger.LogWarning("The RavenDB index {IndexName} in {DatabaseName} was still behind after {Budget}, so copying {CategoryId} reads every failed message instead, archived and resolved ones included, which makes the copy slower. If indexing is paused, resume it in RavenDB Studio", IndexName, databaseName, indexBudget, CategoryId);
+            return false;
+        }
+    }
+
+    async Task<bool> IndexHoldsEveryCopiedFailedMessageWithin(string databaseName, CancellationToken cancellationToken)
     {
         using var session = Lifecycle.OpenSession(databaseName);
 
@@ -117,6 +150,7 @@ abstract class FailedMessageStatusReader(RavenReadOnlySourceLifecycle lifecycle,
 
             if (statistics.IsStale)
             {
+                await Task.Delay(PollEvery, cancellationToken);
                 continue;
             }
 
@@ -146,7 +180,7 @@ abstract class FailedMessageStatusReader(RavenReadOnlySourceLifecycle lifecycle,
             var statistics = await Lifecycle.DocumentStore.Maintenance.ForDatabase(databaseName).SendAsync(new GetStatisticsOperation(), cancellationToken);
             var index = statistics.Indexes.SingleOrDefault(candidate => candidate.Name == IndexName);
 
-            // A missing, errored or disabled index never catches up, so waiting for it would keep ServiceControl closed for good.
+            // A missing, errored or disabled index never catches up, so waiting for it would never end.
             if (index is null || !index.IsStale || index.State is IndexState.Error or IndexState.Disabled)
             {
                 return index;
@@ -171,6 +205,12 @@ abstract class FailedMessageStatusReader(RavenReadOnlySourceLifecycle lifecycle,
 
         if (paused)
         {
+            if (indexBudget is { } limit)
+            {
+                logger.LogWarning("Copying {CategoryId} is waiting for the RavenDB index {IndexName} in {DatabaseName}, but indexing is paused, so the copy waits up to {Budget} for it to be resumed in RavenDB Studio and then reads every failed message instead. Waited {Waited} so far", CategoryId, IndexName, databaseName, limit, waited);
+                return;
+            }
+
             logger.LogWarning("Copying {CategoryId} is waiting for the RavenDB index {IndexName} in {DatabaseName}, but indexing is paused, so the copy waits until it is resumed in RavenDB Studio. Waited {Waited} so far", CategoryId, IndexName, databaseName, waited);
             return;
         }
