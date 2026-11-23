@@ -13,7 +13,7 @@ namespace ServiceControl.Audit.AcceptanceTests
         [Test]
         public void Should_refuse_unsupported_persister_before_starting_host()
         {
-            var settings = new Settings(persisterType: StorageConfiguration.PersistenceType)
+            var settings = new Settings(storageType: StorageConfiguration.StorageType)
             {
                 AssemblyLoadContextResolver = static _ => AssemblyLoadContext.Default
             };
@@ -21,7 +21,7 @@ namespace ServiceControl.Audit.AcceptanceTests
             var exception = Assert.ThrowsAsync<InvalidOperationException>(async () =>
                 await new MaintenanceModeCommand().Execute(new HostArguments([]), settings));
 
-            Assert.That(exception.Message, Does.Contain("Maintenance mode is not supported").And.Contain(StorageConfiguration.PersistenceType));
+            Assert.That(exception.Message, Does.Contain("Maintenance mode is not supported").And.Contain(StorageConfiguration.StorageType));
         }
     }
 }

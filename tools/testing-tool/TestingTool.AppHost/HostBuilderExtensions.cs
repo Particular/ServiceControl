@@ -43,10 +43,10 @@ public static class HostBuilderExtensions
         return postgres.AddDatabase(databaseResource, databaseName);
     }
 
-    public static IResourceBuilder<ServiceControlErrorInstanceResource> WithPersistenceType(
-        this IResourceBuilder<ServiceControlErrorInstanceResource> error, PersistenceType type, string? azureBlobConnectionString = null, S3BodyStorageOptions? s3 = null)
+    public static IResourceBuilder<ServiceControlErrorInstanceResource> WithStorageType(
+        this IResourceBuilder<ServiceControlErrorInstanceResource> error, StorageType type, string? azureBlobConnectionString = null, S3BodyStorageOptions? s3 = null)
     {
-        if (type == PersistenceType.RavenDb)
+        if (type == StorageType.RavenDb)
         {
             //ravenDB is currently set up explicitly even if you aren't using it
             return error;
@@ -54,8 +54,8 @@ public static class HostBuilderExtensions
 
         var db = type switch
         {
-            PersistenceType.SqlServer => error.ApplicationBuilder.AddSqlServerPersistence("ServiceControl"),
-            PersistenceType.PostgreSql => error.ApplicationBuilder.AddPostgresPersistence("servicecontrol"),
+            StorageType.SqlServer => error.ApplicationBuilder.AddSqlServerPersistence("ServiceControl"),
+            StorageType.PostgreSql => error.ApplicationBuilder.AddPostgresPersistence("servicecontrol"),
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
 
@@ -74,7 +74,7 @@ public static class HostBuilderExtensions
 
         return error
             .WaitFor(db)
-            .WithEnvironment("SERVICECONTROL_PERSISTENCETYPE", PersistenceTypeName(type))
+            .WithEnvironment("SERVICECONTROL_STORAGETYPE", StorageTypeName(type))
             .WithEnvironment("SERVICECONTROL_DATABASE_CONNECTIONSTRING", db);
     }   
     
@@ -87,21 +87,21 @@ public static class HostBuilderExtensions
     /// The setting root namespace is "ServiceControl.Audit", and the settings reader rewrites both
     /// the dot and the slash to an underscore, so ServiceControl.Audit/Database/ConnectionString is
     /// SERVICECONTROL_AUDIT_DATABASE_CONNECTIONSTRING. The unprefixed names the audit container's
-    /// Dockerfile bakes in (PersistenceType, AuditRetentionPeriod) are later in the lookup order,
+    /// Dockerfile bakes in (StorageType, AuditRetentionPeriod) are later in the lookup order,
     /// so the namespaced form wins.
     /// </remarks>
-    public static IResourceBuilder<ServiceControlAuditInstanceResource> WithPersistenceType(
-        this IResourceBuilder<ServiceControlAuditInstanceResource> audit, PersistenceType type, string? azureBlobConnectionString = null, S3BodyStorageOptions? s3 = null)
+    public static IResourceBuilder<ServiceControlAuditInstanceResource> WithStorageType(
+        this IResourceBuilder<ServiceControlAuditInstanceResource> audit, StorageType type, string? azureBlobConnectionString = null, S3BodyStorageOptions? s3 = null)
     {
-        if (type == PersistenceType.RavenDb)
+        if (type == StorageType.RavenDb)
         {
             return audit;
         }
 
         var db = type switch
         {
-            PersistenceType.SqlServer => audit.ApplicationBuilder.AddSqlServerPersistence("ServiceControl"),
-            PersistenceType.PostgreSql => audit.ApplicationBuilder.AddPostgresPersistence("servicecontrol"),
+            StorageType.SqlServer => audit.ApplicationBuilder.AddSqlServerPersistence("ServiceControl"),
+            StorageType.PostgreSql => audit.ApplicationBuilder.AddPostgresPersistence("servicecontrol"),
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
 
@@ -122,7 +122,7 @@ public static class HostBuilderExtensions
 
         return audit
             .WaitFor(db)
-            .WithEnvironment("SERVICECONTROL_AUDIT_PERSISTENCETYPE", PersistenceTypeName(type))
+            .WithEnvironment("SERVICECONTROL_AUDIT_STORAGETYPE", StorageTypeName(type))
             .WithEnvironment("SERVICECONTROL_AUDIT_DATABASE_CONNECTIONSTRING", db);
     }
 
@@ -190,10 +190,10 @@ public static class HostBuilderExtensions
         return builder;
     }
 
-    static string PersistenceTypeName(PersistenceType persistence) => persistence switch
+    static string StorageTypeName(StorageType storage) => storage switch
     {
-        PersistenceType.SqlServer => "SQLServer",
-        PersistenceType.PostgreSql => "PostgreSQL",
-        _ => throw new ArgumentOutOfRangeException(nameof(persistence))
+        StorageType.SqlServer => "SQLServer",
+        StorageType.PostgreSql => "PostgreSQL",
+        _ => throw new ArgumentOutOfRangeException(nameof(storage))
     };
 }

@@ -61,7 +61,7 @@
             var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace, defaultLevel: LogLevel.Debug, logPath: logPath);
             LoggerUtil.ActiveLoggers = Loggers.Test;
 
-            var settings = new Settings(transportToUse.TypeName, persistenceToUse.PersistenceType, loggingSettings, forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10))
+            var settings = new Settings(transportToUse.TypeName, persistenceToUse.StorageType, loggingSettings, forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10))
             {
                 InstanceName = instanceName,
                 AllowMessageEditing = true,

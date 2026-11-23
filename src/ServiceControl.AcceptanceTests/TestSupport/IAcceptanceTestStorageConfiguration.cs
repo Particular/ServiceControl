@@ -7,7 +7,7 @@ using ServiceBus.Management.Infrastructure.Settings;
 
 public interface IAcceptanceTestStorageConfiguration
 {
-    string PersistenceType { get; }
+    string StorageType { get; }
 
     Task CustomizeSettings(Settings settings, CancellationToken cancellationToken = default);
 

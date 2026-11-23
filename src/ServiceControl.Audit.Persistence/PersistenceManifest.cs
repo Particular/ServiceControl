@@ -26,10 +26,10 @@
 
         public string[] Aliases { get; set; } = [];
 
-        internal bool IsMatch(string persistenceType) =>
-            string.Equals(TypeName, persistenceType, StringComparison.Ordinal) // Type names are case-sensitive
-            || string.Equals(Name, persistenceType, StringComparison.OrdinalIgnoreCase)
-            || Aliases.Contains(persistenceType, StringComparer.Ordinal);
+        internal bool IsMatch(string storageType) =>
+            string.Equals(TypeName, storageType, StringComparison.Ordinal) // Type names are case-sensitive
+            || string.Equals(Name, storageType, StringComparison.OrdinalIgnoreCase)
+            || Aliases.Contains(storageType, StringComparer.Ordinal);
     }
 
     public static class PersistenceManifestLibrary
@@ -95,14 +95,14 @@
             return Path.GetDirectoryName(assemblyLocation);
         }
 
-        public static PersistenceManifest Find(string persistenceType)
+        public static PersistenceManifest Find(string storageType)
         {
-            if (persistenceType == null)
+            if (storageType == null)
             {
-                throw new Exception("No persistenceType has been configured. Either provide a Type or Name in the PersistenceType setting.");
+                throw new Exception("No storageType has been configured. Either provide a Type or Name in the StorageType setting.");
             }
 
-            var persistenceManifest = PersistenceManifests.FirstOrDefault(w => w.IsMatch(persistenceType));
+            var persistenceManifest = PersistenceManifests.FirstOrDefault(w => w.IsMatch(storageType));
 
             return persistenceManifest;
         }

@@ -21,10 +21,10 @@
 
         public string[] Aliases { get; set; } = [];
 
-        internal bool IsMatch(string persistenceType) =>
-            string.Equals(TypeName, persistenceType, StringComparison.Ordinal) // Type names are case-sensitive
-            || string.Equals(Name, persistenceType, StringComparison.OrdinalIgnoreCase)
-            || Aliases.Contains(persistenceType, StringComparer.Ordinal);
+        internal bool IsMatch(string storageType) =>
+            string.Equals(TypeName, storageType, StringComparison.Ordinal) // Type names are case-sensitive
+            || string.Equals(Name, storageType, StringComparison.OrdinalIgnoreCase)
+            || Aliases.Contains(storageType, StringComparer.Ordinal);
 
         public class Setting
         {

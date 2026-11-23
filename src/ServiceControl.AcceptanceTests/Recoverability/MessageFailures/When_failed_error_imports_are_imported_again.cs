@@ -132,7 +132,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
             var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             Directory.CreateDirectory(logPath);
 
-            var settings = new Settings(TransportIntegration.TypeName, StorageConfiguration.PersistenceType,
+            var settings = new Settings(TransportIntegration.TypeName, StorageConfiguration.StorageType,
                 new LoggingSettings(Settings.SettingsRootNamespace, defaultLevel: LogLevel.Debug, logPath: logPath),
                 forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10))
             {
