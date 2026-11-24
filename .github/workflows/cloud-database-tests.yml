@@ -99,11 +99,11 @@ jobs:
           SECRETS_AVAILABLE: ${{ secrets.SECRETS_AVAILABLE }}
         run: exit $(If ($env:SECRETS_AVAILABLE -eq 'true') { 0 } Else { 1 })
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v6
+        uses: actions/setup-dotnet@v6.1.0
         with:
           global-json-file: global.json
       - name: Determine runtime version
@@ -129,7 +129,7 @@ jobs:
           dotnet build $Env:AUDIT_PERSISTENCE_PROJECT --configuration Release
           dotnet build $Env:AUDIT_ACCEPTANCE_PROJECT --configuration Release
       - name: Azure login
-        uses: azure/login@v3
+        uses: azure/login@v3.1.0
         if: startsWith(matrix.target, 'azure-')
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}

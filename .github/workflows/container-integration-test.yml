@@ -50,32 +50,32 @@ jobs:
         shell: pwsh
         run: exit $(If ($env:SECRETS_AVAILABLE -eq 'true') { 0 } Else { 1 })
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
       - name: Upgrade Azure CLI
         if: matrix.name == 'asb' || matrix.name == 'asq'
         uses: ./.github/actions/upgrade-azure-cli
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v6
+        uses: actions/setup-dotnet@v6.1.0
         with:
           global-json-file: global.json
       - name: Run MinVer
         uses: Particular/run-minver-action@v1.0.0
       - name: Log in to GitHub container registry
-        uses: docker/login-action@v4
+        uses: docker/login-action@v4.8.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Log in to Docker Hub
-        uses: docker/login-action@v4
+        uses: docker/login-action@v4.8.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Azure Login
         if: ${{ matrix.name == 'asb' || matrix.name == 'asq' }}
-        uses: azure/login@v3
+        uses: azure/login@v3.1.0
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
       - name: Setup Azure Service Bus

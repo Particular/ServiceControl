@@ -58,7 +58,7 @@ jobs:
           SECRETS_AVAILABLE: ${{ secrets.SECRETS_AVAILABLE }}
         run: exit $(If ($env:SECRETS_AVAILABLE -eq 'true') { 0 } Else { 1 })
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
       - name: Upgrade Azure CLI
@@ -67,7 +67,7 @@ jobs:
       - name: Move NuGet caches to the temp drive
         uses: ./.github/actions/nuget-cache-location
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v6
+        uses: actions/setup-dotnet@v6.1.0
         with:
           global-json-file: global.json
       - name: Determine runtime version
@@ -163,7 +163,7 @@ jobs:
       - name: Wait for build
         wait: build
       - name: Azure login
-        uses: azure/login@v3
+        uses: azure/login@v3.1.0
         if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues'
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
@@ -212,13 +212,13 @@ jobs:
           SECRETS_AVAILABLE: ${{ secrets.SECRETS_AVAILABLE }}
         run: exit $(If ($env:SECRETS_AVAILABLE -eq 'true') { 0 } Else { 1 })
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
       - name: Move NuGet caches to the temp drive
         uses: ./.github/actions/nuget-cache-location
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v6
+        uses: actions/setup-dotnet@v6.1.0
         with:
           global-json-file: global.json
       - name: Download RavenDB Server
