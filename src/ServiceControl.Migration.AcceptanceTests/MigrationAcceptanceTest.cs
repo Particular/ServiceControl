@@ -685,6 +685,8 @@ abstract class MigrationAcceptanceTest
 
     protected EFPersisterSettings EFSettings => targetServices.GetRequiredService<EFPersisterSettings>();
 
+    protected IFailedMessageQueryDataStore FailedMessageQueryStore => targetServices.GetRequiredService<IFailedMessageQueryDataStore>();
+
     protected IBodyStorage BodyStorage => targetServices.GetRequiredService<IBodyStorage>();
 
     protected Task Ingest(params IngestedFailure[] failures) =>

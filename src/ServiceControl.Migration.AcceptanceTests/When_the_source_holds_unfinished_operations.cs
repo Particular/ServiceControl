@@ -54,7 +54,7 @@ class When_the_source_holds_unfinished_operations : MigrationAcceptanceTest
         using (Assert.EnterMultipleScope())
         {
             Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Complete));
-            Assert.That(checkpoint.CopiedCount, Is.EqualTo(1));
+            Assert.That(checkpoint.AlreadyPresentCount, Is.EqualTo(1), "the message is the newest unresolved one, so the offline copy took it");
             Assert.That(checkpoint.LastError, Is.Null);
             Assert.That(response.IsSuccessStatusCode, Is.True, "the copied message is not reachable");
         }

@@ -186,16 +186,16 @@ abstract class FailedMessagesWriterBase(IMigrationSqlDialect migrationDialect, I
 }
 
 /// <summary>
-/// Writes the retry-issued failed messages and the other messages that hold a retry claim, whatever their status.
+/// Writes the retry-issued failed messages, the recent errors and the other messages that hold a retry claim, whatever their status.
+/// Its count is every row of the failed message table, which is the rows this category copied only while ServiceControl is stopped
+/// and nothing else has written to the table. Once ServiceControl has opened, live ingestion and the optional copies add rows to it.
 /// </summary>
 sealed class FailedMessagesWriter(IMigrationSqlDialect migrationDialect, IBodyStoragePersistence storagePersistence, EFPersisterSettings persisterSettings)
     : FailedMessagesWriterBase(migrationDialect, storagePersistence, persisterSettings)
 {
     public override string CategoryId => MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages;
 
-    protected override IQueryable<FailedMessageEntity> Copied(ServiceControlDbContext dbContext) =>
-        dbContext.FailedMessages.Where(message => message.Status == FailedMessageStatus.RetryIssued
-            || dbContext.FailedMessageRetries.Any(claim => claim.UniqueMessageId == message.UniqueMessageId));
+    protected override IQueryable<FailedMessageEntity> Copied(ServiceControlDbContext dbContext) => dbContext.FailedMessages;
 }
 
 /// <summary>

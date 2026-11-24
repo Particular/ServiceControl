@@ -10,10 +10,12 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Raven.Client;
 using Raven.Client.Documents.Commands;
 using Raven.Client.Documents.Indexes;
 using Raven.Client.Documents.Operations;
 using Raven.Client.Documents.Operations.Indexes;
+using Raven.Client.Documents.Queries;
 using Raven.Client.Documents.Session;
 using Raven.Client.Exceptions;
 using ServiceControl.Infrastructure;
@@ -22,38 +24,89 @@ using ServiceControl.MessageFailures.Api;
 using ServiceControl.Persistence.DataMigration;
 
 /// <summary>
-/// Reads the failed messages with one of a category's statuses. The archived and resolved messages in the same collection can
+/// Reads the failed messages with one of a category's statuses, and optionally every message last modified at or after a cutoff. The archived and resolved messages in the same collection can
 /// outnumber the others many times, so it queries <see cref="FailedMessageViewIndex" /> for just these statuses instead of reading them all.
 /// </summary>
 abstract class FailedMessageStatusReader(RavenReadOnlySourceLifecycle lifecycle, IReadOnlyCollection<FailedMessageStatus> statuses) : MigrationCategoryReader<FailedMessage>(lifecycle)
 {
     /// <summary>
-    /// Waits for <see cref="FailedMessageViewIndex" /> to catch up, then streams the messages with the category's statuses in id
-    /// order, starting after <paramref name="resumeAfter" />. When the index is missing, errored or disabled, or does not hold
-    /// every failed message with a status some category copies, it logs a warning and reads the whole collection instead.
-    /// Both ways use the document id as the cursor, so a copy can switch from one to the other between runs.
-    /// Throws <see cref="InvalidOperationException" /> when the source holds no document with the id in <paramref name="resumeAfter" />,
-    /// or when a failed message has a status no category copies.
+    /// Streams the messages with the category's statuses in id order, starting after <paramref name="resumeAfter" />, through
+    /// <see cref="ReadStatuses(bool, string, int, DateTime?, CancellationToken)" /> once <see cref="CanQueryIndex" /> says which way to read.
     /// </summary>
     protected async IAsyncEnumerable<MigrationBatch> ReadStatuses(string? resumeAfter, int batchSize, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var databaseName = Lifecycle.Settings.DatabaseName;
-        var project = new FailedMessageStream(Lifecycle).Project(statuses);
-
-        var batches = await IndexHoldsEveryCopiedFailedMessage(databaseName, cancellationToken)
-            ? ThroughIndex(databaseName, resumeAfter, batchSize, project, cancellationToken)
-            : Documents($"{FailedMessageIdGenerator.CollectionName}/", resumeAfter, batchSize, project, cancellationToken);
-
-        await foreach (var batch in batches)
+        await foreach (var batch in ReadStatuses(await CanQueryIndex(cancellationToken), resumeAfter, batchSize, null, cancellationToken))
         {
             yield return batch;
         }
+    }
+
+    /// <summary>
+    /// Streams the messages with the category's statuses, or last modified at or after <paramref name="recentErrorsFrom" /> when it is
+    /// not null, in id order, starting after <paramref name="resumeAfter" />, through the index or the whole collection as
+    /// <paramref name="throughIndex" /> says. Both ways use the document id as the cursor, so a copy can switch from one to the other between runs.
+    /// Throws <see cref="InvalidOperationException" /> when the source holds no document with the id in <paramref name="resumeAfter" />,
+    /// or when a failed message has a status no category copies.
+    /// </summary>
+    protected IAsyncEnumerable<MigrationBatch> ReadStatuses(bool throughIndex, string? resumeAfter, int batchSize, DateTime? recentErrorsFrom, CancellationToken cancellationToken = default)
+    {
+        var databaseName = Lifecycle.Settings.DatabaseName;
+        var project = new FailedMessageStream(Lifecycle).Project(statuses, recentErrorsFrom);
+
+        return throughIndex
+            ? ThroughIndex(databaseName, resumeAfter, batchSize, recentErrorsFrom, project, cancellationToken)
+            : Documents($"{FailedMessageIdGenerator.CollectionName}/", resumeAfter, batchSize, project, cancellationToken);
+    }
+
+    /// <summary>
+    /// Waits for <see cref="FailedMessageViewIndex" /> to catch up, and says whether it can be queried. When the index is missing,
+    /// errored or disabled, or does not hold every failed message with a status some category copies, it logs a warning and says no,
+    /// and the whole collection is read instead.
+    /// </summary>
+    protected Task<bool> CanQueryIndex(CancellationToken cancellationToken = default) =>
+        IndexHoldsEveryCopiedFailedMessage(Lifecycle.Settings.DatabaseName, cancellationToken);
+
+    /// <summary>
+    /// The RavenDB last-modified time of the unresolved message modified most recently, or null when there is none. The source is
+    /// stopped while it is read, so every call returns the same time. Through the index it is one query. Otherwise it walks every
+    /// failed message once, holding only the newest time.
+    /// </summary>
+    protected async Task<DateTime?> LatestUnresolvedLastModified(bool throughIndex, CancellationToken cancellationToken = default)
+    {
+        using var session = Lifecycle.OpenSession(Lifecycle.Settings.DatabaseName);
+
+        if (throughIndex)
+        {
+            var query = Query(session)
+                .WhereEquals(nameof(FailedMessage.Status), (int)FailedMessageStatus.Unresolved)
+                .OrderByDescending(nameof(FailedMessageViewIndex.SortAndFilterOptions.LastModified), OrderingType.Long)
+                .Take(1);
+            await using var newest = await session.Advanced.StreamAsync(query.OfType<FailedMessage>(), cancellationToken);
+
+            return await newest.MoveNextAsync() ? FailedMessageStream.ReadMetadataDate(newest.Current, Constants.Documents.Metadata.LastModified) : null;
+        }
+
+        DateTime? latest = null;
+        await using var all = await session.Advanced.StreamAsync<FailedMessage>($"{FailedMessageIdGenerator.CollectionName}/", token: cancellationToken);
+
+        while (await all.MoveNextAsync())
+        {
+            if (all.Current.Document.Status == FailedMessageStatus.Unresolved
+                && FailedMessageStream.ReadMetadataDate(all.Current, Constants.Documents.Metadata.LastModified) is { } modified
+                && (latest is null || modified > latest))
+            {
+                latest = modified;
+            }
+        }
+
+        return latest;
     }
 
     async IAsyncEnumerable<MigrationBatch> ThroughIndex(
         string databaseName,
         string? resumeAfter,
         int batchSize,
+        DateTime? recentErrorsFrom,
         Func<StreamResult<FailedMessage>, MigrationRow?> project,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
@@ -61,7 +114,15 @@ abstract class FailedMessageStatusReader(RavenReadOnlySourceLifecycle lifecycle,
 
         await RavenDocumentStream.RefuseMissingCursor(session, CategoryId, databaseName, resumeAfter, cancellationToken);
 
-        var query = Query(session).WhereIn(nameof(FailedMessage.Status), StatusValues(statuses));
+        var query = Query(session).OpenSubclause().WhereIn(nameof(FailedMessage.Status), StatusValues(statuses));
+
+        if (recentErrorsFrom is { } from)
+        {
+            // The same comparison as FailedMessageStream.IsSelected, on the ticks the index holds.
+            query = query.OrElse().WhereGreaterThanOrEqual(nameof(FailedMessageViewIndex.SortAndFilterOptions.LastModified), from.Ticks);
+        }
+
+        query = query.CloseSubclause();
 
         if (resumeAfter is not null)
         {

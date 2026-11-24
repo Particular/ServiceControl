@@ -105,7 +105,7 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
     }
 
     [Test]
-    public async Task Counts_only_the_rows_each_category_owns()
+    public async Task Counts_the_whole_table_for_the_required_copy_and_only_the_unresolved_rows_for_the_unresolved_copy()
     {
         var unresolved = new IngestedFailure();
         var retryIssued = new IngestedFailure();
@@ -114,7 +114,6 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
 
         var offline = await CopyCategory(OfflineCategoryId);
 
-        // Written straight into the target, because this build has no category that copies archived messages.
         await QueryTarget(async db =>
         {
             db.FailedMessages.Add(new FailedMessageEntity
@@ -132,9 +131,9 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(offline.Copied, Is.EqualTo(1), "an unresolved message without a claim waits for the copy that runs with ServiceControl open");
-            Assert.That(await Target.Count(offlineCategory), Is.EqualTo(1), "the category's count takes in the archive's rows unless it honours the category's cohort");
-            Assert.That(await QueryTarget(db => db.FailedMessages.CountAsync()), Is.EqualTo(2), "the filter is doing the work, not an empty table");
+            Assert.That(offline.Copied, Is.EqualTo(2), "the unresolved message is the newest one, so it is a recent error and copies with the retry-issued message");
+            Assert.That(await Target.Count(offlineCategory), Is.EqualTo(3), "the required count includes the extra archived row written directly to the shared table");
+            Assert.That(await QueryTarget(db => db.FailedMessages.CountAsync()), Is.EqualTo(3));
         }
 
         var online = await CopyCategory(MigrationCategoryIds.UnresolvedFailedMessages);
@@ -142,7 +141,8 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(online.Copied, Is.EqualTo(1));
+            Assert.That(online.Copied, Is.Zero);
+            Assert.That(online.AlreadyPresent, Is.EqualTo(1), "the required copy took the recent unresolved message");
             Assert.That(await Target.Count(onlineCategory), Is.EqualTo(1));
         }
     }
@@ -271,7 +271,7 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
     }
 
     [Test]
-    public async Task The_required_copy_completes_the_category_before_the_host_opens_and_leaves_the_unresolved_messages_to_the_online_copy()
+    public async Task The_required_copy_completes_the_category_before_the_host_opens_with_the_recent_unresolved_message()
     {
         var retryIssued = Enumerable.Range(0, 3).Select(_ => new IngestedFailure()).ToArray();
 
@@ -289,14 +289,16 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
         using (Assert.EnterMultipleScope())
         {
             Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Complete));
-            Assert.That(checkpoint.CopiedCount, Is.EqualTo(3));
+            Assert.That(checkpoint.CopiedCount, Is.EqualTo(4), "the three retry-issued messages and the unresolved message, which is the newest and so recent");
             Assert.That(checkpoint.SkippedCount, Is.Zero);
             Assert.That(checkpoint.SourceTotal, Is.Null, "the engine no longer counts the source before copying");
         }
 
         await WaitUntil(async () => (await ReadCheckpoint(MigrationCategoryIds.UnresolvedFailedMessages))?.State.IsFinished() == true, "the unresolved copy finished");
 
-        Assert.That((await ReadCheckpoint(MigrationCategoryIds.UnresolvedFailedMessages)).CopiedCount, Is.EqualTo(1));
+        var online = await ReadCheckpoint(MigrationCategoryIds.UnresolvedFailedMessages);
+
+        Assert.That((online.CopiedCount, online.AlreadyPresentCount), Is.EqualTo((0, 1)), "the unresolved copy finds the message the required copy took");
     }
 
     [Test]

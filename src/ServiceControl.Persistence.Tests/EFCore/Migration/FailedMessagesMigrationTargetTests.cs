@@ -485,7 +485,7 @@ class FailedMessagesMigrationTargetTests : PersistenceTestBase
     }
 
     [Test]
-    public async Task Count_takes_in_retry_issued_messages_and_claim_holders_of_any_status()
+    public async Task Count_of_the_required_copy_takes_in_every_failed_message_row_whatever_its_status_or_claim()
     {
         var holder = new IngestedFailure().ToFailedMessage(FailedMessageStatus.Archived);
         await Target.Write(FailedMessagesCategory, BatchOf(
@@ -502,8 +502,8 @@ class FailedMessagesMigrationTargetTests : PersistenceTestBase
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(await Target.Count(FailedMessagesCategory), Is.EqualTo(2), "an unresolved message without a claim and the archived and resolved rows without one belong to other copies");
-            Assert.That(await Query(db => db.FailedMessages.CountAsync()), Is.EqualTo(5), "the filter is doing the work, not an empty table");
+            Assert.That(await Target.Count(FailedMessagesCategory), Is.EqualTo(5), "while ServiceControl is stopped the table holds only what the required copy wrote, recent errors included, so the count is the whole table");
+            Assert.That(await Query(db => db.FailedMessages.CountAsync()), Is.EqualTo(5));
         }
     }
 
