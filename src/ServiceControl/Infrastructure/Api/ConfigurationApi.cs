@@ -69,7 +69,6 @@ class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFact
             },
             DataRetention = new
             {
-                settings.AuditRetentionPeriod,
                 settings.ErrorRetentionPeriod
             },
             PerformanceTunning = new

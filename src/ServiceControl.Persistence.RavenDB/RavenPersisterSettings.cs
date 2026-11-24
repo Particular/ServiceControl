@@ -12,7 +12,6 @@ class RavenPersisterSettings : PersistenceSettings, IRavenClientCertificateInfo
     public int DataSpaceRemainingThreshold { get; set; } = CheckFreeDiskSpace.DataSpaceRemainingThresholdDefault;
     public TimeSpan ErrorRetentionPeriod { get; set; }
     public TimeSpan EventsRetentionPeriod { get; set; }
-    public TimeSpan? AuditRetentionPeriod { get; set; }
     public int ExternalIntegrationsDispatchingBatchSize { get; set; } = ExternalIntegrationsDispatchingBatchSizeDefault;
 
     /// <summary>
