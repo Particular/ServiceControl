@@ -2,6 +2,7 @@
 {
     using System;
     using System.IO;
+    using System.Linq;
     using System.Xml.Serialization;
     using Configuration.ServiceControl;
     using Setup;
@@ -64,7 +65,10 @@
 
         protected override void ValidateMaintenancePort()
         {
-            DatabaseMaintenancePortValidator.Validate(this);
+            if (PersistenceManifest.Settings.Any(s => s.Name == AuditInstanceSettingsList.DatabaseMaintenancePort.Name))
+            {
+                DatabaseMaintenancePortValidator.Validate(this);
+            }
         }
 
         protected override void ValidateQueueNames()
@@ -80,6 +84,11 @@
         protected override void ValidateConnectionString()
         {
             ConnectionStringValidator.Validate(this);
+        }
+
+        protected override void ValidatePersistence()
+        {
+            MessageBodyStorageValidator.Validate(PersistenceManifest, MessageBodyStorage);
         }
     }
 }

@@ -40,6 +40,39 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public bool InMaintenanceMode { get; set; }
         public ReportCard ReportCard { get; set; }
+        public PersistenceManifest PersistenceManifest { get; set; }
+
+        // False when all data lives somewhere ServiceControl doesn't manage, such as a SQL Server database or an S3 bucket.
+        public bool HasCleanableStoragePaths => AppConfig?.Config != null && !UsesExternalRavenDB && GetPersistencePathsToCleanUp().Any();
+
+        // Only persisters that run an embedded database server declare a maintenance port.
+        public bool UsesEmbeddedDatabase =>
+            PersistenceManifest?.Settings.Any(setting => setting.Name == DatabaseMaintenancePortSetting.Name) == true
+            && !UsesExternalRavenDB;
+
+        bool UsesExternalRavenDB => !string.IsNullOrWhiteSpace(AppConfig?.Read<string>(RavenDBConnectionStringSetting, null));
+
+        protected abstract SettingInfo DatabaseMaintenancePortSetting { get; }
+
+        protected abstract SettingInfo RavenDBConnectionStringSetting { get; }
+
+        protected abstract SettingInfo MessageBodyStorageTypeSetting { get; }
+
+        protected abstract SettingInfo MessageBodyStoragePathSetting { get; }
+
+        public MessageBodyStorage MessageBodyStorage => null;
+
+        // Null for storage types that keep message bodies in the database itself.
+        public MessageBodyStorageType? ConfiguredMessageBodyStorageType =>
+            Enum.TryParse<MessageBodyStorageType>(AppConfig?.Read<string>(MessageBodyStorageTypeSetting, null), ignoreCase: true, out var storageType)
+                ? storageType
+                : null;
+
+        // Null unless message bodies are stored on the file system.
+        public string MessageBodyStoragePath =>
+            ConfiguredMessageBodyStorageType == MessageBodyStorageType.FileSystem
+                ? AppConfig.Read<string>(MessageBodyStoragePathSetting, null)
+                : null;
 
         /// <summary>
         /// Raven management URL
@@ -211,6 +244,11 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public void RemoveDataBaseFolder()
         {
+            if (!HasCleanableStoragePaths)
+            {
+                return;
+            }
+
             //Order by length descending in case they are nested paths
             var folders = GetPersistencePathsToCleanUp().ToList();
 
@@ -292,9 +330,27 @@ namespace ServiceControlInstaller.Engine.Instances
             InMaintenanceMode = false;
         }
 
-        protected virtual IEnumerable<string> GetPersistencePathsToCleanUp()
+        IEnumerable<string> GetPersistencePathsToCleanUp()
         {
-            return [];
+            var settings = AppConfig.Config.AppSettings.Settings;
+            foreach (var key in PersistenceManifest.SettingsWithPathsToCleanup)
+            {
+                if (!settings.AllKeys.Contains(key, StringComparer.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (string.Equals(key, MessageBodyStoragePathSetting.Name, StringComparison.OrdinalIgnoreCase)
+                    && ConfiguredMessageBodyStorageType != MessageBodyStorageType.FileSystem)
+                {
+                    continue;
+                }
+
+                var folderPath = settings[key].Value;
+                yield return folderPath.StartsWith("~") //Raven uses ~ to indicate path is relative to bin folder e.g. ~/Data/Logs
+                    ? Path.Combine(InstallPath, folderPath.Remove(0, 1))
+                    : folderPath;
+            }
         }
 
         protected virtual void ValidateConnectionString()

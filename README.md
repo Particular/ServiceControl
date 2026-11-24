@@ -143,6 +143,7 @@ Steps:
      -ConnectionString 'host=localhost;username=guest;password=guest' `
      -ErrorQueue errormq `
      -ErrorRetentionPeriod 10:00:00:00 `
+     -StorageType RavenDB `
      -Acknowledgements RabbitMQBrokerVersion310
   ```
 

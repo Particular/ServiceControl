@@ -38,6 +38,168 @@
         }
 
         [Test]
+        public void Storage_types_are_offered_with_no_default_selection()
+        {
+            var viewModel = new ServiceControlAddViewModel();
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(viewModel.StorageTypes.Select(m => m.Name), Is.EquivalentTo(new[] { "PostgreSQL", "RavenDB", "SQLServer" }));
+                Assert.That(viewModel.SelectedStorageType, Is.Null);
+                Assert.That(viewModel.ShowStorageTypePicker, Is.True);
+                Assert.That(viewModel.ErrorSelectedStorageType, Is.Null);
+                Assert.That(viewModel.ShowErrorStorageConnectionString, Is.False);
+                Assert.That(viewModel.AuditSelectedStorageType, Is.Null);
+                Assert.That(viewModel.ShowAuditStorageConnectionString, Is.False);
+            }
+        }
+
+        [TestCase("RavenDB")]
+        [TestCase("SQLServer")]
+        [TestCase("PostgreSQL")]
+        public void Selecting_a_storage_type_applies_it_to_both_instances(string storageTypeName)
+        {
+            var viewModel = new ServiceControlAddViewModel();
+            var raisedPropertyNames = new System.Collections.Generic.HashSet<string>();
+            viewModel.PropertyChanged += (_, e) => raisedPropertyNames.Add(e.PropertyName);
+
+            viewModel.SelectedStorageType = viewModel.StorageTypes.Single(m => m.Name == storageTypeName);
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(viewModel.ErrorSelectedStorageType, Is.SameAs(ServiceControlInstaller.Engine.Instances.ServiceControlPersisters.GetPrimaryPersistence(storageTypeName)));
+                Assert.That(viewModel.AuditSelectedStorageType, Is.SameAs(ServiceControlInstaller.Engine.Instances.ServiceControlPersisters.GetAuditPersistence(storageTypeName)));
+                Assert.That(raisedPropertyNames, Does.Contain(nameof(viewModel.SelectedStorageType)));
+                Assert.That(raisedPropertyNames, Does.Contain(nameof(viewModel.ShowAuditStorageSettings)));
+                Assert.That(raisedPropertyNames, Does.Contain(nameof(viewModel.ShowAuditStorageConnectionStringEntry)));
+                Assert.That(raisedPropertyNames, Does.Contain(nameof(viewModel.ShowStorageConnectionString)));
+                Assert.That(raisedPropertyNames, Does.Contain(nameof(viewModel.ShowStorageSettings)));
+            }
+        }
+
+        [Test]
+        public void Changing_storage_type_notifies_bound_visibility_properties()
+        {
+            var viewModel = new ServiceControlAddViewModel();
+            var raisedPropertyNames = new System.Collections.Generic.HashSet<string>();
+            viewModel.PropertyChanged += (_, e) => raisedPropertyNames.Add(e.PropertyName);
+
+            viewModel.ErrorSelectedStorageType = ServiceControlInstaller.Engine.Instances.ServiceControlPersisters.GetPrimaryPersistence("SQLServer");
+
+            using (Assert.EnterMultipleScope())
+            {
+                // These are what the XAML's Visibility bindings actually listen to - if WPF never
+                // hears these changed, the connection string box silently never appears/disappears,
+                // even though the underlying ErrorSelectedStorageType value is correct.
+                Assert.That(raisedPropertyNames, Does.Contain(nameof(viewModel.ShowErrorStorageConnectionString)));
+                Assert.That(raisedPropertyNames, Does.Contain(nameof(viewModel.ShowErrorDatabasePathFields)));
+                Assert.That(viewModel.ShowErrorStorageConnectionString, Is.True);
+            }
+        }
+
+        [TestCase("RavenDB", true)]
+        [TestCase("SQLServer", false)]
+        [TestCase("PostgreSQL", false)]
+        public void Database_maintenance_port_is_shown_only_for_RavenDB(string storageTypeName, bool expected)
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                ErrorSelectedStorageType = ServiceControlInstaller.Engine.Instances.ServiceControlPersisters.GetPrimaryPersistence(storageTypeName),
+                AuditSelectedStorageType = ServiceControlInstaller.Engine.Instances.ServiceControlPersisters.GetAuditPersistence(storageTypeName)
+            };
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(viewModel.ShowErrorDatabaseMaintenancePort, Is.EqualTo(expected));
+                Assert.That(viewModel.ShowAuditDatabaseMaintenancePort, Is.EqualTo(expected));
+            }
+        }
+
+        [TestCase("RavenDB", true)]
+        [TestCase("SQLServer", false)]
+        [TestCase("PostgreSQL", false)]
+        public void Full_text_search_option_is_shown_only_for_RavenDB(string storageTypeName, bool expected)
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                ErrorSelectedStorageType = ServiceControlInstaller.Engine.Instances.ServiceControlPersisters.GetPrimaryPersistence(storageTypeName),
+                AuditSelectedStorageType = ServiceControlInstaller.Engine.Instances.ServiceControlPersisters.GetAuditPersistence(storageTypeName)
+            };
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(viewModel.ShowErrorFullTextSearchOnBodies, Is.EqualTo(expected));
+                Assert.That(viewModel.ShowAuditFullTextSearchOnBodies, Is.EqualTo(expected));
+            }
+        }
+
+        [Test]
+        public void Message_body_path_is_shown_only_for_storage_types_that_support_it()
+        {
+            var viewModel = new ServiceControlAddViewModel();
+
+            viewModel.ErrorSelectedStorageType = ServiceControlInstaller.Engine.Instances.ServiceControlPersisters.GetPrimaryPersistence("RavenDB");
+            Assert.That(viewModel.ShowErrorMessageBodyPath, Is.False);
+
+            viewModel.ErrorSelectedStorageType = ServiceControlInstaller.Engine.Instances.ServiceControlPersisters.GetPrimaryPersistence("SQLServer");
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(viewModel.ShowErrorMessageBodyPath, Is.True);
+                Assert.That(viewModel.ErrorMessageBodyPath, Does.StartWith(programDataPath).And.EndWith("MessageBodies"));
+            }
+        }
+
+        [Test]
+        public void Audit_message_body_storage_is_shown_for_SQL_Server_with_its_own_default_path()
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                AuditSelectedStorageType = ServiceControlInstaller.Engine.Instances.ServiceControlPersisters.GetAuditPersistence("SQLServer")
+            };
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(viewModel.ShowAuditMessageBodyPath, Is.True);
+                Assert.That(viewModel.AuditMessageBodyPath, Does.StartWith(programDataPath).And.EndWith("MessageBodies"));
+                Assert.That(viewModel.AuditMessageBodyPath, Is.Not.EqualTo(viewModel.ErrorMessageBodyPath));
+            }
+        }
+
+        [Test]
+        public void Both_instances_store_message_bodies_on_the_file_system()
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                SelectedStorageType = ServiceControlInstaller.Engine.Instances.ServiceControlPersisters.GetPrimaryPersistence("SQLServer"),
+                ErrorMessageBodyPath = @"D:\ErrorBodies",
+                AuditMessageBodyPath = @"D:\AuditBodies"
+            };
+
+            var errorStorage = viewModel.ServiceControl.CreateMessageBodyStorage();
+            var auditStorage = viewModel.ServiceControlAudit.CreateMessageBodyStorage();
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(errorStorage.StorageType, Is.EqualTo(ServiceControlInstaller.Engine.Instances.MessageBodyStorageType.FileSystem));
+                Assert.That(errorStorage.FileSystemStoragePath, Is.EqualTo(@"D:\ErrorBodies"));
+                Assert.That(auditStorage.StorageType, Is.EqualTo(ServiceControlInstaller.Engine.Instances.MessageBodyStorageType.FileSystem));
+                Assert.That(auditStorage.FileSystemStoragePath, Is.EqualTo(@"D:\AuditBodies"));
+            }
+        }
+
+        [Test]
+        public void Message_body_storage_is_not_created_for_RavenDB()
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                ErrorSelectedStorageType = ServiceControlInstaller.Engine.Instances.ServiceControlPersisters.GetPrimaryPersistence("RavenDB")
+            };
+
+            Assert.That(viewModel.ServiceControl.CreateMessageBodyStorage(), Is.Null);
+        }
+
+        [Test]
         public void Transport_connection_string_is_null()
         {
             var viewModel = new ServiceControlAddViewModel();

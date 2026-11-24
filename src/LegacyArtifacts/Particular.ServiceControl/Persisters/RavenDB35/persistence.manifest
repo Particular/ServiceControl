@@ -24,6 +24,9 @@
     {
       "Name": "ServiceControl/DatabaseMaintenancePort",
       "Mandatory": true
+    },
+    {
+      "Name": "ServiceControl/EnableFullTextSearchOnBodies"
     }
   ],
   "SettingsWithPathsToCleanup": [

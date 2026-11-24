@@ -274,6 +274,29 @@
             </Hyperlink>
         </GroupBox>
         <GroupBox Grid.Row="7"
+                  Grid.Column="0"
+                  Visibility="{Binding HasBrowsableMessageBodyPath, Converter={StaticResource boolToVis}}"
+                  Header="MESSAGE BODY PATH"
+                  Margin="0 1 0 0"
+                  HeaderTemplate="{StaticResource SimpleHeaderedGroupBox}">
+            <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding MessageBodyPath}">
+                <Hyperlink.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Command="{Binding CopyToClipboard}"
+                                  CommandParameter="{Binding MessageBodyPath}"
+                                  Header="Copy path to clipboard" />
+                    </ContextMenu>
+                </Hyperlink.ContextMenu>
+                <StackPanel Orientation="Horizontal">
+                    <ContentControl Margin="0,1,0,0"
+                                    VerticalAlignment="Center"
+                                    Template="{StaticResource BrowseIcon}"
+                                    Height="12px" />
+                    <TextBlock FontSize="14px" Text="Browse..." Margin="3,0,0,0" VerticalAlignment="Center" />
+                </StackPanel>
+            </Hyperlink>
+        </GroupBox>
+        <GroupBox Grid.Row="7"
                   Grid.Column="1"
                   Header="INSTANCE/QUEUE NAME"
                   Margin="0 1 0 0"

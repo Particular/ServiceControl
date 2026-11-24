@@ -151,6 +151,135 @@
 
         #endregion
 
+        #region storagetype
+
+        [Test]
+        public void Storage_type_cannot_be_empty_when_adding_audit_instance()
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallAuditInstance = true,
+                InstallErrorInstance = false,
+                SubmitAttempted = true,
+                SelectedStorageType = null
+            };
+
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.SelectedStorageType));
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.SelectedStorageType));
+
+            Assert.That(errors, Is.Not.Empty);
+        }
+
+        [TestCase("SQLServer")]
+        [TestCase("PostgreSQL")]
+        public void Storage_connection_string_cannot_be_empty_for_storage_types_that_require_one_when_adding_audit_instance(string storageTypeName)
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallAuditInstance = true,
+                InstallErrorInstance = false,
+                SelectedStorageType = ServiceControlPersisters.GetPrimaryPersistence(storageTypeName),
+                SubmitAttempted = true,
+                StorageConnectionString = string.Empty
+            };
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.StorageConnectionString));
+
+            Assert.That(errors, Is.Not.Empty);
+        }
+
+        [Test]
+        public void Storage_connection_string_can_be_empty_for_RavenDB_when_adding_audit_instance()
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallAuditInstance = true,
+                SelectedStorageType = ServiceControlPersisters.GetPrimaryPersistence("RavenDB"),
+                SubmitAttempted = true,
+                StorageConnectionString = string.Empty
+            };
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.StorageConnectionString));
+
+            Assert.That(errors, Is.Empty);
+        }
+
+        [Test]
+        public void Audit_instance_uses_the_shared_connection_string_by_default_when_adding_both_instances()
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                InstallAuditInstance = true,
+                SelectedStorageType = ServiceControlPersisters.GetPrimaryPersistence("SQLServer"),
+                SubmitAttempted = true,
+                StorageConnectionString = "Server=.;Database=ServiceControl",
+                AuditStorageConnectionString = string.Empty
+            };
+
+            var errors = GetNotifyErrorInfo(viewModel).GetErrors(nameof(viewModel.AuditStorageConnectionString));
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(viewModel.ShowAuditUseSharedStorageConnectionString, Is.True);
+                Assert.That(viewModel.ShowAuditStorageConnectionStringEntry, Is.False);
+                Assert.That(viewModel.AuditStorageConnectionStringToUse, Is.EqualTo("Server=.;Database=ServiceControl"));
+                Assert.That(errors, Is.Empty);
+            }
+        }
+
+        [Test]
+        public void Audit_connection_string_is_required_when_choosing_a_different_one()
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                InstallAuditInstance = true,
+                SelectedStorageType = ServiceControlPersisters.GetPrimaryPersistence("PostgreSQL"),
+                SubmitAttempted = true,
+                StorageConnectionString = "Host=localhost;Database=error",
+                AuditUseOwnStorageConnectionString = true,
+                AuditStorageConnectionString = string.Empty
+            };
+
+            var errors = GetNotifyErrorInfo(viewModel).GetErrors(nameof(viewModel.AuditStorageConnectionString));
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(viewModel.ShowAuditStorageConnectionStringEntry, Is.True);
+                Assert.That(errors, Is.Not.Empty);
+            }
+
+            viewModel.AuditStorageConnectionString = "Host=localhost;Database=audit";
+
+            Assert.That(viewModel.AuditStorageConnectionStringToUse, Is.EqualTo("Host=localhost;Database=audit"));
+        }
+
+        [Test]
+        public void Audit_instance_uses_the_shared_connection_string_when_added_alone()
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = false,
+                InstallAuditInstance = true,
+                SelectedStorageType = ServiceControlPersisters.GetPrimaryPersistence("SQLServer"),
+                StorageConnectionString = "Server=.;Database=Audit"
+            };
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(viewModel.ShowAuditUseSharedStorageConnectionString, Is.False);
+                Assert.That(viewModel.ShowAuditStorageConnectionStringEntry, Is.False);
+                Assert.That(viewModel.AuditStorageConnectionStringToUse, Is.EqualTo("Server=.;Database=Audit"));
+            }
+        }
+
+        #endregion
+
         #region auditinstancename
 
         [Test]

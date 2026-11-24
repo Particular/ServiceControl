@@ -67,6 +67,70 @@
             Assert.That(Directory.Exists(DbPath), Is.False);
         }
 
+        [Test]
+        public void Should_remove_only_message_body_folder_on_uninstall_for_SQL_Server()
+        {
+            var messageBodyPath = Path.Combine(Path.GetDirectoryName(DbPath), "bodies");
+            var newInstance = CreateSqlServerInstance(new MessageBodyStorage
+            {
+                StorageType = MessageBodyStorageType.FileSystem,
+                FileSystemStoragePath = messageBodyPath
+            });
+
+            newInstance.CopyFiles(zipResourceName);
+            newInstance.WriteConfigurationFile();
+
+            var instance = new ServiceControlAuditInstance(new FakeWindowsServiceController(Path.Combine(InstallPath, "ServiceControl.Audit.exe")));
+
+            instance.Reload();
+
+            Assert.That(Directory.Exists(DbPath), Is.False, "SQL Server instances have no local database folder");
+            Assert.That(Directory.Exists(messageBodyPath), Is.True);
+            Assert.That(instance.HasCleanableStoragePaths, Is.True);
+            Assert.That(instance.UsesEmbeddedDatabase, Is.False);
+            Assert.That(instance.ConfiguredMessageBodyStorageType, Is.EqualTo(MessageBodyStorageType.FileSystem));
+            Assert.That(instance.MessageBodyStoragePath, Is.EqualTo(messageBodyPath));
+
+            instance.RemoveDataBaseFolder();
+
+            Assert.That(Directory.Exists(messageBodyPath), Is.False);
+        }
+
+        [Test]
+        public void Should_not_attempt_local_cleanup_on_uninstall_for_external_body_storage()
+        {
+            var newInstance = CreateSqlServerInstance(new MessageBodyStorage
+            {
+                StorageType = MessageBodyStorageType.AzureBlob,
+                AzureConnectionString = "UseDevelopmentStorage=true"
+            });
+
+            newInstance.CopyFiles(zipResourceName);
+            newInstance.WriteConfigurationFile();
+
+            var instance = new ServiceControlAuditInstance(new FakeWindowsServiceController(Path.Combine(InstallPath, "ServiceControl.Audit.exe")));
+
+            instance.Reload();
+
+            Assert.That(instance.HasCleanableStoragePaths, Is.False);
+            Assert.That(instance.ConfiguredMessageBodyStorageType, Is.EqualTo(MessageBodyStorageType.AzureBlob));
+            Assert.That(instance.AppConfig.Read<string>("ServiceControl.Audit/MessageBody/Azure/ConnectionString", null), Is.EqualTo("UseDevelopmentStorage=true"));
+        }
+
+        ServiceControlAuditNewInstance CreateSqlServerInstance(MessageBodyStorage messageBodyStorage)
+        {
+            var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence("SQLServer");
+
+            newInstance.InstallPath = InstallPath;
+            newInstance.TransportPackage = ServiceControlCoreTransports.Find("LearningTransport");
+            newInstance.LogPath = LogPath;
+            newInstance.HostName = "localhost";
+            newInstance.PersistenceConnectionString = "placeholder-connection-string";
+            newInstance.MessageBodyStorage = messageBodyStorage;
+
+            return newInstance;
+        }
+
         class FakeWindowsServiceController : IWindowsServiceController
         {
             public FakeWindowsServiceController(string exePath)

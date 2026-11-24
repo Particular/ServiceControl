@@ -71,6 +71,29 @@
                              TextWrapping="Wrap"
                              Visibility="{Binding ShowConnectionString,
                                                   Converter={StaticResource boolToVis}}" />
+
+                    <StackPanel Visibility="{Binding ShowStorageSettings, Converter={StaticResource boolToVis}}">
+                        <Border Margin="0,20,0,10"
+                                BorderBrush="{StaticResource Gray90Brush}"
+                                BorderThickness="0,0,0,1">
+                            <TextBlock FontSize="13px"
+                                       FontWeight="Bold"
+                                       Text="STORAGE CONFIGURATION" />
+                        </Border>
+
+                        <controls:FormComboBox HorizontalAlignment="Stretch"
+                                               DisplayMemberPath="DisplayName"
+                                               Header="STORAGE TYPE"
+                                               ItemsSource="{Binding StorageTypes}"
+                                               SelectedItem="{Binding SelectedStorageType}"
+                                               Visibility="{Binding ShowStorageTypePicker, Converter={StaticResource boolToVis}}" />
+
+                        <controls:FormTextBox AcceptsReturn="True"
+                                              Header="DATABASE CONNECTION STRING"
+                                              Text="{Binding StorageConnectionString}"
+                                              TextWrapping="Wrap"
+                                              Visibility="{Binding ShowStorageConnectionString, Converter={StaticResource boolToVis}}" />
+                    </StackPanel>
                 </StackPanel>
 
                 <StackPanel Visibility="{Binding InstallErrorInstance, Converter={StaticResource boolToVis}}">
@@ -135,7 +158,9 @@
                                 <controls:FormTextBox Header="PORT NUMBER (1 - 49151)" Text="{Binding ErrorPortNumber}" />
 
 
-                                <controls:FormTextBox Header="DATABASE MAINTENANCE PORT NUMBER (1 - 49151)" Text="{Binding ErrorDatabaseMaintenancePortNumber}" />
+                                <controls:FormTextBox Header="DATABASE MAINTENANCE PORT NUMBER (1 - 49151)"
+                                          Text="{Binding ErrorDatabaseMaintenancePortNumber}"
+                                          Visibility="{Binding ShowErrorDatabaseMaintenancePort, Converter={StaticResource boolToVis}}" />
 
                                 <Border Margin="0,40,0,20"
                             BorderBrush="{StaticResource Gray90Brush}"
@@ -155,7 +180,13 @@
 
                                 <controls:FormPathTextBox Header="DATABASE PATH"
                                               SelectCommand="{Binding ErrorSelectDatabasePath}"
-                                              Text="{Binding ErrorDatabasePath}" />
+                                              Text="{Binding ErrorDatabasePath}"
+                                              Visibility="{Binding ShowErrorDatabasePathFields, Converter={StaticResource boolToVis}}" />
+
+                                <controls:FormPathTextBox Header="MESSAGE BODY PATH"
+                                              SelectCommand="{Binding ErrorSelectMessageBodyPath}"
+                                              Text="{Binding ErrorMessageBodyPath}"
+                                              Visibility="{Binding ShowErrorMessageBodyPath, Converter={StaticResource boolToVis}}" />
 
                                 <Border Margin="0,40,0,20"
                             BorderBrush="{StaticResource Gray90Brush}"
@@ -233,7 +264,8 @@
                                                DisplayMemberPath="Name"
                                                Header="FULL TEXT SEARCH ON MESSAGE BODIES"
                                                ItemsSource="{Binding ErrorEnableFullTextSearchOnBodiesOptions}"
-                                               SelectedValue="{Binding ErrorEnableFullTextSearchOnBodies}" />
+                                               SelectedValue="{Binding ErrorEnableFullTextSearchOnBodies}"
+                                               Visibility="{Binding ShowErrorFullTextSearchOnBodies, Converter={StaticResource boolToVis}}" />
                                 <controls:FormComboBox HorizontalAlignment="Stretch"
                                                VerticalAlignment="Top"
                                                DisplayMemberPath="Name"
@@ -320,7 +352,36 @@
                                               Text="{Binding AuditHostName}"
                                               Warning="{Binding AuditHostNameWarning}" />
                                 <controls:FormTextBox Header="PORT NUMBER (1 - 49151)" Text="{Binding AuditPortNumber}" />
-                                <controls:FormTextBox Header="DATABASE MAINTENANCE PORT NUMBER (1 - 49151)" Text="{Binding AuditDatabaseMaintenancePortNumber}" />
+                                <controls:FormTextBox Header="DATABASE MAINTENANCE PORT NUMBER (1 - 49151)"
+                                          Text="{Binding AuditDatabaseMaintenancePortNumber}"
+                                          Visibility="{Binding ShowAuditDatabaseMaintenancePort, Converter={StaticResource boolToVis}}" />
+
+                                <Border Margin="0,40,0,20"
+                                BorderBrush="{StaticResource Gray90Brush}"
+                                BorderThickness="0,0,0,1"
+                                Visibility="{Binding ShowAuditStorageSettings, Converter={StaticResource boolToVis}}">
+                                    <TextBlock FontSize="13px"
+                                       FontWeight="Bold"
+                                       Text="STORAGE CONFIGURATION" />
+                                </Border>
+
+                                <GroupBox Header="DATABASE CONNECTION"
+                                          Visibility="{Binding ShowAuditUseSharedStorageConnectionString, Converter={StaticResource boolToVis}}">
+                                    <StackPanel>
+                                        <RadioButton IsChecked="{Binding AuditUseSharedStorageConnectionString}">
+                                            <TextBlock Text="SAME AS SERVICECONTROL" />
+                                        </RadioButton>
+                                        <RadioButton IsChecked="{Binding AuditUseOwnStorageConnectionString}">
+                                            <TextBlock Text="SPECIFY A DIFFERENT CONNECTION STRING" />
+                                        </RadioButton>
+                                    </StackPanel>
+                                </GroupBox>
+
+                                <controls:FormTextBox AcceptsReturn="True"
+                                          Header="DATABASE CONNECTION STRING"
+                                          Text="{Binding AuditStorageConnectionString}"
+                                          TextWrapping="Wrap"
+                                          Visibility="{Binding ShowAuditStorageConnectionStringEntry, Converter={StaticResource boolToVis}}" />
 
                                 <Border Margin="0,40,0,20"
                                 BorderBrush="{StaticResource Gray90Brush}"
@@ -340,7 +401,13 @@
 
                                 <controls:FormPathTextBox Header="DATABASE PATH"
                                                   SelectCommand="{Binding AuditSelectDatabasePath}"
-                                                  Text="{Binding AuditDatabasePath}" />
+                                                  Text="{Binding AuditDatabasePath}"
+                                                  Visibility="{Binding ShowAuditDatabasePathFields, Converter={StaticResource boolToVis}}" />
+
+                                <controls:FormPathTextBox Header="MESSAGE BODY PATH"
+                                                  SelectCommand="{Binding AuditSelectMessageBodyPath}"
+                                                  Text="{Binding AuditMessageBodyPath}"
+                                                  Visibility="{Binding ShowAuditMessageBodyPath, Converter={StaticResource boolToVis}}" />
 
                                 <Border Margin="0,40,0,20"
                                 BorderBrush="{StaticResource Gray90Brush}"
@@ -407,19 +474,21 @@
 
                                 </Grid>
 
-                                <Border Margin="0,40,0,20"
-                                BorderBrush="{StaticResource Gray90Brush}"
-                                BorderThickness="0,0,0,1">
-                                    <TextBlock FontSize="13px"
-                                       FontWeight="Bold"
-                                       Text="ADVANCED CONFIGURATION" />
-                                </Border>
-                                <controls:FormComboBox HorizontalAlignment="Stretch"
-                                               VerticalAlignment="Top"
-                                               DisplayMemberPath="Name"
-                                               Header="FULL TEXT SEARCH ON MESSAGE BODIES"
-                                               ItemsSource="{Binding AuditEnableFullTextSearchOnBodiesOptions}"
-                                               SelectedValue="{Binding AuditEnableFullTextSearchOnBodies}" />
+                                <StackPanel Visibility="{Binding ShowAuditFullTextSearchOnBodies, Converter={StaticResource boolToVis}}">
+                                    <Border Margin="0,40,0,20"
+                                    BorderBrush="{StaticResource Gray90Brush}"
+                                    BorderThickness="0,0,0,1">
+                                        <TextBlock FontSize="13px"
+                                           FontWeight="Bold"
+                                           Text="ADVANCED CONFIGURATION" />
+                                    </Border>
+                                    <controls:FormComboBox HorizontalAlignment="Stretch"
+                                                   VerticalAlignment="Top"
+                                                   DisplayMemberPath="Name"
+                                                   Header="FULL TEXT SEARCH ON MESSAGE BODIES"
+                                                   ItemsSource="{Binding AuditEnableFullTextSearchOnBodiesOptions}"
+                                                   SelectedValue="{Binding AuditEnableFullTextSearchOnBodies}" />
+                                </StackPanel>
                             </StackPanel>
                     </Expander>
                 </StackPanel>

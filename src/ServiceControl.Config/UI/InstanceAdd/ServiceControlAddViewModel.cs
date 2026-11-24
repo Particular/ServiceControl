@@ -8,6 +8,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
     using System.Windows.Input;
     using PropertyChanged;
     using ServiceControl.Config.Extensions;
+    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
     using Validar;
     using Xaml.Controls;
@@ -45,6 +46,9 @@ namespace ServiceControl.Config.UI.InstanceAdd
                     NotifyOfPropertyChange(nameof(ServiceControlQueueAddressOptions));
                     NotifyOfPropertyChange(nameof(ShowServiceControlQueueAddressSelection));
                     NotifyOfPropertyChange(nameof(ShowServiceControlQueueAddressEntry));
+                    NotifyOfPropertyChange(nameof(ShowAuditUseSharedStorageConnectionString));
+                    NotifyOfPropertyChange(nameof(ShowAuditStorageConnectionStringEntry));
+                    NotifyOfPropertyChange(nameof(ShowAuditStorageSettings));
                 }
             };
         }
@@ -115,6 +119,31 @@ namespace ServiceControl.Config.UI.InstanceAdd
             NotifyOfPropertyChange(nameof(ConnectionString));
         }
 
+        // Error and Audit have separate manifests for each storage type, matched by name.
+        public IEnumerable<PersistenceManifest> StorageTypes => ErrorStorageTypes.Where(manifest => AuditStorageTypes.Any(audit => audit.Name == manifest.Name));
+
+        public PersistenceManifest SelectedStorageType
+        {
+            get => ErrorSelectedStorageType;
+            set
+            {
+                ErrorSelectedStorageType = value;
+                AuditSelectedStorageType = value == null ? null : AuditStorageTypes.Single(audit => audit.Name == value.Name);
+            }
+        }
+
+        public bool ShowStorageTypePicker => StorageTypes.Count() > 1;
+
+        public bool ShowStorageSettings => ShowStorageTypePicker || ShowStorageConnectionString;
+
+        public string StorageConnectionString
+        {
+            get => ErrorStorageConnectionString;
+            set => ErrorStorageConnectionString = value;
+        }
+
+        public bool ShowStorageConnectionString => ShowErrorStorageConnectionString;
+
         public string ErrorInstanceName
         {
             get => ServiceControl.InstanceName;
@@ -127,6 +156,8 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 "Particular Software", ErrorInstanceName);
             ErrorDatabasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                 "Particular", "ServiceControl", ErrorInstanceName, "DB");
+            ErrorMessageBodyPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                "Particular", "ServiceControl", ErrorInstanceName, "MessageBodies");
             ErrorLogPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                 "Particular", "ServiceControl", ErrorInstanceName, "Logs");
         }
@@ -198,6 +229,38 @@ namespace ServiceControl.Config.UI.InstanceAdd
         {
             get => ServiceControl.DatabaseMaintenancePortNumber;
             set => ServiceControl.DatabaseMaintenancePortNumber = value;
+        }
+
+        public IEnumerable<PersistenceManifest> ErrorStorageTypes => ServiceControl.StorageTypes;
+
+        public PersistenceManifest ErrorSelectedStorageType
+        {
+            get => ServiceControl.SelectedStorageType;
+            set => ServiceControl.SelectedStorageType = value;
+        }
+
+        public string ErrorStorageConnectionString
+        {
+            get => ServiceControl.StorageConnectionString;
+            set => ServiceControl.StorageConnectionString = value;
+        }
+
+        public bool ShowErrorStorageConnectionString => ErrorSelectedStorageType != null && ErrorSelectedStorageType.Settings.Any(s => s.Mandatory && s.Name.EndsWith("/ConnectionString"));
+
+        public bool ShowErrorDatabasePathFields => ErrorSelectedStorageType == null || ErrorSelectedStorageType.Settings.Any(s => s.Name.EndsWith("/DBPath"));
+
+        public bool ShowErrorDatabaseMaintenancePort => ErrorSelectedStorageType == null || ErrorSelectedStorageType.Settings.Any(s => s.Name == ServiceControlSettings.DatabaseMaintenancePort.Name);
+
+        public bool ShowErrorFullTextSearchOnBodies => ErrorSelectedStorageType == null || ErrorSelectedStorageType.Settings.Any(s => s.Name == ServiceControlSettings.EnableFullTextSearchOnBodies.Name);
+
+        public bool ShowErrorMessageBodyPath => MessageBodyStorageOptions.IsSupportedBy(ErrorSelectedStorageType);
+
+        public ICommand ErrorSelectMessageBodyPath => ServiceControl.MessageBodyStorage.SelectPath;
+
+        public string ErrorMessageBodyPath
+        {
+            get => ServiceControl.MessageBodyStorage.Path;
+            set => ServiceControl.MessageBodyStorage.Path = value.SanitizeFilePath();
         }
 
         public ICommand ErrorSelectDestinationPath => ServiceControl.SelectDestinationPath;
@@ -294,6 +357,8 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 "Particular Software", AuditInstanceName);
             AuditDatabasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                 "Particular", "ServiceControl", AuditInstanceName, "DB");
+            AuditMessageBodyPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                "Particular", "ServiceControl", AuditInstanceName, "MessageBodies");
             AuditLogPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                 "Particular", "ServiceControl", AuditInstanceName, "Logs");
         }
@@ -365,6 +430,58 @@ namespace ServiceControl.Config.UI.InstanceAdd
         {
             get => ServiceControlAudit.DatabaseMaintenancePortNumber;
             set => ServiceControlAudit.DatabaseMaintenancePortNumber = value;
+        }
+
+        public IEnumerable<PersistenceManifest> AuditStorageTypes => ServiceControlAudit.StorageTypes;
+
+        public PersistenceManifest AuditSelectedStorageType
+        {
+            get => ServiceControlAudit.SelectedStorageType;
+            set => ServiceControlAudit.SelectedStorageType = value;
+        }
+
+        public string AuditStorageConnectionString
+        {
+            get => ServiceControlAudit.StorageConnectionString;
+            set => ServiceControlAudit.StorageConnectionString = value;
+        }
+
+        public bool ShowAuditStorageSettings => ShowAuditUseSharedStorageConnectionString;
+
+        public bool AuditUseSharedStorageConnectionString { get; set; } = true;
+
+        public bool AuditUseOwnStorageConnectionString
+        {
+            get => !AuditUseSharedStorageConnectionString;
+            set => AuditUseSharedStorageConnectionString = !value;
+        }
+
+        // An Audit instance added on its own always uses the shared connection string.
+        public bool ShowAuditUseSharedStorageConnectionString => InstallErrorInstance && ShowAuditStorageConnectionString;
+
+        public bool ShowAuditStorageConnectionStringEntry => ShowAuditUseSharedStorageConnectionString && AuditUseOwnStorageConnectionString;
+
+        public string AuditStorageConnectionStringToUse =>
+            !ShowAuditStorageConnectionString ? null
+            : ShowAuditStorageConnectionStringEntry ? AuditStorageConnectionString
+            : StorageConnectionString;
+
+        public bool ShowAuditStorageConnectionString => AuditSelectedStorageType != null && AuditSelectedStorageType.Settings.Any(s => s.Mandatory && s.Name.EndsWith("/ConnectionString"));
+
+        public bool ShowAuditDatabasePathFields => AuditSelectedStorageType == null || AuditSelectedStorageType.Settings.Any(s => s.Name.EndsWith("/DBPath"));
+
+        public bool ShowAuditDatabaseMaintenancePort => AuditSelectedStorageType == null || AuditSelectedStorageType.Settings.Any(s => s.Name == AuditInstanceSettingsList.DatabaseMaintenancePort.Name);
+
+        public bool ShowAuditFullTextSearchOnBodies => AuditSelectedStorageType == null || AuditSelectedStorageType.Settings.Any(s => s.Name == AuditInstanceSettingsList.EnableFullTextSearchOnBodies.Name);
+
+        public bool ShowAuditMessageBodyPath => MessageBodyStorageOptions.IsSupportedBy(AuditSelectedStorageType);
+
+        public ICommand AuditSelectMessageBodyPath => ServiceControlAudit.MessageBodyStorage.SelectPath;
+
+        public string AuditMessageBodyPath
+        {
+            get => ServiceControlAudit.MessageBodyStorage.Path;
+            set => ServiceControlAudit.MessageBodyStorage.Path = value.SanitizeFilePath();
         }
 
         public ICommand AuditSelectDestinationPath => ServiceControlAudit.SelectDestinationPath;
