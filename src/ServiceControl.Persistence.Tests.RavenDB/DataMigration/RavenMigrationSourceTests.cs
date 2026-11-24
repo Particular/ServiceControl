@@ -137,7 +137,7 @@ class RavenMigrationSourceTests : RavenMigrationSourceTestBase
     {
         [MigrationCategoryIds.EndpointSettings] = tests => tests.SeedEndpointSettings(2),
         [MigrationCategoryIds.KnownEndpoints] = tests => tests.MonitoringDataStore.CreateIfNotExists(new EndpointDetails { Name = "Sales.Orders", HostId = Guid.NewGuid(), Host = "HOST01" }),
-        [MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages] = tests => tests.SeedFailedMessage(new IngestedFailure().ToFailedMessage(FailedMessageStatus.RetryIssued)),
+        [MigrationCategoryIds.RecentAndRetriedFailedMessages] = tests => tests.SeedFailedMessage(new IngestedFailure().ToFailedMessage(FailedMessageStatus.RetryIssued)),
         [MigrationCategoryIds.UnresolvedFailedMessages] = tests => tests.SeedFailedMessage(new IngestedFailure().ToFailedMessage()),
         [MigrationCategoryIds.LicensingEndpoints] = tests => tests.SeedThroughputDocument("Sales.Orders/Broker", new EndpointDocument(new EndpointIdentifier("Sales.Orders", ThroughputSource.Broker))),
         [MigrationCategoryIds.LicensingThroughput] = tests => tests.SeedThroughputDocument("Sales.Orders/Broker", new EndpointDocument(new EndpointIdentifier("Sales.Orders", ThroughputSource.Broker))),

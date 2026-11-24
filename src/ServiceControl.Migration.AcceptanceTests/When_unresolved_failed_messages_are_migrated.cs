@@ -325,7 +325,7 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(refused.Message, Does.Contain("UnresolvedAndRetryIssuedFailedMessages").And.Contain("--migration-retry").And.Contain("--migration-abandon"), "a fault skip leaves a required category Failed, so the host stays closed and names both commands");
+            Assert.That(refused.Message, Does.Contain("RecentAndRetriedFailedMessages").And.Contain("--migration-retry").And.Contain("--migration-abandon"), "a fault skip leaves a required category Failed, so the host stays closed and names both commands");
             Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.CompleteWithErrors));
             Assert.That(checkpoint.CopiedCount, Is.EqualTo(1));
             Assert.That(checkpoint.SkippedCount, Is.EqualTo(2));
@@ -405,7 +405,7 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
             null,
             new PatchRequest { Script = $"delete this.ProcessingAttempts[{attempt}].FailureDetails.TimeOfFailure;" }));
 
-    const string OfflineCategoryId = MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages;
+    const string OfflineCategoryId = MigrationCategoryIds.RecentAndRetriedFailedMessages;
 
     // Seeded with its body, because the copy leaves out a message whose body the source does not hold.
     Task SeedFailure(IngestedFailure failure, FailedMessageStatus status = FailedMessageStatus.Unresolved, int numberOfAttempts = 1) =>

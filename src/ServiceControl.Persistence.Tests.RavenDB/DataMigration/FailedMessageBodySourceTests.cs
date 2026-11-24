@@ -12,7 +12,7 @@ using ServiceControl.Persistence.DataMigration;
 class FailedMessageBodySourceTests : RavenMigrationSourceTestBase
 {
     static readonly MigrationCategory FailedMessages =
-        MigrationCategoryRegistry.All.Single(category => category.Id == MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        MigrationCategoryRegistry.All.Single(category => category.Id == MigrationCategoryIds.RecentAndRetriedFailedMessages);
 
     [Test]
     public async Task Reads_the_attachment_and_its_own_content_type()

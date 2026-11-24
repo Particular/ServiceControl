@@ -22,7 +22,7 @@ class MigrationTargetCoverageTests : PersistenceTestBase
     {
         var target = ServiceProvider.GetRequiredService<IMigrationTarget>();
 
-        Assert.That(target.SupportedCategoryIds, Is.SupersetOf(new[] { MigrationCategoryIds.KnownEndpoints, MigrationCategoryIds.EndpointSettings, MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages }), "the test proves nothing if the target supports no category");
+        Assert.That(target.SupportedCategoryIds, Is.SupersetOf(new[] { MigrationCategoryIds.KnownEndpoints, MigrationCategoryIds.EndpointSettings, MigrationCategoryIds.RecentAndRetriedFailedMessages }), "the test proves nothing if the target supports no category");
 
         foreach (var id in target.SupportedCategoryIds)
         {
@@ -94,7 +94,7 @@ class MigrationTargetCoverageTests : PersistenceTestBase
     {
         [MigrationCategoryIds.KnownEndpoints] = nameof(KnownEndpointsMigrationTargetTests.A_known_endpoint_with_a_value_longer_than_its_column_is_skipped_as_value_too_long_and_the_rest_copy),
         [MigrationCategoryIds.EndpointSettings] = nameof(EndpointSettingsMigrationTargetTests.A_setting_whose_name_is_longer_than_its_column_is_skipped_as_value_too_long_and_the_rest_copy),
-        [MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages] = nameof(FailedMessagesMigrationTargetTests.A_message_or_group_value_longer_than_its_column_skips_the_message_whole_and_the_rest_copy),
+        [MigrationCategoryIds.RecentAndRetriedFailedMessages] = nameof(FailedMessagesMigrationTargetTests.A_message_or_group_value_longer_than_its_column_skips_the_message_whole_and_the_rest_copy),
         [MigrationCategoryIds.UnresolvedFailedMessages] = nameof(FailedMessagesMigrationTargetTests.A_message_or_group_value_longer_than_its_column_skips_the_message_whole_and_the_rest_copy),
         [MigrationCategoryIds.LicensingEndpoints] = nameof(LicensingEndpointsMigrationTargetTests.A_licensing_endpoint_with_a_value_longer_than_its_column_is_skipped_as_value_too_long_and_the_rest_copy),
         [MigrationCategoryIds.LicensingThroughput] = nameof(LicensingThroughputMigrationTargetTests.A_day_whose_endpoint_name_is_longer_than_its_column_is_skipped_as_value_too_long_and_the_rest_copy),

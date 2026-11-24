@@ -193,7 +193,7 @@ abstract class FailedMessagesWriterBase(IMigrationSqlDialect migrationDialect, I
 sealed class FailedMessagesWriter(IMigrationSqlDialect migrationDialect, IBodyStoragePersistence storagePersistence, EFPersisterSettings persisterSettings)
     : FailedMessagesWriterBase(migrationDialect, storagePersistence, persisterSettings)
 {
-    public override string CategoryId => MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages;
+    public override string CategoryId => MigrationCategoryIds.RecentAndRetriedFailedMessages;
 
     protected override IQueryable<FailedMessageEntity> Copied(ServiceControlDbContext dbContext) => dbContext.FailedMessages;
 }

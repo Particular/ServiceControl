@@ -19,7 +19,7 @@ using ServiceControl.Persistence.RavenDB;
 [TestFixture]
 class RecentErrorsSourceTests : RavenMigrationSourceTestBase
 {
-    static readonly MigrationCategory Category = MigrationCategoryRegistry.Find(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+    static readonly MigrationCategory Category = MigrationCategoryRegistry.Find(MigrationCategoryIds.RecentAndRetriedFailedMessages);
     static readonly FailedMessageStatus[] AllStatuses = [FailedMessageStatus.Unresolved, FailedMessageStatus.Archived, FailedMessageStatus.Resolved, FailedMessageStatus.RetryIssued];
 
     [Test]

@@ -31,7 +31,7 @@ class GroupCommentsMigrationTests : MigrationAcceptanceTest
             (neverWritten.Groups.Single().Id, null),
             (spaces.Groups.Single().Id, "   "),
             ("group-with-no-copied-message", "Raised with the shipping team"));
-        await CopyCategory(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        await CopyCategory(MigrationCategoryIds.RecentAndRetriedFailedMessages);
         await CopyCategory(MigrationCategoryIds.UnresolvedFailedMessages);
 
         var result = await CopyCategory(MigrationCategoryIds.GroupComments);

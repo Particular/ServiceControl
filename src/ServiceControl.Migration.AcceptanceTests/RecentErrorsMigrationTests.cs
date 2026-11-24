@@ -26,7 +26,7 @@ using ServiceControl.Recoverability.ExternalIntegration;
 [NonParallelizable]
 class RecentErrorsMigrationTests : MigrationAcceptanceTest
 {
-    const string RequiredCategoryId = MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages;
+    const string RequiredCategoryId = MigrationCategoryIds.RecentAndRetriedFailedMessages;
 
     [Test]
     public async Task Copies_the_recent_errors_of_every_status_once_with_their_bodies_groups_and_claims()

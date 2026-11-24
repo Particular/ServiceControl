@@ -42,7 +42,7 @@ class FailedMessagesMigrationTargetTests : PersistenceTestBase
 
     static readonly MigrationCategory UnresolvedCategory = MigrationCategoryRegistry.All.Single(category => category.Id == MigrationCategoryIds.UnresolvedFailedMessages);
 
-    static readonly MigrationCategory FailedMessagesCategory = MigrationCategoryRegistry.All.Single(category => category.Id == MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+    static readonly MigrationCategory FailedMessagesCategory = MigrationCategoryRegistry.All.Single(category => category.Id == MigrationCategoryIds.RecentAndRetriedFailedMessages);
 
     [Test]
     public async Task A_copied_message_arrives_with_its_failure_group_rows()
@@ -155,7 +155,7 @@ class FailedMessagesMigrationTargetTests : PersistenceTestBase
         var present = new IngestedFailure();
         var absent = new IngestedFailure();
         await Target.Write(FailedMessagesCategory, BatchOf(present.ToFailedMessage()), Checkpoint());
-        var saved = await CheckpointStore.Read(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        var saved = await CheckpointStore.Read(MigrationCategoryIds.RecentAndRetriedFailedMessages);
 
         var result = await Target.Write(FailedMessagesCategory, BatchOf(present.ToFailedMessage(), absent.ToFailedMessage()), saved);
 
@@ -803,7 +803,7 @@ class FailedMessagesMigrationTargetTests : PersistenceTestBase
                 "a storage SDK's own error does not name the body, so without the row and body id the operator cannot tell which message halted the category");
             Assert.That(exception.InnerException, Is.TypeOf<IOException>().And.Message.EqualTo(UnwritableBodyStore.Failure));
             Assert.That(await Query(db => db.FailedMessages.CountAsync()), Is.Zero, "a row committed without its body would name a body that was never stored");
-            Assert.That(await CheckpointStore.Read(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages), Is.Null, "a checkpoint past the batch would stop a retry from reading it again");
+            Assert.That(await CheckpointStore.Read(MigrationCategoryIds.RecentAndRetriedFailedMessages), Is.Null, "a checkpoint past the batch would stop a retry from reading it again");
         }
     }
 
@@ -818,7 +818,7 @@ class FailedMessagesMigrationTargetTests : PersistenceTestBase
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(exception.Message, Does.Contain($"'FailedMessages/{document.UniqueMessageId}'").And.Contain(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages).And.Contain(nameof(InvalidCastException)),
+            Assert.That(exception.Message, Does.Contain($"'FailedMessages/{document.UniqueMessageId}'").And.Contain(MigrationCategoryIds.RecentAndRetriedFailedMessages).And.Contain(nameof(InvalidCastException)),
                 "the halt's LastError is built from this message, and without the row the operator cannot tell which document to look at");
             Assert.That(exception.InnerException, Is.TypeOf<InvalidCastException>());
         }
@@ -831,7 +831,7 @@ class FailedMessagesMigrationTargetTests : PersistenceTestBase
 
         var exception = Assert.ThrowsAsync<InvalidOperationException>(() => Target.Write(FailedMessagesCategory, BatchOf(RowOf(document, body: null)), Checkpoint()));
 
-        Assert.That(exception.Message, Does.Contain($"'FailedMessages/{document.UniqueMessageId}'").And.Contain(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages));
+        Assert.That(exception.Message, Does.Contain($"'FailedMessages/{document.UniqueMessageId}'").And.Contain(MigrationCategoryIds.RecentAndRetriedFailedMessages));
     }
 
     // Disposes the stream, because the file store holds the body file open until it is.
@@ -901,6 +901,6 @@ class FailedMessagesMigrationTargetTests : PersistenceTestBase
 
     FailedMessagesWriter Writer() => new(ServiceProvider.GetRequiredService<IMigrationSqlDialect>(), BodyStore, ServiceProvider.GetRequiredService<EFPersisterSettings>());
 
-    static MigrationCheckpoint Checkpoint(string categoryId = MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages) =>
+    static MigrationCheckpoint Checkpoint(string categoryId = MigrationCategoryIds.RecentAndRetriedFailedMessages) =>
         new(categoryId, MigrationCategoryState.InProgress, null, 0, 0, null, null, null, null, null, null);
 }

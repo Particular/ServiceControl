@@ -30,7 +30,7 @@ class When_the_copy_merges_or_changes_rows : MigrationAcceptanceTest
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(summaries.Lines, Has.Exactly(1).EqualTo((LogLevel.Warning, $"{MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages}: 1 copied (1 changed), 0 already present, 0 merged, nothing skipped")),
+            Assert.That(summaries.Lines, Has.Exactly(1).EqualTo((LogLevel.Warning, $"{MigrationCategoryIds.RecentAndRetriedFailedMessages}: 1 copied (1 changed), 0 already present, 0 merged, nothing skipped")),
                 "the message type was cut, which the summary has to count even though nothing was skipped, and the dropped older attempt is not a change");
             Assert.That(summaries.Lines, Has.Exactly(1).EqualTo((LogLevel.Warning, $"{MigrationCategoryIds.Subscriptions}: 1 copied (0 changed), 0 already present, 1 merged, nothing skipped")),
                 "the second version is counted as already present by the checkpoint, and the summary has to show it as a merge instead");

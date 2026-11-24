@@ -20,7 +20,7 @@ sealed class FailedMessagesReader(RavenReadOnlySourceLifecycle lifecycle) : Fail
 {
     static readonly TimeSpan RecentErrorsWindow = TimeSpan.FromHours(1);
 
-    public override string CategoryId => MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages;
+    public override string CategoryId => MigrationCategoryIds.RecentAndRetriedFailedMessages;
 
     /// <summary>
     /// Streams the retry-issued and recent messages through <see cref="FailedMessageStatusReader.ReadStatuses(bool, string, int, DateTime?, CancellationToken)" />, then the claim holders,

@@ -35,7 +35,7 @@ class MigrationCategoryRegistryTests
             "KnownEndpoints", "EndpointSettings", "MessageRedirects", "Subscriptions",
             "NotificationSettings", "TrialEndDate", "RetryOperations",
             "LicensingEndpoints", "LicensingThroughput", "LicensingReportMasks",
-            "LicensedEndpointDetails", "UnresolvedAndRetryIssuedFailedMessages",
+            "LicensedEndpointDetails", "RecentAndRetriedFailedMessages",
             "PendingIntegrationEvents", "CustomChecks", "FailedErrorImports"
         }));
     }
@@ -80,7 +80,7 @@ class MigrationCategoryRegistryTests
     {
         var carriesBodies = MigrationCategoryRegistry.All.Where(c => c.CarriesBodies).Select(c => c.Id).ToArray();
 
-        Assert.That(carriesBodies, Is.EquivalentTo(new[] { "UnresolvedAndRetryIssuedFailedMessages", "UnresolvedFailedMessages", "ArchivedAndResolvedFailedMessages", "FailedErrorImports" }));
+        Assert.That(carriesBodies, Is.EquivalentTo(new[] { "RecentAndRetriedFailedMessages", "UnresolvedFailedMessages", "ArchivedAndResolvedFailedMessages", "FailedErrorImports" }));
     }
 
     [Test]
@@ -91,7 +91,7 @@ class MigrationCategoryRegistryTests
             Assert.That(MigrationCategoryRegistry.Find(MigrationCategoryIds.UnresolvedFailedMessages)?.Kind, Is.EqualTo(MigrationCategoryKind.Optional));
             Assert.That(MigrationCategoryRegistry.Find(MigrationCategoryIds.GroupComments)?.Kind, Is.EqualTo(MigrationCategoryKind.Optional));
             Assert.That(MigrationCategoryRegistry.Find(MigrationCategoryIds.GroupComments)?.MustFollow, Is.EqualTo(MigrationCategoryIds.UnresolvedFailedMessages));
-            Assert.That(MigrationCategoryRegistry.Find(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages)?.Kind, Is.EqualTo(MigrationCategoryKind.Required));
+            Assert.That(MigrationCategoryRegistry.Find(MigrationCategoryIds.RecentAndRetriedFailedMessages)?.Kind, Is.EqualTo(MigrationCategoryKind.Required));
         }
     }
 

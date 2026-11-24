@@ -19,10 +19,9 @@ public static class MigrationCategoryIds
     public const string LicensedEndpointDetails = nameof(LicensedEndpointDetails);
 
     /// <summary>
-    /// The retry-issued messages and the messages that hold a retry claim, copied before the host opens: every retry-issued message and
-    /// every other message that still holds a retry claim.
+    /// Recent errors of any status, plus retry-issued messages and retry-claim holders of any age, copied before the host opens.
     /// </summary>
-    public const string UnresolvedAndRetryIssuedFailedMessages = nameof(UnresolvedAndRetryIssuedFailedMessages);
+    public const string RecentAndRetriedFailedMessages = nameof(RecentAndRetriedFailedMessages);
 
     /// <summary>The unresolved failed messages, copied once the host is open, whatever their age.</summary>
     public const string UnresolvedFailedMessages = nameof(UnresolvedFailedMessages);

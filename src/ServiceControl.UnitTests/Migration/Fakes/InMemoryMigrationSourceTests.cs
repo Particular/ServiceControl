@@ -70,8 +70,8 @@ class InMemoryMigrationSourceTests
         source.SetBody("msg-1", finalBody);
         source.FailBodyReads("msg-1", times: 1, new TimeoutException("transient"));
 
-        Assert.ThrowsAsync<TimeoutException>(() => source.ReadBody(MigrationCategoryRegistry.Find(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages)!, "msg-1"));
-        var secondAttempt = await source.ReadBody(MigrationCategoryRegistry.Find(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages)!, "msg-1");
+        Assert.ThrowsAsync<TimeoutException>(() => source.ReadBody(MigrationCategoryRegistry.Find(MigrationCategoryIds.RecentAndRetriedFailedMessages)!, "msg-1"));
+        var secondAttempt = await source.ReadBody(MigrationCategoryRegistry.Find(MigrationCategoryIds.RecentAndRetriedFailedMessages)!, "msg-1");
 
         using (Assert.EnterMultipleScope())
         {

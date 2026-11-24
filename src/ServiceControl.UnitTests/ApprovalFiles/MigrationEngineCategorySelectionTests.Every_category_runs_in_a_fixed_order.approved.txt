@@ -9,7 +9,7 @@ Required 8: LicensingEndpoints
 Required 9: LicensingThroughput, after LicensingEndpoints
 Required 10: LicensingReportMasks
 Required 11: LicensedEndpointDetails
-Required 12: UnresolvedAndRetryIssuedFailedMessages, with bodies
+Required 12: RecentAndRetriedFailedMessages, with bodies
 Required 13: PendingIntegrationEvents
 Required 14: CustomChecks
 Required 15: FailedErrorImports, with bodies

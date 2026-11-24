@@ -16,7 +16,7 @@ using ServiceControl.Persistence.EFCore.Infrastructure;
 
 class MigrationPlanReuseTests : PersistenceTestBase
 {
-    static readonly MigrationCategory FailedMessagesCategory = MigrationCategoryRegistry.All.Single(category => category.Id == MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+    static readonly MigrationCategory FailedMessagesCategory = MigrationCategoryRegistry.All.Single(category => category.Id == MigrationCategoryIds.RecentAndRetriedFailedMessages);
 
     IMigrationTarget Target => ServiceProvider.GetRequiredService<IMigrationTarget>();
 
@@ -32,7 +32,7 @@ class MigrationPlanReuseTests : PersistenceTestBase
         longHeaders.Headers["Padding"] = new string('h', 5_000);
 
         await Target.Write(FailedMessagesCategory, BatchOf(shortHeaders.ToFailedMessage()), Checkpoint());
-        var saved = await ServiceProvider.GetRequiredService<IMigrationCheckpointStore>().Read(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        var saved = await ServiceProvider.GetRequiredService<IMigrationCheckpointStore>().Read(MigrationCategoryIds.RecentAndRetriedFailedMessages);
         var result = await Target.Write(FailedMessagesCategory, BatchOf(longHeaders.ToFailedMessage()), saved);
 
         using var scope = ServiceProvider.CreateScope();
@@ -74,5 +74,5 @@ class MigrationPlanReuseTests : PersistenceTestBase
     }
 
     static MigrationCheckpoint Checkpoint() =>
-        new(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages, MigrationCategoryState.InProgress, null, 0, 0, null, null, null, null, null, null);
+        new(MigrationCategoryIds.RecentAndRetriedFailedMessages, MigrationCategoryState.InProgress, null, 0, 0, null, null, null, null, null, null);
 }

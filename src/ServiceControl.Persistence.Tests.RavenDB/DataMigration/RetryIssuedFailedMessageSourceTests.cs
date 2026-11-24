@@ -14,7 +14,7 @@ using ServiceControl.Persistence.RavenDB;
 [TestFixture]
 class RetryIssuedFailedMessageSourceTests : RavenMigrationSourceTestBase
 {
-    static readonly MigrationCategory Category = MigrationCategoryRegistry.Find(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+    static readonly MigrationCategory Category = MigrationCategoryRegistry.Find(MigrationCategoryIds.RecentAndRetriedFailedMessages);
 
     FailedMessage newestUnresolved;
 

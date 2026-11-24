@@ -42,7 +42,7 @@ class InMemoryMigrationTargetTests
         // Three rows in, one copied: a checkpoint saying three would survive a crash as three.
         var checkpointStore = new InMemoryMigrationCheckpointStore();
         var target = new InMemoryMigrationTarget(checkpointStore);
-        var category = MigrationCategoryRegistry.Find("UnresolvedAndRetryIssuedFailedMessages")!;
+        var category = MigrationCategoryRegistry.Find("RecentAndRetriedFailedMessages")!;
         target.SeedExistingKey("already-present");
         target.RejectKey("rejected", MigrationSkipReason.BodyUnreadable);
         var batch = new MigrationBatch([Row("already-present"), Row("rejected"), Row("new-row")], Cursor: "new-row");
@@ -68,7 +68,7 @@ class InMemoryMigrationTargetTests
     {
         var checkpointStore = new InMemoryMigrationCheckpointStore();
         var target = new InMemoryMigrationTarget(checkpointStore);
-        var required = MigrationCategoryRegistry.Find("UnresolvedAndRetryIssuedFailedMessages")!;
+        var required = MigrationCategoryRegistry.Find("RecentAndRetriedFailedMessages")!;
         var archive = MigrationCategoryRegistry.Find("ArchivedAndResolvedFailedMessages")!;
         await target.Write(required, new MigrationBatch([Row("a"), Row("b")], "b"), EmptyCheckpoint(required.Id));
 

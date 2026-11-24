@@ -16,7 +16,7 @@ using ServiceControl.Persistence.EFCore.Infrastructure;
 
 class MigrationGroupInsertSeekTests : PersistenceTestBase
 {
-    static readonly MigrationCategory FailedMessagesCategory = MigrationCategoryRegistry.All.Single(category => category.Id == MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+    static readonly MigrationCategory FailedMessagesCategory = MigrationCategoryRegistry.All.Single(category => category.Id == MigrationCategoryIds.RecentAndRetriedFailedMessages);
 
     IMigrationTarget Target => ServiceProvider.GetRequiredService<IMigrationTarget>();
 
@@ -40,7 +40,7 @@ class MigrationGroupInsertSeekTests : PersistenceTestBase
             }, new MigrationBody("<order>1</order>"u8.ToArray(), "text/xml")))
             .ToList();
 
-        var result = await Target.Write(FailedMessagesCategory, new MigrationBatch(rows, rows[^1].SourceId), new MigrationCheckpoint(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages, MigrationCategoryState.InProgress, null, 0, 0, null, null, null, null, null, null));
+        var result = await Target.Write(FailedMessagesCategory, new MigrationBatch(rows, rows[^1].SourceId), new MigrationCheckpoint(MigrationCategoryIds.RecentAndRetriedFailedMessages, MigrationCategoryState.InProgress, null, 0, 0, null, null, null, null, null, null));
 
         using var scope = ServiceProvider.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
