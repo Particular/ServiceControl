@@ -67,9 +67,9 @@ abstract class FailedMessageStatusReader(RavenReadOnlySourceLifecycle lifecycle,
         IndexHoldsEveryCopiedFailedMessage(Lifecycle.Settings.DatabaseName, cancellationToken);
 
     /// <summary>
-    /// The RavenDB last-modified time of the unresolved message modified most recently, or null when there is none. The source is
-    /// stopped while it is read, so every call returns the same time. Through the index it is one query. Otherwise it walks every
-    /// failed message once, holding only the newest time.
+    /// The RavenDB last-modified time of the unresolved message modified most recently, or null when there is none. ServiceControl is
+    /// stopped during the copy, but RavenDB expiration can remove that message between calls. Through the index it is one query.
+    /// Otherwise it walks every failed message once, holding only the newest time.
     /// </summary>
     protected async Task<DateTime?> LatestUnresolvedLastModified(bool throughIndex, CancellationToken cancellationToken = default)
     {

@@ -12,7 +12,7 @@ using ServiceControl.Persistence.DataMigration;
 /// Reads what is copied while ServiceControl is closed: every retry-issued message, every message that holds a retry claim whatever
 /// its status and age, and the recent errors, which are the messages of any status last modified at or after the newest unresolved
 /// message's last-modified time less one hour. With no unresolved message there are no recent errors.
-/// Every ServiceControl instance is stopped while a source is copied, so the newest unresolved message does not change between reads.
+/// ServiceControl is stopped during the copy, but RavenDB expiration can remove the newest unresolved message and change the cutoff between reads.
 /// A message is read once, and every row says whether RavenDB still holds its retry claim.
 /// The older unresolved messages without a claim are <see cref="UnresolvedFailedMessagesReader" />'s.
 /// </summary>
