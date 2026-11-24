@@ -2555,7 +2555,7 @@
           </maml:description>
           <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
         </command:parameter>
-        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+        <command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
           <maml:name>StorageType</maml:name>
           <maml:description>
             <maml:para>The storage type to use: RavenDB, SQLServer, or PostgreSQL.</maml:para>
@@ -2867,7 +2867,7 @@
         </dev:type>
         <dev:defaultValue></dev:defaultValue>
       </command:parameter>
-      <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+      <command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
         <maml:name>StorageType</maml:name>
         <maml:description>
           <maml:para>The storage type to use: RavenDB, SQLServer, or PostgreSQL.</maml:para>
@@ -2877,7 +2877,7 @@
           <maml:name>String</maml:name>
           <maml:uri/>
         </dev:type>
-        <dev:defaultValue>RavenDB</dev:defaultValue>
+        <dev:defaultValue></dev:defaultValue>
       </command:parameter>
       <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
         <maml:name>DatabaseConnectionString</maml:name>

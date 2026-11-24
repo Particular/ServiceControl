@@ -24,7 +24,7 @@
         [ValidatePath]
         public string InstallPath { get; set; }
 
-        [Parameter(Mandatory = false, HelpMessage = "Specify the storage type to use. Defaults to RavenDB")]
+        [Parameter(Mandatory = true, HelpMessage = "Specify the storage type to use")]
         [ValidateSet(typeof(AuditStorageTypeValuesGenerator))]
         public string StorageType { get; set; }
 
@@ -161,7 +161,7 @@
 
         protected override void BeginProcessing()
         {
-            persistenceManifest = ServiceControlPersisters.GetAuditPersistence(string.IsNullOrWhiteSpace(StorageType) ? StorageEngineNames.RavenDB : StorageType);
+            persistenceManifest = ServiceControlPersisters.GetAuditPersistence(StorageType);
             PersistenceParameters.Validate(persistenceManifest, DBPath, DatabaseMaintenancePort, DatabaseConnectionString, MyInvocation.BoundParameters.ContainsKey(nameof(EnableFullTextSearchOnBodies)));
             messageBodyStorage = PersistenceParameters.CreateMessageBodyStorage(persistenceManifest, MessageBodyStorageType, new Dictionary<string, string>
             {
