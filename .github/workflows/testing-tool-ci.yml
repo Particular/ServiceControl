@@ -39,6 +39,9 @@ jobs:
       - name: Build
         run: dotnet build tools/testing-tool/TestingTool.slnx --configuration Release
 
+      - name: Test
+        run: dotnet test tools/testing-tool/TestingTool.slnx --configuration Release --no-build
+
       - name: Build container image
         uses: docker/build-push-action@v7.4.0
         with:
