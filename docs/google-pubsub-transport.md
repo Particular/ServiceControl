@@ -20,13 +20,9 @@ The transport supports `None` and `ReceiveOnly`. The retry dequeuer requests `Se
 
 The transport throws for delayed sends and saga timeouts, and it limits delayed retries to 600 seconds. ServiceControl sends no delayed messages and disables sagas. The primary and monitoring instances set delayed retries to zero, which passes the transport's startup check. The audit instance is send-only, so the transport skips the check for it.
 
-## Time to be received
-
-The transport does not support time to be received, and its dispatcher ignores the setting. Heartbeats, custom check results, and metrics that endpoints send to ServiceControl stay in their subscription until an instance reads them or the subscription's message retention expires. The transport creates subscriptions with seven days of retention.
-
 ## Integration events
 
-The primary publishes integration events to topics named `{ResourceNamePrefix}events.{full type name}`. The transport creates an event topic only when an endpoint subscribes to the event with installers enabled. Until then, each publish logs a warning and Pub/Sub has nowhere to deliver the event, so no subscriber misses it. ServiceControl does not create these topics itself, because that would duplicate the transport's naming rules.
+The primary publishes integration events to topics named `{ResourceNamePrefix}events.{full type name}`. The transport creates an event topic when an endpoint with installers enabled publishes or subscribes to the event. The primary never enables installers, so its publish to a topic that no subscriber has created throws. `EventDispatcherHostedService` logs the failure and raises `ExternalIntegrationEventFailedToBePublished`. No subscriber misses the event, because Pub/Sub discards a message published to a topic without subscriptions. ServiceControl does not create these topics itself, because that would duplicate the transport's naming rules.
 
 ## Queue length
 
