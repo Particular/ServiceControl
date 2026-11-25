@@ -20,13 +20,13 @@
                 .ToArray();
 
             primaryPersistenceManifests = resourceNames
-                .Where(name => name.StartsWith(@"Particular.ServiceControl\Persisters"))
+                .Where(name => name.StartsWith("Particular.ServiceControl/Persisters/"))
                 .Select(name => Load(assembly, name))
                 .OrderBy(m => m.Name)
                 .ToArray();
 
             auditPersistenceManifests = resourceNames
-                .Where(name => name.StartsWith(@"Particular.ServiceControl.Audit\Persisters"))
+                .Where(name => name.StartsWith("Particular.ServiceControl.Audit/Persisters/"))
                 .Select(name => Load(assembly, name))
                 .OrderBy(m => m.Name)
                 .ToArray();
