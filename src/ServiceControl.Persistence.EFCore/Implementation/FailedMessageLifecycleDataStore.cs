@@ -130,13 +130,26 @@ public class FailedMessageLifecycleDataStore(IServiceScopeFactory scopeFactory, 
             }
 
             var now = timeProvider.GetUtcNow().UtcDateTime;
+            var strategy = dbContext.Database.CreateExecutionStrategy();
 
-            await dbContext.FailedMessages
-                .Where(fm => fm.UniqueMessageId == uniqueMessageId && fm.Status == FailedMessageStatus.RetryIssued)
-                .ExecuteUpdateAsync(s => s
-                    .SetProperty(fm => fm.Status, FailedMessageStatus.Unresolved)
-                    .SetProperty(fm => fm.StatusChangedAt, now)
-                    .SetProperty(fm => fm.LastModified, now), token);
+            await strategy.ExecuteAsync(async () =>
+            {
+                await using var transaction = await dbContext.Database.BeginTransactionAsync(token);
+
+                await dbContext.FailedMessages
+                    .Where(fm => fm.UniqueMessageId == uniqueMessageId && fm.Status == FailedMessageStatus.RetryIssued)
+                    .ExecuteUpdateAsync(s => s
+                        .SetProperty(fm => fm.Status, FailedMessageStatus.Unresolved)
+                        .SetProperty(fm => fm.StatusChangedAt, now)
+                        .SetProperty(fm => fm.LastModified, now), token);
+
+                // The claim would otherwise stop every later retry from staging the message.
+                await dbContext.FailedMessageRetries
+                    .Where(retry => retry.UniqueMessageId == uniqueMessageId)
+                    .ExecuteDeleteAsync(token);
+
+                await transaction.CommitAsync(token);
+            });
         }, cancellationToken);
     }
 }

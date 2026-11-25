@@ -82,7 +82,7 @@ When all batches of a retry operation complete, ServiceControl adds two entries 
 
 ## Other notes
 
-1. A message can be part of only one batch at a time. The `FailedMessageRetry/{messageId}` document prevents a message from being added to a second batch. ServiceControl removes this document only when the message comes back through the error queue.
+1. A message can be part of only one batch at a time. The `FailedMessageRetry/{messageId}` document prevents a message from being added to a second batch. ServiceControl removes this document when the message no longer belongs to a retry, for example when the message comes back through the error queue, when the retry is confirmed, or when forwarding the message fails.
 2. A batch that is created is eventually forwarded. If the ServiceControl process stops while the batch is in `Marking Documents`, the Adopt Orphan Batches process picks it up and moves it into `Staging`. Once a batch is in `Staging`, the Retry Processor repeatedly attempts to stage it until it succeeds. ServiceControl then selects the batch for `Forwarding`.
 3. ServiceControl processes only one batch at a time in the `Forwarding` or `Staging` status. A batch in `Forwarding` must be fully forwarded and deleted before ServiceControl can stage a new batch. A batch selected for staging moves to the `Forwarding` status once it is fully staged. All of this happens on a single background thread that sleeps for 30 seconds if it finds nothing to do.
 4. A batch can be forwarded only if it is completely staged.
