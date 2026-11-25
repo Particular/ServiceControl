@@ -105,11 +105,20 @@
             AddressTag destination = new UnicastAddressTag(address);
             var transportTransaction = context.Extensions.GetOrCreate<TransportTransaction>();
 
+            var dispatchProperties = new DispatchProperties();
+            foreach (var header in editedMessage.Headers.Keys.Where(k => k.StartsWith(ReceivePropertiesHeaderPrefix, StringComparison.Ordinal)).ToList())
+            {
+                dispatchProperties[header[ReceivePropertiesHeaderPrefix.Length..]] = editedMessage.Headers[header];
+                editedMessage.Headers.Remove(header);
+            }
+
             return dispatcher.Dispatch(
-                new TransportOperations(new TransportOperation(editedMessage, destination)),
+                new TransportOperations(new TransportOperation(editedMessage, destination, dispatchProperties)),
                 transportTransaction,
                 context.CancellationToken);
         }
+
+        const string ReceivePropertiesHeaderPrefix = "ServiceControl.ReceiveProperties.";
 
         readonly CorruptedReplyToHeaderStrategy corruptedReplyToHeaderStrategy = new(RuntimeEnvironment.MachineName, logger);
     }
