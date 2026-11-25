@@ -105,6 +105,7 @@
     <!-- Enforced by DeploymentPackageTests.DuplicateAssembliesInDeploymentUnitsShouldHaveMatchingVersions -->
     <PackageVersion Include="Microsoft.Data.SqlClient.Extensions.Abstractions" Version="7.1.1" />
     <PackageVersion Include="Microsoft.Data.SqlClient.Internal.Logging" Version="7.1.1" />
+    <PackageVersion Include="Npgsql" Version="10.0.4" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Microsoft.Extensions.FileProviders.Embedded" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Microsoft.IdentityModel.Abstractions" Version="8.22.0" />
