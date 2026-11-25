@@ -22,7 +22,7 @@ The transport throws for delayed sends and saga timeouts, and it limits delayed 
 
 ## Integration events
 
-The primary publishes integration events to topics named `{ResourceNamePrefix}events.{full type name}`. The transport creates an event topic when an endpoint with installers enabled publishes or subscribes to the event. The primary never enables installers, so its publish to a topic that no subscriber has created throws. `EventDispatcherHostedService` logs the failure and raises `ExternalIntegrationEventFailedToBePublished`. No subscriber misses the event, because Pub/Sub discards a message published to a topic without subscriptions. ServiceControl does not create these topics itself, because that would duplicate the transport's naming rules.
+With `EnableExternalIntegrationsPublishing`, the primary publishes integration events to topics named `{ResourceNamePrefix}events.{full type name}`. The transport creates an event topic when an endpoint with installers enabled publishes or subscribes to the event. The primary never enables installers, so its publish to a topic that no subscriber has created throws. `EventDispatcherHostedService` logs the failure and raises `ExternalIntegrationEventFailedToBePublished`. No subscriber misses the event, because Pub/Sub discards a message published to a topic without subscriptions. ServiceControl does not create these topics itself, because that would duplicate the transport's naming rules.
 
 ## Queue length
 
