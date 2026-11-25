@@ -14,7 +14,7 @@ using Microsoft.Extensions.Hosting;
 using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 
-public partial class PersistenceTestsContext : IPersistenceTestsContext
+public partial class PersistenceTestsContext : IPersistenceTestsContext, IAsyncDisposable
 {
     IHost host;
     string connectionString;
@@ -62,7 +62,18 @@ public partial class PersistenceTestsContext : IPersistenceTestsContext
     {
         DeleteBodyStorage();
 
-        await TestSchema.Drop(connectionString, schema);
+        if (!TestSchema.SkipCleanup)
+        {
+            await TestSchema.Drop(connectionString, schema);
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (TestSchema.SkipCleanup && connectionString != null)
+        {
+            await TestSchema.Drop(connectionString, schema);
+        }
     }
 
     // Drain every insert-only reconciler so that ingested data is visible to the data stores,

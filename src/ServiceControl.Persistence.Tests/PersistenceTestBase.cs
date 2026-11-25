@@ -60,10 +60,14 @@ public abstract class PersistenceTestBase
     [TearDown]
     public async Task TearDown()
     {
-        // Needs to go first or database will be disposed
-        await PersistenceTestsContext.TearDown();
-        await host.StopAsync();
-        host.Dispose();
+        // SQL Server retires retained full-text indexes only after the host releases the database.
+        await using var cleanup = PersistenceTestsContext as IAsyncDisposable;
+        using (host)
+        {
+            // Needs to go first or database will be disposed
+            await PersistenceTestsContext.TearDown();
+            await host.StopAsync();
+        }
     }
 
     protected PersistenceTestsContext PersistenceTestsContext { get; private set; }
