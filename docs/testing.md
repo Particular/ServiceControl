@@ -48,7 +48,7 @@ To run the tests locally against the emulator:
 
 1. Start the emulator: `docker run --rm -p 8085:8085 gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators gcloud beta emulators pubsub start --host-port=0.0.0.0:8085`
 2. Set `PUBSUB_EMULATOR_HOST=localhost:8085`.
-3. Set `ServiceControl_TransportTests_GooglePubSub_ConnectionString=ProjectId=local-test`.
+3. Set `ServiceControl_TransportTests_GooglePubSub_ConnectionString=ProjectId=local-test;EmulatorDetection=EmulatorOnly`.
 4. Set `ServiceControl_TESTS_FILTER=GooglePubSub` and run the `ServiceControl.Transports.GooglePubSub.Tests` project.
 
 To run them against a Google Cloud project instead, leave `PUBSUB_EMULATOR_HOST` unset, sign in with `gcloud auth application-default login`, and set `ProjectId` and a personal `ResourceNamePrefix` in the connection string.

@@ -1,6 +1,7 @@
 namespace ServiceControl.Transport.Tests;
 
 using System;
+using Google.Api.Gax;
 using NUnit.Framework;
 using Transports.GooglePubSub;
 
@@ -17,21 +18,28 @@ class ConnectionStringTests
             Assert.That(connectionString.ProjectId, Is.Null);
             Assert.That(connectionString.ResourceNamePrefix, Is.Null);
             Assert.That(connectionString.ServiceEndpoint, Is.Null);
+            Assert.That(connectionString.EmulatorDetection, Is.Null);
         }
     }
 
     [Test]
     public void Should_read_every_supported_key_case_insensitively()
     {
-        var connectionString = new GooglePubSubConnectionString("projectid=contoso-project;ResourceNamePrefix=dev-;SERVICEENDPOINT=europe-west1-pubsub.googleapis.com:443");
+        var connectionString = new GooglePubSubConnectionString("projectid=contoso-project;ResourceNamePrefix=dev-;SERVICEENDPOINT=europe-west1-pubsub.googleapis.com:443;EmulatorDetection=emulatoronly");
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(connectionString.ProjectId, Is.EqualTo("contoso-project"));
             Assert.That(connectionString.ResourceNamePrefix, Is.EqualTo("dev-"));
             Assert.That(connectionString.ServiceEndpoint, Is.EqualTo("europe-west1-pubsub.googleapis.com:443"));
+            Assert.That(connectionString.EmulatorDetection, Is.EqualTo(EmulatorDetection.EmulatorOnly));
         }
     }
+
+    [TestCase("Emulator")]
+    [TestCase("7")]
+    public void Should_reject_an_unknown_emulator_detection(string value) =>
+        Assert.Throws<ArgumentException>(() => _ = new GooglePubSubConnectionString($"EmulatorDetection={value}"));
 
     [Test]
     public void Should_reject_unsupported_keys_without_echoing_their_values()

@@ -4,9 +4,9 @@ The primary, audit, and monitoring instances can run on the `NServiceBus.Transpo
 
 ## Connection string
 
-The connection string accepts `ProjectId`, `ResourceNamePrefix`, and `ServiceEndpoint`, and each maps to the `GooglePubSubTransportOptions` property of the same name. All three are optional. The parser rejects any other key, so credentials cannot end up in the connection string or in the instance configuration.
+The connection string accepts `ProjectId`, `ResourceNamePrefix`, `ServiceEndpoint`, and `EmulatorDetection`, and each maps to the `GooglePubSubTransportOptions` property of the same name. All four are optional. The parser rejects any other key, so credentials cannot end up in the connection string or in the instance configuration.
 
-Without `ProjectId`, the transport reads the `GOOGLE_CLOUD_PROJECT` or `GCLOUD_PROJECT` environment variable, then the Google Cloud metadata server. When `PUBSUB_EMULATOR_HOST` is set, the transport connects to the Pub/Sub emulator.
+Without `ProjectId`, the transport reads the `GOOGLE_CLOUD_PROJECT` or `GCLOUD_PROJECT` environment variable, then the Google Cloud metadata server. The transport ignores the Pub/Sub emulator unless `EmulatorDetection` is `EmulatorOnly` or `EmulatorOrProduction`. With either value, it connects to the address in `PUBSUB_EMULATOR_HOST`, without authentication or encryption.
 
 ## Credentials
 

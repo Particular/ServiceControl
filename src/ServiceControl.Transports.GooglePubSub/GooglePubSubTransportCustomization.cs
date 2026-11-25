@@ -30,12 +30,19 @@ public class GooglePubSubTransportCustomization : TransportCustomization<GoogleP
         var connectionString = new GooglePubSubConnectionString(transportSettings.ConnectionString);
 
         // Credentials always come from Application Default Credentials. See docs/google-pubsub-transport.md#credentials
-        var transport = new GooglePubSubTransport(new GooglePubSubTransportOptions
+        var options = new GooglePubSubTransportOptions
         {
             ProjectId = connectionString.ProjectId,
             ResourceNamePrefix = connectionString.ResourceNamePrefix,
             ServiceEndpoint = connectionString.ServiceEndpoint
-        });
+        };
+
+        if (connectionString.EmulatorDetection is { } emulatorDetection)
+        {
+            options.EmulatorDetection = emulatorDetection;
+        }
+
+        var transport = new GooglePubSubTransport(options);
 
         transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode) ? preferredTransactionMode : TransportTransactionMode.ReceiveOnly;
 

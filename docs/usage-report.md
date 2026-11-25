@@ -301,7 +301,7 @@ A setting that identifies and is also security configuration is listed as Identi
 | `--error-ingestion-only` | Not a choice | A worker mode. Workers do not build reports. |
 | RavenDB `MaintenanceMode` | Not a choice | An instance in maintenance mode serves no API, so it cannot build a report. |
 | `ASPNETCORE_ENVIRONMENT=Development` | Not a choice | A development mode. |
-| `PUBSUB_EMULATOR_HOST` | Not a choice | Selects the Pub/Sub emulator, a development mode. |
+| Google Pub/Sub `EmulatorDetection`, `PUBSUB_EMULATOR_HOST` | Not a choice | They select the Pub/Sub emulator, a development mode. |
 | `DOTNET_RUNNING_IN_CONTAINER` | Not a choice | Already covered by `Host.Model`. |
 | Retry, archive, unarchive, resolve, edit and group comment operations | Not a choice | These are actions. Their on/off switch, where one exists, is reported. |
 | Custom checks | Not a choice | Endpoints report them and ServiceControl stores them. Deleting one does not keep a muted state. |
