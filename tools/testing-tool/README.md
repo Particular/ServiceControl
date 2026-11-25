@@ -21,7 +21,7 @@ puts each failure shape in its own group, and immediate retries are disabled so 
 | `poison-message` | Poison | 15% deterministic always-fail messages — retry storm |
 | `deserialization-failure` | Deserialization | 100% fail with `SerializationException` (bad deployment) |
 | `background-noise` | Noise | ~3% always-on baseline — rotates through four exception types (four small groups) |
-| `large-messages` | Body | Starts at 3 msg/s (rate is configurable), each body about 256 KiB of JSON text (the wire envelope is slightly larger), above the 100 KB external body storage threshold. 20% deterministic failures with `InvalidDataException`; the other 80% succeed and are audited |
+| `large-messages` | Body | Starts at 3 msg/s (rate is configurable), with about 150 KiB of JSON text per body and about 190 KiB after message serialization. Exceeds the 100 KB external body storage threshold and leaves room for headers on Azure Service Bus Standard. 20% deterministic failures with `InvalidDataException`; the other 80% succeed and are audited |
 
 Scenarios are controlled from the web UI, or via:
 - `GET /api/scenarios` — list scenarios with live status (category, rate, error counts)
@@ -114,6 +114,7 @@ tools/testing-tool/
                                  #   OTel setup, ServiceControl REST client
   TestingTool.Scenarios/         # IScenario contract + the six scenario implementations
   TestingTool.Contracts/         # shared DTOs (scenarios, status, jobs, bypass)
+  TestingTool.Tests/             # Unit tests for the tool itself
   TestingTool.AppHost/           # Aspire AppHost — orchestrates platform, tool, and observability stack
     obs/                         # observability config: OTel Collector, Prometheus, Grafana provisioning
                                  #   + prebuilt dashboard
@@ -263,11 +264,14 @@ on its own, set it to the broker your ServiceControl instance uses:
 | Connection string | Transport |
 |---|---|
 | starts with `amqp:` or `amqps:` (e.g. `amqp://guest:guest@localhost:5672`) | RabbitMQ — quorum queues, conventional routing topology |
+| contains an `Endpoint=sb://...` entry (e.g. `Endpoint=sb://my-namespace.servicebus.windows.net/;SharedAccessKeyName=...;SharedAccessKey=...`) | Azure Service Bus — default topic topology. The direct error and audit writers send through the same endpoint, so they use it too |
 | SQL Server connection string with `Initial Catalog` or `Database` (e.g. `Server=localhost;Database=Transport;...`) | SQL Server |
 | not set or empty | Learning transport (local standalone runs only — ServiceControl won't see the messages) |
 | anything else | startup fails with an error naming `ConnectionStrings__transport` |
 
 The selected transport is logged at startup (`Using RabbitMQ transport` etc.).
+
+The Standard Service Bus tier limits a message to 256 KiB including headers. The `large-messages` scenario serializes to about 190 KiB, so it leaves room for headers on Standard and still exceeds the 100 KB external body storage threshold.
 
 ## Configuration
 

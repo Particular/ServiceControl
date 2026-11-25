@@ -3,4 +3,5 @@
     <Project Path="TestingTool.Scenarios/TestingTool.Scenarios.csproj"/>
     <Project Path="TestingTool/TestingTool.csproj"/>
     <Project Path="TestingTool.AppHost/TestingTool.AppHost.csproj"/>
+    <Project Path="TestingTool.Tests/TestingTool.Tests.csproj"/>
 </Solution>

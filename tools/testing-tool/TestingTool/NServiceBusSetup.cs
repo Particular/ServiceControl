@@ -1,3 +1,4 @@
+using System.Data.Common;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
 using NServiceBus;
@@ -18,6 +19,7 @@ public static class NServiceBusEndpointExtensions
     /// Aspire AppHost to match the ServiceControl platform transport):
     /// <list type="bullet">
     /// <item>starts with <c>amqp:</c> or <c>amqps:</c> — RabbitMQ, quorum queues with conventional routing</item>
+    /// <item>a connection string with an <c>Endpoint=sb://</c> entry — Azure Service Bus, default topic topology</item>
     /// <item>a SQL Server connection string naming a database (<c>Initial Catalog</c>/<c>Database</c>) — SQL Server</item>
     /// <item>not set or empty — Learning transport, for local standalone runs</item>
     /// </list>
@@ -45,6 +47,11 @@ public static class NServiceBusEndpointExtensions
             transport.UseConventionalRoutingTopology(QueueType.Quorum);
             transport.ConnectionString(transportConnectionString);
         }
+        else if (IsAzureServiceBusConnectionString(transportConnectionString))
+        {
+            transportName = "AzureServiceBus";
+            config.UseTransport(new AzureServiceBusTransport(transportConnectionString, TopicTopology.Default));
+        }
         else if (IsSqlServerConnectionString(transportConnectionString))
         {
             transportName = "SqlServer";
@@ -54,7 +61,7 @@ public static class NServiceBusEndpointExtensions
         {
             throw new InvalidOperationException(
                 "Unrecognised 'transport' connection string (ConnectionStrings__transport). Expected an " +
-                "amqp:// or amqps:// URI for RabbitMQ, or a SQL Server connection string with " +
+                "amqp:// or amqps:// URI for RabbitMQ, an Endpoint=sb://... connection string for Azure Service Bus, or a SQL Server connection string with " +
                 "Initial Catalog/Database for SQL Server. Leave it unset to use the Learning transport.");
         }
 
@@ -89,6 +96,20 @@ public static class NServiceBusEndpointExtensions
 
         services.AddNServiceBusEndpoint(config);
         return services;
+    }
+
+    static bool IsAzureServiceBusConnectionString(string connectionString)
+    {
+        try
+        {
+            var builder = new DbConnectionStringBuilder { ConnectionString = connectionString };
+            return builder.TryGetValue("Endpoint", out var endpoint)
+                   && endpoint.ToString()!.StartsWith("sb://", StringComparison.OrdinalIgnoreCase);
+        }
+        catch (ArgumentException)
+        {
+            return false;
+        }
     }
 
     static bool IsSqlServerConnectionString(string connectionString)
