@@ -225,6 +225,25 @@ class RetryStagingStoreTests : PersistenceTestBase
         Assert.That(messages.Single().UniqueMessageId, Is.EqualTo(kept));
     }
 
+    [Test]
+    public async Task The_next_retry_stages_a_message_whose_send_failed_but_not_one_that_was_sent()
+    {
+        var failedToSend = await Insert(new IngestedFailure());
+        var sent = await Insert(new IngestedFailure());
+
+        var firstBatch = await StageBatch(failedToSend, sent);
+        await RetryStagingStore.MarkBatchAsForwarding(firstBatch, "staging-1", [failedToSend, sent]);
+        await FailedMessageLifecycleStore.RevertRetry(failedToSend);
+        await RetryStagingStore.CompleteForwarding(firstBatch);
+        await CompleteDatabaseOperation();
+
+        var secondBatch = await StageBatch(failedToSend, sent);
+
+        var messages = await RetryStagingStore.GetMessagesToStage(secondBatch);
+
+        Assert.That(messages.Select(message => message.UniqueMessageId), Is.EquivalentTo(new[] { failedToSend }));
+    }
+
     async Task<string> Insert(IngestedFailure failure)
     {
         var message = failure.ToFailedMessage();

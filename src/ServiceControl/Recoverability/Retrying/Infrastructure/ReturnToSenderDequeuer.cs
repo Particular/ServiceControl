@@ -1,6 +1,7 @@
 namespace ServiceControl.Recoverability;
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Infrastructure.DomainEvents;
@@ -222,7 +223,7 @@ class ReturnToSenderDequeuer : IHostedService
             catch (Exception ex)
             {
                 // If something goes wrong here we just ignore, not the end of the world!
-                logger.LogError(ex, "A failure occurred when trying to handle a retry failure");
+                logger.LogError(ex, "A failure occurred when trying to handle a retry failure of message '{UniqueMessageId}'", errorContext.Headers.GetValueOrDefault("ServiceControl.Retry.UniqueMessageId"));
             }
             finally
             {
