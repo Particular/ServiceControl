@@ -1,5 +1,5 @@
 20260928032745_AddFullTextSearch
     Sql
         CREATE INDEX ix_audit_messages_full_text ON audit_messages USING GIN (to_tsvector('simple', headers_json || ' ' || substring(COALESCE(body_text, ''), 1, 262144) || ' ' || replace(replace(COALESCE(message_type, ''), '.', ' '), '+', ' ')))
-20261126044652_AddEndpointTimeSentIndex
-    CreateIndex ix_audit_messages_receiving_endpoint_name_time_sent on audit_messages (receiving_endpoint_name, time_sent) Npgsql:IndexInclude=[is_system_message]
+20261126045230_AddEndpointTimeSentIndex
+    CreateIndex ix_audit_messages_receiving_endpoint_name_time_sent on audit_messages (receiving_endpoint_name, time_sent)
