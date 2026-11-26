@@ -1,6 +1,8 @@
 #nullable enable
 namespace ServiceControl.Infrastructure.Tests;
 
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -17,31 +19,31 @@ using LogLevel = NLog.LogLevel;
 [TestFixture]
 public class LoggingConfiguratorTests
 {
-    static readonly string AuditPattern = $"{AuthorizationAuditLog.AuditCategory}*";
-
     static LoggingConfiguration BuildConfig() =>
         LoggingConfigurator.BuildConfiguration("logfile.txt", Path.GetTempPath(), LogLevel.Info);
+
+    static List<LoggingRule> AuditRules(LoggingConfiguration config) =>
+        [.. config.LoggingRules.Where(r => r.Targets.Any(t => t.Name == "audit-console"))];
+
+    static NLog.Layouts.Layout LayoutOf(LoggingConfiguration config, string targetName) =>
+        config.AllTargets.OfType<TargetWithLayout>().Single(t => t.Name == targetName).Layout;
 
     [Test]
     public void Audit_target_emits_the_prerendered_event_verbatim()
     {
-        var auditTarget = BuildConfig().LoggingRules
-            .Single(r => r.LoggerNamePattern == AuditPattern)
-            .Targets.OfType<TargetWithLayout>()
-            .Single(t => t.Name == "audit-console");
-
-        var rendered = auditTarget.Layout.Render(new LogEventInfo(LogLevel.Info, AuthorizationAuditLog.AuditCategory, "ECS-PAYLOAD"));
+        var rendered = LayoutOf(BuildConfig(), "audit-console").Render(new LogEventInfo(LogLevel.Info, AuthorizationAuditLog.AuditCategory, "ECS-PAYLOAD"));
 
         Assert.That(rendered, Is.EqualTo("ECS-PAYLOAD"),
             "the audit target must pass the pre-rendered ECS JSON through unwrapped, not double-encode it");
     }
 
-    [Test]
-    public void Audit_events_do_not_fall_through_to_the_operational_log()
+    [TestCase(AuthorizationAuditLog.AuditCategory)]
+    [TestCase(MessageActionAuditLog.MessageCategory)]
+    public void Audit_events_do_not_fall_through_to_the_operational_log(string category)
     {
         var config = BuildConfig();
 
-        var auditRule = config.LoggingRules.Single(r => r.LoggerNamePattern == AuditPattern);
+        var auditRule = AuditRules(config).Single(r => r.NameMatches(category));
         var operationalConsoleRule = config.LoggingRules.Single(r => r.LoggerNamePattern == "*" && r.Targets.Any(t => t.Name == "console"));
 
         Assert.That(auditRule.Final, Is.True, "the audit rule must be final so audit JSON is not duplicated into the plain-text operational log");
@@ -63,7 +65,7 @@ public class LoggingConfiguratorTests
         // ...and capture what it renders, driven through the real audit logger over an isolated NLog factory.
         var captured = new MemoryTarget("audit-capture") { Layout = auditLayout };
         var captureConfig = new LoggingConfiguration();
-        captureConfig.AddRule(LogLevel.Info, LogLevel.Fatal, captured, AuditPattern);
+        captureConfig.AddRule(LogLevel.Info, LogLevel.Fatal, captured, AuthorizationAuditLog.AuditCategory);
         var logFactory = new LogFactory { Configuration = captureConfig };
 
         using (var loggerFactory = LoggerFactory.Create(b => b.AddNLog(_ => logFactory)))
@@ -109,10 +111,52 @@ public class LoggingConfiguratorTests
     [Test]
     public void Message_action_subcategory_is_captured_by_the_audit_rule()
     {
-        var config = BuildConfig();
-        var auditRule = config.LoggingRules.Single(r => r.LoggerNamePattern == AuditPattern);
+        var auditRules = AuditRules(BuildConfig());
 
-        Assert.That(auditRule.NameMatches(ServiceControl.Infrastructure.Auth.MessageActionAuditLog.MessageCategory), Is.True);
-        Assert.That(auditRule.NameMatches(ServiceControl.Infrastructure.Auth.MessageActionAuditLog.OperationCategory), Is.True);
+        Assert.That(auditRules.Any(r => r.NameMatches(MessageActionAuditLog.MessageCategory)), Is.True);
+        Assert.That(auditRules.Any(r => r.NameMatches(MessageActionAuditLog.OperationCategory)), Is.True);
+    }
+
+    [Test]
+    public void Audit_instance_loggers_write_to_the_operational_log_with_the_full_layout()
+    {
+        var config = BuildConfig();
+        var operational = new MemoryTarget("operational-capture") { Layout = LayoutOf(config, "console") };
+        var audit = new MemoryTarget("audit-capture") { Layout = LayoutOf(config, "audit-console") };
+        using var logFactory = new LogFactory { Configuration = RouteToMemory(config, operational, audit) };
+
+        logFactory.GetLogger("ServiceControl.Audit.Auditing.AuditPersister").Error(new InvalidOperationException("boom"), "Processing of message failed");
+        logFactory.Flush();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(operational.Logs, Has.One.EndsWith("|Error|ServiceControl.Audit.Auditing.AuditPersister|Processing of message failed|System.InvalidOperationException: boom"),
+                "an audit instance logger must keep the level, logger name and exception of the operational layout");
+            Assert.That(audit.Logs, Is.Empty, "only the authorization and message action categories belong in the audit trail");
+        });
+    }
+
+    static LoggingConfiguration RouteToMemory(LoggingConfiguration config, Target operational, Target audit)
+    {
+        var routed = new LoggingConfiguration();
+
+        foreach (var rule in config.LoggingRules)
+        {
+            var targets = rule.Targets
+                .Select(t => t.Name switch
+                {
+                    "console" => operational,
+                    "audit-console" => audit,
+                    _ => null
+                })
+                .OfType<Target>()
+                .ToList();
+
+            rule.Targets.Clear();
+            targets.ForEach(rule.Targets.Add);
+            routed.LoggingRules.Add(rule);
+        }
+
+        return routed;
     }
 }
