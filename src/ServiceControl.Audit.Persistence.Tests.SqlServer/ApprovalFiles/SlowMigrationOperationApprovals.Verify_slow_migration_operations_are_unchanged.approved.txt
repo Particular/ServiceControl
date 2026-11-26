@@ -22,3 +22,5 @@
                       ON ServiceControlFullTextCatalog
                       WITH (CHANGE_TRACKING AUTO, STOPLIST = OFF)');
         END
+20261126035956_AddEndpointTimeSentIndex
+    CreateIndex IX_AuditMessages_ReceivingEndpointName_TimeSent on AuditMessages (ReceivingEndpointName, TimeSent) SqlServer:Include=[IsSystemMessage]
