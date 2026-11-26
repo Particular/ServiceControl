@@ -108,18 +108,24 @@ namespace ServiceControl.Infrastructure
 
             // Audit events are captured from Info upward (allow = Information, deny = Warning) regardless of the
             // operational LogLevel — lowering the operational verbosity must never drop entries from the audit trail.
-            // Final stops audit events from also reaching the catch-all operational rules below, so this rule must
+            // Final stops audit events from also reaching the catch-all operational rules below, so these rules must
             // be registered before them.
-            var auditRule = new LoggingRule
+            LoggingRule AuditRule(string category)
             {
-                LoggerNamePattern = $"{AuthorizationAuditLog.AuditCategory}*",
-                Final = true
-            };
-            auditRule.SetLoggingLevels(LogLevel.Info, LogLevel.Fatal);
-            auditRule.Targets.Add(auditConsoleTarget);
-            if (!AppEnvironment.RunningInContainer)
-            {
-                auditRule.Targets.Add(auditFileTarget);
+                var rule = new LoggingRule
+                {
+                    // An exact name, not a prefix: the audit instance's own loggers are in the ServiceControl.Audit namespace.
+                    LoggerNamePattern = category,
+                    Final = true
+                };
+                rule.SetLoggingLevels(LogLevel.Info, LogLevel.Fatal);
+                rule.Targets.Add(auditConsoleTarget);
+                if (!AppEnvironment.RunningInContainer)
+                {
+                    rule.Targets.Add(auditFileTarget);
+                }
+
+                return rule;
             }
 
             nlogConfig.AddTarget(consoleTarget);
@@ -128,7 +134,8 @@ namespace ServiceControl.Infrastructure
             nlogConfig.LoggingRules.Add(aspNetCoreRule);
             nlogConfig.LoggingRules.Add(httpClientRule);
             nlogConfig.LoggingRules.Add(efCoreRule);
-            nlogConfig.LoggingRules.Add(auditRule);
+            nlogConfig.LoggingRules.Add(AuditRule(AuthorizationAuditLog.AuditCategory));
+            nlogConfig.LoggingRules.Add(AuditRule(MessageActionAuditLog.MessageCategory));
 
             nlogConfig.LoggingRules.Add(new LoggingRule("*", logLevel, consoleTarget));
 
