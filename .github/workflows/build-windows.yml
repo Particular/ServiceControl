@@ -27,7 +27,7 @@ jobs:
         run: dotnet build src --configuration Release -graph --property:WindowsSelfContained=true
       - name: Validate build version
         if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
-        uses: ./.github/actions/validate-version
+        uses: Particular/deployment-workflows/.github/actions/determine-image-tags@1.0.0
         with:
           version: ${{ env.MinVerVersion }}
       - name: Build ServiceControl Management
@@ -60,21 +60,21 @@ jobs:
           --azure-key-vault-client-secret ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }} `
           --azure-key-vault-certificate ${{ secrets.AZURE_KEY_VAULT_CERTIFICATE_NAME }} `
           deploy\PowerShellModules\Particular.ServiceControl.Management\Particular.ServiceControl.Management.cat
-      - name: Zip PowerShell module
+      - name: Package PowerShell module
         run: |
-          New-Item assets\PowerShellModules -ItemType Directory
-          Compress-Archive -Path deploy\PowerShellModules\Particular.ServiceControl.Management\* -DestinationPath assets\PowerShellModules\Particular.ServiceControl.Management.zip
+          New-Item powershellModules -ItemType Directory
+          Compress-PSResource -Path deploy\PowerShellModules\Particular.ServiceControl.Management -DestinationPath powershellModules
       - name: Publish assets
         uses: actions/upload-artifact@v7.0.2
         with:
           name: assets
           path: assets/*
           retention-days: 1
-      - name: Publish zips
+      - name: Publish PowerShell module
         uses: actions/upload-artifact@v7.0.2
         with:
-          name: zips
-          path: zip/*
+          name: powershell
+          path: powershellModules/*
           retention-days: 1
       - name: Build PlatformSample package
         run: |
@@ -99,14 +99,22 @@ jobs:
           $assetsCount = (Get-ChildItem -Recurse -File assets).Count
           $nugetsCount =  (Get-ChildItem -Recurse -File nugets).Count
           $zipCount = (Get-ChildItem -Recurse -File zip).Count
+          $powershellModulesCount = (Get-ChildItem -Recurse -File powershellModules).Count
 
-          $expectedAssetsCount = 2 # SCMU & PowerShell module
+          $expectedAssetsCount = 1 # SCMU
+          $expectedPowershellModulesCount = 1 # PowerShell module
           $expectedNugetsCount = 1 # PlatformSample
           $expectedZipCount = 5    # ServiceControl, Audit, & Monitoring + Transports & RavenDBServer
 
           if ($assetsCount -ne $expectedAssetsCount)
           {
               Write-Host Assets: Expected $expectedAssetsCount but found $assetsCount
+              exit -1
+          }
+
+          if ($powershellModulesCount -ne $expectedPowershellModulesCount)
+          {
+              Write-Host PowerShell modules: Expected $expectedPowershellModulesCount but found $powershellModulesCount
               exit -1
           }
 
@@ -121,9 +129,8 @@ jobs:
               Write-Host Zips: Expected $expectedZipCount but found $zipCount
               exit -1
           }
-      - name: Deploy
+      - name: Attach artifacts to release
         if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
-        # Does not follow standard practice of targeting explicit versions because configuration is tightly coupled to Octopus Deploy configuration
-        uses: Particular/push-octopus-package-action@main
+        uses: Particular/deployment-workflows/.github/actions/create-draft-release-with-assets@1.0.0
         with:
-          octopus-deploy-api-key: ${{ secrets.OCTOPUS_DEPLOY_API_KEY }}
+          asset-paths: "nugets/, powershellModules/, assets/"

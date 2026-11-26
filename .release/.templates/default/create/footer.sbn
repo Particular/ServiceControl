@@ -1,0 +1,9 @@
+{{ if config.create.include_footer }}
+
+### Where to get it
+
+You can download this release from our [website](http://particular.net/downloads).
+
+{{ end }}
+
+<!-- RELEASE NOTES GENERATED -->
