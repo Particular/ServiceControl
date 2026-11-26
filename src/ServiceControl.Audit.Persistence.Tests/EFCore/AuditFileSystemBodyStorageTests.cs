@@ -13,18 +13,30 @@ using ServiceControl.Audit.Persistence.EFCore.Implementation.BodyStorage;
 [TestFixture]
 class AuditFileSystemBodyStorageTests
 {
+    const string BodyId = "6f0e5a47-6c9b-4a5c-9d86-3b2d1c8a7e10";
+    const string BodyA = "a0000000-0000-4000-8000-00000000000a";
+    const string BodyB = "b0000000-0000-4000-8000-00000000000b";
+    const string BodyC = "c0000000-0000-4000-8000-00000000000c";
+    const string BodyD = "d0000000-0000-4000-8000-00000000000d";
+
     string tempDir;
+    string outsideDir;
     AuditFileSystemBodyStorage store;
 
     [SetUp]
     public void SetUp()
     {
         tempDir = Directory.CreateTempSubdirectory("sc-body-tests-").FullName;
+        outsideDir = Directory.CreateTempSubdirectory("sc-body-outside-").FullName;
         store = new AuditFileSystemBodyStorage(new FileSystemBodyStorageSettings { StoragePath = tempDir, MinCompressionSize = 64 });
     }
 
     [TearDown]
-    public void TearDown() => Directory.Delete(tempDir, recursive: true);
+    public void TearDown()
+    {
+        Directory.Delete(tempDir, recursive: true);
+        Directory.Delete(outsideDir, recursive: true);
+    }
 
     static readonly DateTime Hour10 = new(2026, 10, 20, 10, 0, 0, DateTimeKind.Utc);
     static readonly DateTime Hour11 = Hour10.AddHours(1);
@@ -34,9 +46,9 @@ class AuditFileSystemBodyStorageTests
     public async Task Round_trips_compressed_and_uncompressed_bodies(int bodyLength)
     {
         var body = Encoding.UTF8.GetBytes(new string('a', bodyLength));
-        await store.WriteBody("body-1", Hour10, body, "application/json");
+        await store.WriteBody(BodyId, Hour10, body, "application/json");
 
-        var result = await store.ReadBody("body-1", Hour10);
+        var result = await store.ReadBody(BodyId, Hour10);
 
         Assert.That(result, Is.Not.Null);
         using (result.Stream)
@@ -52,12 +64,12 @@ class AuditFileSystemBodyStorageTests
     }
 
     [Test]
-    public async Task Body_is_stored_in_the_directory_of_its_explicit_hour_whatever_the_id()
+    public async Task Body_is_stored_in_the_directory_of_its_explicit_hour()
     {
-        await store.WriteBody("opaque", Hour10, Encoding.UTF8.GetBytes("payload"), "text/plain");
+        await store.WriteBody(BodyId, Hour10, Encoding.UTF8.GetBytes("payload"), "text/plain");
 
-        Assert.That(Relative(), Is.EqualTo(new[] { Path.Combine("2026102010", "opaque.body") }));
-        var result = await store.ReadBody("opaque", Hour10);
+        Assert.That(Relative(), Is.EqualTo(new[] { Path.Combine("2026102010", $"{BodyId}.body") }));
+        var result = await store.ReadBody(BodyId, Hour10);
         Assert.That(result, Is.Not.Null);
         result.Stream.Dispose();
     }
@@ -65,11 +77,11 @@ class AuditFileSystemBodyStorageTests
     [Test]
     public async Task Bodies_with_the_same_id_in_different_hours_are_distinct()
     {
-        await store.WriteBody("same", Hour10, Encoding.UTF8.GetBytes("ten"), "text/plain");
-        await store.WriteBody("same", Hour11, Encoding.UTF8.GetBytes("eleven"), "text/plain");
+        await store.WriteBody(BodyId, Hour10, Encoding.UTF8.GetBytes("ten"), "text/plain");
+        await store.WriteBody(BodyId, Hour11, Encoding.UTF8.GetBytes("eleven"), "text/plain");
 
-        using var ten = (await store.ReadBody("same", Hour10)).Stream;
-        using var eleven = (await store.ReadBody("same", Hour11)).Stream;
+        using var ten = (await store.ReadBody(BodyId, Hour10)).Stream;
+        using var eleven = (await store.ReadBody(BodyId, Hour11)).Stream;
 
         Assert.Multiple(() =>
         {
@@ -81,18 +93,18 @@ class AuditFileSystemBodyStorageTests
     [Test]
     public async Task Read_for_another_hour_finds_nothing()
     {
-        await store.WriteBody("a", Hour10, Encoding.UTF8.GetBytes("payload"), "text/plain");
+        await store.WriteBody(BodyA, Hour10, Encoding.UTF8.GetBytes("payload"), "text/plain");
 
-        Assert.That(await store.ReadBody("a", Hour11), Is.Null);
-        Assert.That(await store.ReadBody("a", Hour10.AddDays(-1)), Is.Null);
+        Assert.That(await store.ReadBody(BodyA, Hour11), Is.Null);
+        Assert.That(await store.ReadBody(BodyA, Hour10.AddDays(-1)), Is.Null);
     }
 
     [Test]
     public async Task Read_with_an_unspecified_kind_finds_the_body_of_the_same_clock_hour()
     {
-        await store.WriteBody("a", Hour10, Encoding.UTF8.GetBytes("payload"), "text/plain");
+        await store.WriteBody(BodyA, Hour10, Encoding.UTF8.GetBytes("payload"), "text/plain");
 
-        var result = await store.ReadBody("a", DateTime.SpecifyKind(Hour10, DateTimeKind.Unspecified));
+        var result = await store.ReadBody(BodyA, DateTime.SpecifyKind(Hour10, DateTimeKind.Unspecified));
 
         Assert.That(result, Is.Not.Null);
         result.Stream.Dispose();
@@ -101,10 +113,10 @@ class AuditFileSystemBodyStorageTests
     [Test]
     public async Task Rewriting_a_body_keeps_the_first_write()
     {
-        await store.WriteBody("a", Hour10, Encoding.UTF8.GetBytes("original"), "text/plain");
-        await store.WriteBody("a", Hour10, Encoding.UTF8.GetBytes("different"), "text/plain");
+        await store.WriteBody(BodyA, Hour10, Encoding.UTF8.GetBytes("original"), "text/plain");
+        await store.WriteBody(BodyA, Hour10, Encoding.UTF8.GetBytes("different"), "text/plain");
 
-        using var result = (await store.ReadBody("a", Hour10)).Stream;
+        using var result = (await store.ReadBody(BodyA, Hour10)).Stream;
 
         Assert.That(ReadAll(result), Is.EqualTo(Encoding.UTF8.GetBytes("original")));
     }
@@ -113,9 +125,9 @@ class AuditFileSystemBodyStorageTests
     public async Task Delete_for_hour_removes_only_that_hour()
     {
         var body = Encoding.UTF8.GetBytes("payload");
-        await store.WriteBody("a", Hour10, body, "text/plain");
-        await store.WriteBody("b", Hour10, body, "text/plain");
-        await store.WriteBody("a", Hour11, body, "text/plain");
+        await store.WriteBody(BodyA, Hour10, body, "text/plain");
+        await store.WriteBody(BodyB, Hour10, body, "text/plain");
+        await store.WriteBody(BodyA, Hour11, body, "text/plain");
         var unrelated = Path.Combine(tempDir, "flat.body");
         await File.WriteAllTextAsync(unrelated, "keep");
 
@@ -123,7 +135,7 @@ class AuditFileSystemBodyStorageTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(Relative(), Is.EquivalentTo(new[] { Path.Combine("2026102011", "a.body"), "flat.body" }));
+            Assert.That(Relative(), Is.EquivalentTo(new[] { Path.Combine("2026102011", $"{BodyA}.body"), "flat.body" }));
             Assert.That(Directory.Exists(Path.Combine(tempDir, "2026102010")), Is.False);
         });
     }
@@ -131,10 +143,10 @@ class AuditFileSystemBodyStorageTests
     [Test]
     public async Task Delete_for_hour_also_removes_temp_files_in_that_hour_only()
     {
-        await store.WriteBody("a", Hour10, Encoding.UTF8.GetBytes("payload"), "text/plain");
-        await store.WriteBody("a", Hour11, Encoding.UTF8.GetBytes("payload"), "text/plain");
-        await File.WriteAllTextAsync(Path.Combine(tempDir, "2026102010", "a.body.abc.tmp"), "in progress");
-        var otherTemp = Path.Combine(tempDir, "2026102011", "a.body.abc.tmp");
+        await store.WriteBody(BodyA, Hour10, Encoding.UTF8.GetBytes("payload"), "text/plain");
+        await store.WriteBody(BodyA, Hour11, Encoding.UTF8.GetBytes("payload"), "text/plain");
+        await File.WriteAllTextAsync(Path.Combine(tempDir, "2026102010", $"{BodyA}.body.abc.tmp"), "in progress");
+        var otherTemp = Path.Combine(tempDir, "2026102011", $"{BodyA}.body.abc.tmp");
         await File.WriteAllTextAsync(otherTemp, "in progress");
         var rootFile = Path.Combine(tempDir, "unrelated.txt");
         await File.WriteAllTextAsync(rootFile, "keep");
@@ -153,17 +165,17 @@ class AuditFileSystemBodyStorageTests
     public async Task Delete_for_day_removes_every_hour_of_that_day_and_no_other()
     {
         var body = Encoding.UTF8.GetBytes("payload");
-        await store.WriteBody("a", Hour10.Date, body, "text/plain");
-        await store.WriteBody("b", Hour10.Date.AddHours(23), body, "text/plain");
-        await store.WriteBody("c", Hour10.Date.AddDays(1), body, "text/plain");
-        await store.WriteBody("d", Hour10.Date.AddHours(-1), body, "text/plain");
+        await store.WriteBody(BodyA, Hour10.Date, body, "text/plain");
+        await store.WriteBody(BodyB, Hour10.Date.AddHours(23), body, "text/plain");
+        await store.WriteBody(BodyC, Hour10.Date.AddDays(1), body, "text/plain");
+        await store.WriteBody(BodyD, Hour10.Date.AddHours(-1), body, "text/plain");
         Directory.CreateDirectory(Path.Combine(tempDir, "20261020-unrelated"));
 
         await store.DeleteBodiesForDay(Hour10);
 
         Assert.Multiple(() =>
         {
-            Assert.That(Relative(), Is.EquivalentTo(new[] { Path.Combine("2026102100", "c.body"), Path.Combine("2026101923", "d.body") }));
+            Assert.That(Relative(), Is.EquivalentTo(new[] { Path.Combine("2026102100", $"{BodyC}.body"), Path.Combine("2026101923", $"{BodyD}.body") }));
             Assert.That(Directory.Exists(Path.Combine(tempDir, "20261020-unrelated")), Is.True);
         });
     }
@@ -178,13 +190,47 @@ class AuditFileSystemBodyStorageTests
     [Test]
     public async Task Delete_honors_cancellation()
     {
-        await store.WriteBody("a", Hour10, Encoding.UTF8.GetBytes("payload"), "text/plain");
+        await store.WriteBody(BodyA, Hour10, Encoding.UTF8.GetBytes("payload"), "text/plain");
         using var cts = new CancellationTokenSource();
         await cts.CancelAsync();
 
         Assert.ThrowsAsync<OperationCanceledException>(() => store.DeleteBodiesForHour(Hour10, cts.Token));
         Assert.ThrowsAsync<OperationCanceledException>(() => store.DeleteBodiesForDay(Hour10, cts.Token));
         Assert.That(Relative(), Has.Length.EqualTo(1));
+    }
+
+    [TestCase(null)]
+    [TestCase("")]
+    [TestCase("body-1")]
+    [TestCase("../6f0e5a47-6c9b-4a5c-9d86-3b2d1c8a7e10")]
+    [TestCase("..\\6f0e5a47-6c9b-4a5c-9d86-3b2d1c8a7e10")]
+    [TestCase("/etc/6f0e5a47-6c9b-4a5c-9d86-3b2d1c8a7e10")]
+    [TestCase("C:\\temp\\6f0e5a47-6c9b-4a5c-9d86-3b2d1c8a7e10")]
+    [TestCase("failedimport-6f0e5a47-6c9b-4a5c-9d86-3b2d1c8a7e10")]
+    [TestCase("outside-relative")]
+    [TestCase("outside-rooted")]
+    public async Task Invalid_body_ids_are_rejected_without_touching_the_file_system(string bodyId)
+    {
+        var outsideFile = Path.Combine(outsideDir, "target.body");
+        await File.WriteAllTextAsync(outsideFile, "keep");
+        bodyId = bodyId switch
+        {
+            "outside-relative" => Path.GetRelativePath(Path.Combine(tempDir, "2026102010"), Path.Combine(outsideDir, "target")),
+            "outside-rooted" => Path.Combine(outsideDir, "target"),
+            _ => bodyId
+        };
+
+        var write = Assert.ThrowsAsync<ArgumentException>(() => store.WriteBody(bodyId, Hour10, Encoding.UTF8.GetBytes("payload"), "text/plain"));
+        var read = Assert.ThrowsAsync<ArgumentException>(() => store.ReadBody(bodyId, Hour10));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(write.ParamName, Is.EqualTo("bodyId"));
+            Assert.That(read.ParamName, Is.EqualTo("bodyId"));
+            Assert.That(Directory.GetFileSystemEntries(tempDir), Is.Empty);
+            Assert.That(Directory.GetFileSystemEntries(outsideDir), Is.EqualTo(new[] { outsideFile }));
+            Assert.That(File.ReadAllText(outsideFile), Is.EqualTo("keep"));
+        });
     }
 
     string[] Relative() => Directory.GetFiles(tempDir, "*", SearchOption.AllDirectories).Select(f => Path.GetRelativePath(tempDir, f)).ToArray();

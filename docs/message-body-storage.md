@@ -29,7 +29,7 @@ Ingestion writes external bodies before the batch transaction that inserts the r
 
 Audit stores a body through `IAuditBodyStoragePersistence` under the UTC ingestion hour of its batch and the unique message id: `yyyyMMddHH/{unique message id}`. The file system store writes `{StoragePath}/yyyyMMddHH/{unique message id}.body`, the Azure Blob store uses the blob name `yyyyMMddHH/{unique message id}`, and the S3 store prepends its key prefix. Callers pass the hour explicitly and the stores do not parse it from the id, so reads use the `CreatedOn` of the row. Storage keeps the first write for an hour and id and ignores later writes.
 
-The body URL keeps the audit body id, `yyyyMMddHH-{unique message id}`, which routes the request to the row. The Error (primary) persisters use `IBodyStoragePersistence` with the body id alone; their file system layout remains `{StoragePath}/{body id}.body`.
+The body URL keeps the audit body id, `yyyyMMddHH-{unique message id}`, which routes the request to the row. The Error (primary) persisters use `IBodyStoragePersistence` with the body id alone; their file system layout remains `{StoragePath}/{body id}.body`. Both file system stores validate body ids with `Guid.TryParse` before file system access and throw `ArgumentException` for invalid ids. Audit requires a GUID. Error accepts a GUID or `failedimport-{guid}`, the id of a failed import body.
 
 Reading a body streams it from storage with the stored content type, size, and a version derived from the row. A body missing from storage answers 204.
 

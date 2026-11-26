@@ -63,6 +63,8 @@ When `BodyStoredExternally` is true the external copy is authoritative and `Body
 search aid only; it must never be served as the body. `BodySize` is always the original
 size. External writes happen before the row that points at them is committed.
 
+Error ingestion resolves the unique message id to a GUID once, before the external write. It parses a valid GUID in `ServiceControl.Retry.UniqueMessageId` and converts any other value with `DeterministicGuid.MakeId(value)`, matching Audit ingestion. Without that header, it derives the GUID from the message id and processing endpoint. The external body id uses the canonical string representation of the database `UniqueMessageId`, so a malformed header value never becomes a file path.
+
 ### Groups, endpoints, retention
 
 - **Failure groups** live in `FailedMessageGroups`, an association table. A message's group rows
