@@ -17,7 +17,8 @@ public class EFRecoverabilityIngestionUnitOfWork(EFIngestionUnitOfWork parentUni
         List<FailedMessage.FailureGroup> groups,
         CancellationToken cancellationToken = default)
     {
-        var uniqueMessageId = context.Headers.UniqueId();
+        var uniqueMessageIdString = context.Headers.UniqueId();
+        var uniqueMessageId = Guid.TryParse(uniqueMessageIdString, out var parsed) ? parsed : DeterministicGuid.MakeId(uniqueMessageIdString);
         var contentType = context.Headers.GetValueOrDefault(Headers.ContentType, "text/plain");
         var bodySize = context.Body.Length;
         var (bodyText, storeExternally) = MessageBodyClassifier.Classify(context.Headers, context.Body, settings.BodyStorage.MaxBodySizeToStore);
@@ -25,7 +26,7 @@ public class EFRecoverabilityIngestionUnitOfWork(EFIngestionUnitOfWork parentUni
         if (storeExternally)
         {
             parentUnitOfWork.RecordBodyWrite(
-                storagePersistence.WriteBody(uniqueMessageId, context.Body, contentType, cancellationToken));
+                storagePersistence.WriteBody(uniqueMessageId.ToString(), context.Body, contentType, cancellationToken));
         }
 
         var sendingEndpoint = GetMetadata<EndpointDetails>(processingAttempt, "SendingEndpoint");
@@ -33,7 +34,7 @@ public class EFRecoverabilityIngestionUnitOfWork(EFIngestionUnitOfWork parentUni
 
         parentUnitOfWork.Record(new RecordedFailedProcessingAttempt
         {
-            UniqueMessageId = Guid.Parse(uniqueMessageId),
+            UniqueMessageId = uniqueMessageId,
             AttemptedAt = processingAttempt.AttemptedAt,
             TimeOfFailure = processingAttempt.FailureDetails.TimeOfFailure,
             Groups = groups,
