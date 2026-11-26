@@ -13,8 +13,7 @@ namespace ServiceControl.Audit.Persistence.EFCore.SqlServer.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_AuditMessages_ReceivingEndpointName_TimeSent",
                 table: "AuditMessages",
-                columns: new[] { "ReceivingEndpointName", "TimeSent" })
-                .Annotation("SqlServer:Include", new[] { "IsSystemMessage" });
+                columns: new[] { "ReceivingEndpointName", "TimeSent" });
         }
 
         /// <inheritdoc />

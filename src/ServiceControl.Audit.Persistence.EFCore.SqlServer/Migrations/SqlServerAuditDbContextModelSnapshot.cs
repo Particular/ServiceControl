@@ -119,8 +119,6 @@ namespace ServiceControl.Audit.Persistence.EFCore.SqlServer.Migrations
 
                     b.HasIndex("ReceivingEndpointName", "TimeSent");
 
-                    SqlServerIndexBuilderExtensions.IncludeProperties(b.HasIndex("ReceivingEndpointName", "TimeSent"), new[] { "IsSystemMessage" });
-
                     b.ToTable("AuditMessages");
                 });
 

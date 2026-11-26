@@ -13,11 +13,6 @@ public class SqlServerAuditDbContext(DbContextOptions<SqlServerAuditDbContext> o
 
         // The full text index needs a unique single column key, and the primary key has two columns.
         modelBuilder.Entity<AuditMessageEntity>().HasIndex(e => e.Id).IsUnique();
-
-        // Serves the endpoint filter and its time sent sort, because SQL Server reuses one plan for every endpoint.
-        modelBuilder.Entity<AuditMessageEntity>()
-            .HasIndex(e => new { e.ReceivingEndpointName, e.TimeSent })
-            .IncludeProperties(nameof(AuditMessageEntity.IsSystemMessage));
     }
 
     public override bool IsDuplicateKeyException(DbUpdateException exception)

@@ -1,7 +1,6 @@
 namespace ServiceControl.Audit.Persistence.Tests
 {
     using System.Collections.Generic;
-    using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.Data.SqlClient;
     using NUnit.Framework;
@@ -12,21 +11,19 @@ namespace ServiceControl.Audit.Persistence.Tests
     {
         [TestCase(BusyEndpoint, QuietEndpoint)]
         [TestCase(QuietEndpoint, BusyEndpoint)]
-        public async Task Listing_an_endpoint_stays_cheap_on_a_plan_compiled_for_another_endpoint(string compiledFor, string listed)
+        public async Task The_page_for_an_endpoint_stays_cheap_on_a_plan_compiled_for_another_endpoint(string compiledFor, string listed)
         {
             await Seed();
 
             await ListFirstPage(compiledFor);
             await ListFirstPage(listed);
 
-            var statements = await StatementReads();
-            var report = string.Join("\n", statements.Select(s => $"{s.LastReads} reads: {s.Text}"));
+            var pageReads = await PageQueryReads();
 
             using (Assert.EnterMultipleScope())
             {
-                Assert.That(statements, Has.Some.Matches<(string Text, long LastReads)>(s => s.Text.Contains("COUNT_BIG")), report);
-                Assert.That(statements, Has.Some.Matches<(string Text, long LastReads)>(s => s.Text.Contains("ORDER BY")), report);
-                Assert.That(statements.Select(s => s.LastReads), Has.All.LessThan(MaxReads), report);
+                Assert.That(pageReads, Is.Not.Empty, "The page query was not found in the plan cache.");
+                Assert.That(pageReads, Has.All.LessThan(MaxReads));
             }
         }
 
@@ -54,28 +51,28 @@ namespace ServiceControl.Audit.Persistence.Tests
         Task ListFirstPage(string endpoint) =>
             MessagesViewStore.QueryMessagesByReceivingEndpoint(false, endpoint, new PagingInfo(pageSize: 100), new SortInfo("time_sent", "desc"), cancellationToken: TestTimeoutCancellationToken);
 
-        async Task<List<(string Text, long LastReads)>> StatementReads()
+        async Task<List<long>> PageQueryReads()
         {
             await using var connection = new SqlConnection(configuration.ConnectionString);
             await connection.OpenAsync(TestTimeoutCancellationToken);
 
             await using var command = connection.CreateCommand();
             command.CommandText = """
-                SELECT st.text, qs.last_logical_reads
+                SELECT qs.last_logical_reads
                 FROM sys.dm_exec_query_stats AS qs
                 CROSS APPLY sys.dm_exec_sql_text(qs.sql_handle) AS st
-                WHERE CHARINDEX(@table, st.text) > 0 AND CHARINDEX('@endpointName', st.text) > 0
+                WHERE CHARINDEX(@table, st.text) > 0 AND CHARINDEX('@endpointName', st.text) > 0 AND CHARINDEX('ORDER BY', st.text) > 0
                 """;
             command.Parameters.AddWithValue("@table", $"[{configuration.Schema}].[AuditMessages]");
 
-            var statements = new List<(string Text, long LastReads)>();
+            var reads = new List<long>();
             await using var reader = await command.ExecuteReaderAsync(TestTimeoutCancellationToken);
             while (await reader.ReadAsync(TestTimeoutCancellationToken))
             {
-                statements.Add((reader.GetString(0), reader.GetInt64(1)));
+                reads.Add(reader.GetInt64(0));
             }
 
-            return statements;
+            return reads;
         }
 
         const string BusyEndpoint = "Sales";

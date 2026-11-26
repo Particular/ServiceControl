@@ -144,6 +144,9 @@ namespace ServiceControl.Audit.Persistence.EFCore.PostgreSql.Migrations
                     b.HasIndex("ReceivingEndpointName", "CreatedOn")
                         .HasDatabaseName("ix_audit_messages_receiving_endpoint_name_created_on");
 
+                    b.HasIndex("ReceivingEndpointName", "TimeSent")
+                        .HasDatabaseName("ix_audit_messages_receiving_endpoint_name_time_sent");
+
                     b.ToTable("audit_messages", (string)null);
                 });
 
