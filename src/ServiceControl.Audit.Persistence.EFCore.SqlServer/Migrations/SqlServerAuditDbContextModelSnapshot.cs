@@ -117,6 +117,8 @@ namespace ServiceControl.Audit.Persistence.EFCore.SqlServer.Migrations
 
                     b.HasIndex("ReceivingEndpointName", "CreatedOn");
 
+                    b.HasIndex("ReceivingEndpointName", "TimeSent");
+
                     b.ToTable("AuditMessages");
                 });
 

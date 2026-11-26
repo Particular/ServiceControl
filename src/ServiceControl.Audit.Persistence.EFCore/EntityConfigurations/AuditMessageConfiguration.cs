@@ -25,6 +25,7 @@ class AuditMessageConfiguration : IEntityTypeConfiguration<AuditMessageEntity>
 
         builder.HasIndex(e => e.UniqueMessageId);
         builder.HasIndex(e => new { e.ReceivingEndpointName, e.CreatedOn });
+        builder.HasIndex(e => new { e.ReceivingEndpointName, e.TimeSent });
         builder.HasIndex(e => e.ConversationId);
         builder.HasIndex(e => e.ProcessedAt);
         builder.HasIndex(e => e.TimeSent);
