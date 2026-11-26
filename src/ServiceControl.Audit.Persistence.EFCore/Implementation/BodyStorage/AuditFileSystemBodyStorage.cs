@@ -19,9 +19,9 @@ public class AuditFileSystemBodyStorage(FileSystemBodyStorageSettings settings) 
 
     public async Task WriteBody(string bodyId, DateTime createdOn, ReadOnlyMemory<byte> body, string contentType, CancellationToken cancellationToken = default)
     {
-        Directory.CreateDirectory(HourDirectory(createdOn));
-
         var filePath = GetBodyFilePath(createdOn, bodyId);
+
+        Directory.CreateDirectory(HourDirectory(createdOn));
 
         if (File.Exists(filePath))
         {
@@ -163,7 +163,15 @@ public class AuditFileSystemBodyStorage(FileSystemBodyStorageSettings settings) 
 
     string HourDirectory(DateTime hour) => Path.Combine(StoragePath, AuditBodyStorageKey.HourPrefix(hour));
 
-    string GetBodyFilePath(DateTime createdOn, string bodyId) => Path.Combine(StoragePath, $"{AuditBodyStorageKey.For(createdOn, bodyId)}.body");
+    string GetBodyFilePath(DateTime createdOn, string bodyId)
+    {
+        if (!Guid.TryParse(bodyId, out _))
+        {
+            throw new ArgumentException("The body id must be a GUID.", nameof(bodyId));
+        }
+
+        return Path.Combine(StoragePath, $"{AuditBodyStorageKey.For(createdOn, bodyId)}.body");
+    }
 
     static void TryDelete(string filePath)
     {

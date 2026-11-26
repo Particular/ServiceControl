@@ -141,7 +141,20 @@ public class FileSystemBodyStoragePersistence(FileSystemBodyStorageSettings sett
         return Task.CompletedTask;
     }
 
-    string GetBodyFilePath(string bodyId) => Path.Combine(StoragePath, $"{bodyId}.body");
+    string GetBodyFilePath(string bodyId)
+    {
+        const string FailedImportPrefix = "failedimport-";
+        var guidText = bodyId is not null && bodyId.StartsWith(FailedImportPrefix, StringComparison.Ordinal)
+            ? bodyId[FailedImportPrefix.Length..]
+            : bodyId;
+
+        if (!Guid.TryParse(guidText, out _))
+        {
+            throw new ArgumentException("The body id must be a GUID, optionally prefixed with 'failedimport-'.", nameof(bodyId));
+        }
+
+        return Path.Combine(StoragePath, $"{bodyId}.body");
+    }
 
     static void TryDelete(string filePath)
     {
