@@ -31,7 +31,7 @@
       <Manifest Include="..\..\deploy\**\persistence.manifest" />
       <Manifest Include="..\..\deploy\Particular.ServiceControl\Transports\**\transport.manifest" />
       <EmbeddedResource Include="@(Zip)" LogicalName="%(Filename)%(Extension)" />
-      <EmbeddedResource Include="@(Manifest)" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+      <EmbeddedResource Include="@(Manifest)" LogicalName="$([System.String]::Copy('%(RecursiveDir)').Replace($([System.IO.Path]::DirectorySeparatorChar), $([System.IO.Path]::AltDirectorySeparatorChar)))%(Filename)%(Extension)" />
     </ItemGroup>
   </Target>
 
