@@ -81,7 +81,7 @@ class GroupCommentsMigrationTargetTests : ErrorIngestionTestBase
     }
 
     [Test]
-    public async Task A_comment_on_a_group_with_no_copied_message_is_reported_as_a_change_the_sweep_will_delete()
+    public async Task A_comment_on_a_group_with_no_copied_message_is_reported_as_a_change()
     {
         var failure = new IngestedFailure();
         var group = failure.Groups.Single();
@@ -98,10 +98,10 @@ class GroupCommentsMigrationTargetTests : ErrorIngestionTestBase
             Assert.That(changes, Is.EqualTo(new[]
             {
                 ("GroupComment/group-of-archived-messages",
-                    "The group 'group-of-archived-messages' has no copied failed message, so the retention sweep removes this comment shortly after ServiceControl opens. " +
-                    "Its messages are archived or resolved, are gone from the source, or were skipped by the copy. " +
+                    "The group 'group-of-archived-messages' has no copied failed message. " +
+                    "Its messages may be archived or resolved, gone from the source, skipped by the copy, or not reached before the unresolved failed messages copy was abandoned. " +
                     $"The comment was: '{longComment}'")
-            }), "a comment on a group with a copied message stays, so only the other is named, with the whole comment because the sweep deletes it");
+            }), "only the comment whose group has no copied message is reported");
             Assert.That((first.Copied, first.Changed), Is.EqualTo((2, 1)));
             Assert.That(again.Changed, Is.Zero, "a re-read finds the comment already present, and this write copied nothing");
         }

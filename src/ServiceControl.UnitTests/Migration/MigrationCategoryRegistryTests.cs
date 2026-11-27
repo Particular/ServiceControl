@@ -12,12 +12,12 @@ using ServiceControl.Persistence.DataMigration;
 class MigrationCategoryRegistryTests
 {
     [Test]
-    public void Contains_all_eighteen_categories_with_unique_ids()
+    public void Contains_all_nineteen_categories_with_unique_ids()
     {
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(MigrationCategoryRegistry.All, Has.Count.EqualTo(18));
-            Assert.That(MigrationCategoryRegistry.All.Select(c => c.Id).Distinct().Count(), Is.EqualTo(18));
+            Assert.That(MigrationCategoryRegistry.All, Has.Count.EqualTo(19));
+            Assert.That(MigrationCategoryRegistry.All.Select(c => c.Id).Distinct().Count(), Is.EqualTo(19));
         }
     }
 
@@ -35,8 +35,8 @@ class MigrationCategoryRegistryTests
             "KnownEndpoints", "EndpointSettings", "MessageRedirects", "Subscriptions",
             "NotificationSettings", "TrialEndDate", "RetryOperations",
             "LicensingEndpoints", "LicensingThroughput", "LicensingReportMasks",
-            "LicensedEndpointDetails", "UnresolvedAndRetryIssuedFailedMessages",
-            "PendingIntegrationEvents", "CustomChecks", "FailedErrorImports", "GroupComments"
+            "LicensedEndpointDetails", "RecentAndRetriedFailedMessages",
+            "PendingIntegrationEvents", "CustomChecks", "FailedErrorImports"
         }));
     }
 
@@ -51,7 +51,7 @@ class MigrationCategoryRegistryTests
 
         Assert.That(optionalIds, Is.EqualTo(new[]
         {
-            "EventLog", "ArchivedAndResolvedFailedMessages"
+            "UnresolvedFailedMessages", "GroupComments", "EventLog", "ArchivedAndResolvedFailedMessages"
         }));
     }
 
@@ -71,28 +71,43 @@ class MigrationCategoryRegistryTests
             ["EndpointSettings"] = "KnownEndpoints",
             // A group comment whose failed messages have not arrived reads as an orphan to the
             // retention sweeper, which deletes it.
-            ["GroupComments"] = "UnresolvedAndRetryIssuedFailedMessages"
+            ["GroupComments"] = "UnresolvedFailedMessages"
         }));
     }
 
     [Test]
-    public void The_two_failed_message_categories_and_failed_imports_carry_bodies()
+    public void The_three_failed_message_categories_and_failed_imports_carry_bodies()
     {
         var carriesBodies = MigrationCategoryRegistry.All.Where(c => c.CarriesBodies).Select(c => c.Id).ToArray();
 
-        Assert.That(carriesBodies, Is.EquivalentTo(new[] { "UnresolvedAndRetryIssuedFailedMessages", "ArchivedAndResolvedFailedMessages", "FailedErrorImports" }));
+        Assert.That(carriesBodies, Is.EquivalentTo(new[] { "RecentAndRetriedFailedMessages", "UnresolvedFailedMessages", "ArchivedAndResolvedFailedMessages", "FailedErrorImports" }));
     }
 
     [Test]
-    public void The_two_failed_message_categories_split_every_status_between_them()
+    public void The_group_comments_are_copied_after_the_host_opens_and_after_the_unresolved_failed_messages()
     {
-        var split = MigrationCategoryRegistry.UnresolvedAndRetryIssuedStatuses.Concat(MigrationCategoryRegistry.ArchivedAndResolvedStatuses).ToArray();
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(MigrationCategoryRegistry.Find(MigrationCategoryIds.UnresolvedFailedMessages)?.Kind, Is.EqualTo(MigrationCategoryKind.Optional));
+            Assert.That(MigrationCategoryRegistry.Find(MigrationCategoryIds.GroupComments)?.Kind, Is.EqualTo(MigrationCategoryKind.Optional));
+            Assert.That(MigrationCategoryRegistry.Find(MigrationCategoryIds.GroupComments)?.MustFollow, Is.EqualTo(MigrationCategoryIds.UnresolvedFailedMessages));
+            Assert.That(MigrationCategoryRegistry.Find(MigrationCategoryIds.RecentAndRetriedFailedMessages)?.Kind, Is.EqualTo(MigrationCategoryKind.Required));
+        }
+    }
+
+    [Test]
+    public void The_failed_message_statuses_are_split_between_the_retry_issued_unresolved_and_archived_and_resolved_copies()
+    {
+        var split = MigrationCategoryRegistry.RetryIssuedStatuses
+            .Concat(MigrationCategoryRegistry.UnresolvedStatuses)
+            .Concat(MigrationCategoryRegistry.ArchivedAndResolvedStatuses)
+            .ToArray();
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(split, Is.Unique);
             Assert.That(split, Is.EquivalentTo(Enum.GetValues<FailedMessageStatus>()),
-                "a status neither category claims is a failed message no migration copies");
+                "a status no category claims is a failed message no migration copies");
         }
     }
 

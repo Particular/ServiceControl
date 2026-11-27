@@ -45,7 +45,7 @@ class MigrationEngineSkipReasonTests
     [Test]
     public async Task A_message_whose_body_is_never_read_is_counted_under_BodyUnreadable()
     {
-        var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages)!;
+        var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.RecentAndRetriedFailedMessages)!;
         var source = new InMemoryMigrationSource();
         source.Seed(category.Id, Row("msg-1"), Row("msg-2") with { Body = new MigrationBody(new byte[] { 1 }, "application/octet-stream") });
         source.FailBodyReads("msg-1", MigrationEngine.MaxBodyReadAttempts, new TimeoutException("down"));
@@ -62,7 +62,7 @@ class MigrationEngineSkipReasonTests
     [Test]
     public async Task A_message_the_source_holds_no_body_for_is_counted_under_BodyMissing()
     {
-        var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages)!;
+        var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.RecentAndRetriedFailedMessages)!;
         var source = new InMemoryMigrationSource();
         source.Seed(category.Id, Row("msg-1"), Row("msg-2"));
         source.SetBody("msg-2", new MigrationBody(new byte[] { 2 }, "text/plain"));
@@ -90,7 +90,7 @@ class MigrationEngineSkipReasonTests
     {
         // The breakdown is what tells a customer what they lost and why. A merge that overwrote instead of
         // summing would leave the total right and the reasons wrong, and verification would still balance.
-        var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages)!;
+        var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.RecentAndRetriedFailedMessages)!;
         var source = new InMemoryMigrationSource();
         source.Seed(category.Id, Row("msg-1"), Row("msg-2") with { Body = new MigrationBody(new byte[] { 1 }, "application/octet-stream") }, Row("msg-3") with { Body = new MigrationBody(new byte[] { 1 }, "application/octet-stream") });
         // One the engine skips itself because the body will not read, one the target refuses.

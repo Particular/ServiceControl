@@ -122,7 +122,7 @@ class RequiredCopyGateTests
     [Test]
     public void Every_failed_required_category_is_named_with_its_skips_and_both_commands()
     {
-        var withErrors = Checkpoint(MigrationCategoryState.CompleteWithErrors, MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages) with
+        var withErrors = Checkpoint(MigrationCategoryState.CompleteWithErrors, MigrationCategoryIds.RecentAndRetriedFailedMessages) with
         {
             CopiedCount = 40,
             SkippedCount = 6,
@@ -136,18 +136,18 @@ class RequiredCopyGateTests
         var halted = Checkpoint(MigrationCategoryState.Halted, MigrationCategoryIds.MessageRedirects) with { LastError = "TimeoutException at cursor r-7: the target did not answer" };
 
         var exception = Assert.Throws<Exception>(() => MigrationStartup.RefuseIfAnyCategoryDidNotComplete(
-            [MessageRedirects, UnresolvedAndRetryIssuedFailedMessages], [halted, withErrors], NewSettings()));
+            [MessageRedirects, RecentAndRetriedFailedMessages], [halted, withErrors], NewSettings()));
 
         using (Assert.EnterMultipleScope())
         {
-            foreach (var categoryId in new[] { MigrationCategoryIds.MessageRedirects, MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages })
+            foreach (var categoryId in new[] { MigrationCategoryIds.MessageRedirects, MigrationCategoryIds.RecentAndRetriedFailedMessages })
             {
                 Assert.That(exception.Message, Does.Contain($"--migration-retry {categoryId} once the cause is fixed").And.Contain($"--migration-abandon {categoryId} to keep what was copied"),
                     $"one start gives every required category its go, so the refusal has to name every Failed one, {categoryId} included");
             }
 
             Assert.That(exception.Message, Does.Contain($"{MigrationCategoryIds.MessageRedirects} is Failed (Halted)").And.Contain("the target did not answer"));
-            Assert.That(exception.Message, Does.Contain($"{MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages} is Failed (CompleteWithErrors) after copying 40 and skipping 6"));
+            Assert.That(exception.Message, Does.Contain($"{MigrationCategoryIds.RecentAndRetriedFailedMessages} is Failed (CompleteWithErrors) after copying 40 and skipping 6"));
             Assert.That(exception.Message, Does.Contain("RequiredValueMissing 2, no retry can fix"), "a row no retry can store is a reason to abandon, and the operator has to be told which");
             Assert.That(exception.Message, Does.Contain("BodyUnreadable 3").And.Not.Contain("BodyUnreadable 3, no retry can fix"), "an unreadable body may read on the next try");
             Assert.That(exception.Message, Does.Contain("BodyMissing 1, no retry can fix"), "a body the source does not hold is missing again on every retry");
@@ -543,7 +543,7 @@ class RequiredCopyGateTests
     static readonly MigrationCategory KnownEndpoints = MigrationCategoryRegistry.Find(MigrationCategoryIds.KnownEndpoints)!;
     static readonly MigrationCategory MessageRedirects = MigrationCategoryRegistry.Find(MigrationCategoryIds.MessageRedirects)!;
     static readonly MigrationCategory CustomChecks = MigrationCategoryRegistry.Find(MigrationCategoryIds.CustomChecks)!;
-    static readonly MigrationCategory UnresolvedAndRetryIssuedFailedMessages = MigrationCategoryRegistry.Find(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages)!;
+    static readonly MigrationCategory RecentAndRetriedFailedMessages = MigrationCategoryRegistry.Find(MigrationCategoryIds.RecentAndRetriedFailedMessages)!;
 
     const string UnknownCategoryId = "SomeCategoryFromANewerBuild";
 

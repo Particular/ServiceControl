@@ -9,10 +9,11 @@ Required 8: LicensingEndpoints
 Required 9: LicensingThroughput, after LicensingEndpoints
 Required 10: LicensingReportMasks
 Required 11: LicensedEndpointDetails
-Required 12: UnresolvedAndRetryIssuedFailedMessages, with bodies
+Required 12: RecentAndRetriedFailedMessages, with bodies
 Required 13: PendingIntegrationEvents
 Required 14: CustomChecks
 Required 15: FailedErrorImports, with bodies
-Required 16: GroupComments, after UnresolvedAndRetryIssuedFailedMessages
-Optional 1: EventLog
-Optional 2: ArchivedAndResolvedFailedMessages, with bodies
+Optional 1: UnresolvedFailedMessages, with bodies
+Optional 2: GroupComments, after UnresolvedFailedMessages
+Optional 3: EventLog
+Optional 4: ArchivedAndResolvedFailedMessages, with bodies

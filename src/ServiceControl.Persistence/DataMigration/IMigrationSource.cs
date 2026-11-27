@@ -18,9 +18,11 @@ public interface IMigrationSource : IAsyncDisposable
     Task Open(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// The checks this source wants run before the copy starts, in the order they must run. Call it after Open.
+    /// The checks this source wants run before it is read for <paramref name="copying" />, in the order they must run. Call it after Open.
+    /// Required checks guard the offline command; optional checks guard the background copy after ServiceControl opens on the target.
+    /// A check whose refusal advises going back to the old database must not contribute to the optional copy.
     /// </summary>
-    IReadOnlyList<IMigrationStartupCheck> ContributedChecks();
+    IReadOnlyList<IMigrationStartupCheck> ContributedChecks(MigrationCategoryKind copying);
 
     /// <summary>
     /// What the source report and the dry run print about the source.

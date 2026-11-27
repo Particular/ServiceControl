@@ -9,11 +9,11 @@ using ServiceControl.MessageFailures;
 using ServiceControl.Persistence.DataMigration;
 
 /// <summary>
-/// Writes failed messages, their failure group rows and a retry claim for each retry-issued message the source still
-/// held one for, inserting only messages the target does not already hold and never updating one it does. The claims
+/// Writes failed messages, their failure group rows and a retry claim for each message the source still held one for,
+/// inserting only messages the target does not already hold and never updating one it does. The claims
 /// mirror the source, so a retry by id behaves as it did before the move. A retry-issued row with no bool RetryClaimHeld
-/// value fails the batch. Each category that copies failed messages derives from this and names its category id and the
-/// statuses it copies.
+/// value fails the batch. Each category that copies failed messages derives from this and names its category id and
+/// which target rows it counts.
 /// </summary>
 abstract class FailedMessagesWriterBase(IMigrationSqlDialect migrationDialect, IBodyStoragePersistence storagePersistence, EFPersisterSettings persisterSettings) : MigrationCategoryWriter<FailedMessage>
 {
@@ -21,17 +21,14 @@ abstract class FailedMessagesWriterBase(IMigrationSqlDialect migrationDialect, I
     public static readonly Guid MigratedRetryClaimBatchId = new("5c1b7a0e-2f4d-4e8a-9b36-7d0c4f1e8a52");
 
     /// <summary>
-    /// The statuses this category copies. <see cref="Count" /> counts only rows with one of these statuses, because
-    /// both failed message categories share one table.
+    /// The rows of the shared failed message table that <see cref="Count" /> counts for this category.
     /// </summary>
-    protected abstract IReadOnlyCollection<FailedMessageStatus> Statuses { get; }
+    protected abstract IQueryable<FailedMessageEntity> Copied(ServiceControlDbContext dbContext);
 
     public override int BatchSize(ServiceControlDbContext dbContext) => migrationDialect.RowsPerStatementFor<FailedMessageEntity>(dbContext);
 
     public override Task<long> Count(ServiceControlDbContext dbContext, CancellationToken cancellationToken = default) =>
-        dbContext.FailedMessages
-            .Where(message => Statuses.Contains(message.Status))
-            .LongCountAsync(cancellationToken);
+        Copied(dbContext).LongCountAsync(cancellationToken);
 
     protected override async Task<PreparedBatch> PrepareDocuments(ServiceControlDbContext dbContext, IReadOnlyList<(MigrationRow Row, FailedMessage Document)> documents, CancellationToken cancellationToken = default)
     {
@@ -74,7 +71,7 @@ abstract class FailedMessagesWriterBase(IMigrationSqlDialect migrationDialect, I
                                 externalBodies.Add((row.SourceId, translation.Row, body));
                             }
 
-                            if (translation.Row.Status == FailedMessageStatus.RetryIssued && SourceHeldRetryClaim(row))
+                            if (SourceHeldRetryClaim(row, translation.Row.Status))
                             {
                                 heldClaims.Add(translation.Row.UniqueMessageId);
                             }
@@ -129,10 +126,11 @@ abstract class FailedMessagesWriterBase(IMigrationSqlDialect migrationDialect, I
     ];
 
     // Throws rather than guess, because a wrong guess either blocks a retry by id or lets one send the message twice.
-    static bool SourceHeldRetryClaim(MigrationRow row) =>
+    static bool SourceHeldRetryClaim(MigrationRow row, FailedMessageStatus status) =>
         row.Metadata.GetValueOrDefault(MigrationMetadataKeys.RetryClaimHeld) switch
         {
             bool held => held,
+            null when status != FailedMessageStatus.RetryIssued => false,
             null => throw new InvalidOperationException($"Row '{row.SourceId}' is retry-issued but arrived without a {MigrationMetadataKeys.RetryClaimHeld} value, which the source resolves for every retry-issued failed message"),
             var other => throw new InvalidOperationException($"Row '{row.SourceId}' carries a {other.GetType().FullName} as its {MigrationMetadataKeys.RetryClaimHeld} value, where the source sets a {typeof(bool).FullName}")
         };
@@ -188,12 +186,26 @@ abstract class FailedMessagesWriterBase(IMigrationSqlDialect migrationDialect, I
 }
 
 /// <summary>
-/// Writes the unresolved and retry-issued failed messages.
+/// Writes the retry-issued failed messages, the recent errors and the other messages that hold a retry claim, whatever their status.
+/// Its count is every row of the failed message table, which is the rows this category copied only while ServiceControl is stopped
+/// and nothing else has written to the table. Once ServiceControl has opened, live ingestion and the optional copies add rows to it.
 /// </summary>
 sealed class FailedMessagesWriter(IMigrationSqlDialect migrationDialect, IBodyStoragePersistence storagePersistence, EFPersisterSettings persisterSettings)
     : FailedMessagesWriterBase(migrationDialect, storagePersistence, persisterSettings)
 {
-    public override string CategoryId => MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages;
+    public override string CategoryId => MigrationCategoryIds.RecentAndRetriedFailedMessages;
 
-    protected override IReadOnlyCollection<FailedMessageStatus> Statuses => MigrationCategoryRegistry.UnresolvedAndRetryIssuedStatuses;
+    protected override IQueryable<FailedMessageEntity> Copied(ServiceControlDbContext dbContext) => dbContext.FailedMessages;
+}
+
+/// <summary>
+/// Writes the unresolved failed messages.
+/// </summary>
+sealed class UnresolvedFailedMessagesWriter(IMigrationSqlDialect migrationDialect, IBodyStoragePersistence storagePersistence, EFPersisterSettings persisterSettings)
+    : FailedMessagesWriterBase(migrationDialect, storagePersistence, persisterSettings)
+{
+    public override string CategoryId => MigrationCategoryIds.UnresolvedFailedMessages;
+
+    protected override IQueryable<FailedMessageEntity> Copied(ServiceControlDbContext dbContext) =>
+        dbContext.FailedMessages.Where(message => message.Status == FailedMessageStatus.Unresolved);
 }

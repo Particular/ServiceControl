@@ -17,7 +17,14 @@ public static class MigrationCategoryIds
     public const string LicensingThroughput = nameof(LicensingThroughput);
     public const string LicensingReportMasks = nameof(LicensingReportMasks);
     public const string LicensedEndpointDetails = nameof(LicensedEndpointDetails);
-    public const string UnresolvedAndRetryIssuedFailedMessages = nameof(UnresolvedAndRetryIssuedFailedMessages);
+
+    /// <summary>
+    /// Recent errors of any status, plus retry-issued messages and retry-claim holders of any age, copied before the host opens.
+    /// </summary>
+    public const string RecentAndRetriedFailedMessages = nameof(RecentAndRetriedFailedMessages);
+
+    /// <summary>The unresolved failed messages, copied once the host is open, whatever their age.</summary>
+    public const string UnresolvedFailedMessages = nameof(UnresolvedFailedMessages);
     public const string PendingIntegrationEvents = nameof(PendingIntegrationEvents);
 
     public const string EventLog = nameof(EventLog);

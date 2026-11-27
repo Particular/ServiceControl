@@ -20,7 +20,7 @@ class MigrationEngineBodyRetryTests
     [Test]
     public async Task A_body_that_fails_until_the_last_attempt_then_succeeds_is_written_with_its_body_attached()
     {
-        var category = MigrationCategoryRegistry.Find("UnresolvedAndRetryIssuedFailedMessages")!;
+        var category = MigrationCategoryRegistry.Find("RecentAndRetriedFailedMessages")!;
         var source = new InMemoryMigrationSource();
         source.Seed(category.Id, Row("msg-1"));
         var body = new MigrationBody(new byte[] { 1 }, "text/plain");
@@ -59,7 +59,7 @@ class MigrationEngineBodyRetryTests
     [TestCaseSource(nameof(Defects))]
     public async Task A_body_read_that_fails_as_a_defect_halts_the_category_on_the_first_attempt_without_skipping_the_message(Exception defect)
     {
-        var category = MigrationCategoryRegistry.Find("UnresolvedAndRetryIssuedFailedMessages")!;
+        var category = MigrationCategoryRegistry.Find("RecentAndRetriedFailedMessages")!;
         var source = new InMemoryMigrationSource();
         source.Seed(category.Id, Row("msg-1"));
         source.FailBodyReads("msg-1", MigrationEngine.MaxBodyReadAttempts, defect);
@@ -85,7 +85,7 @@ class MigrationEngineBodyRetryTests
     {
         // Retrying a shutdown to the attempt limit and then recording the message as permanently
         // unreadable is the one path here that silently loses a customer's failed message.
-        var category = MigrationCategoryRegistry.Find("UnresolvedAndRetryIssuedFailedMessages")!;
+        var category = MigrationCategoryRegistry.Find("RecentAndRetriedFailedMessages")!;
         var source = new InMemoryMigrationSource();
         source.Seed(category.Id, Row("msg-1"));
         using var stopping = new CancellationTokenSource();
@@ -112,7 +112,7 @@ class MigrationEngineBodyRetryTests
     {
         // Without the wait, three attempts against a body store that is briefly down all fail inside a
         // millisecond and the message is skipped for an outage it would have survived.
-        var category = MigrationCategoryRegistry.Find("UnresolvedAndRetryIssuedFailedMessages")!;
+        var category = MigrationCategoryRegistry.Find("RecentAndRetriedFailedMessages")!;
         var source = new InMemoryMigrationSource();
         source.Seed(category.Id, Row("msg-1"), Row("msg-2"));
         // Every attempt on msg-1 fails, so the guard against a wait after the final one is the only thing
@@ -152,7 +152,7 @@ class MigrationEngineBodyRetryTests
     {
         // The first failure of a retry run is usually a transient connect error. The last one says what the
         // body store was doing when the message was given up on, and it is all the operator gets.
-        var category = MigrationCategoryRegistry.Find("UnresolvedAndRetryIssuedFailedMessages")!;
+        var category = MigrationCategoryRegistry.Find("RecentAndRetriedFailedMessages")!;
         var source = new InMemoryMigrationSource();
         source.Seed(category.Id, Row("msg-1"));
         var failures = Enumerable.Range(1, MigrationEngine.MaxBodyReadAttempts)
@@ -179,7 +179,7 @@ class MigrationEngineBodyRetryTests
     [Test]
     public async Task A_body_the_source_already_attached_is_written_without_reading_it_again()
     {
-        var category = MigrationCategoryRegistry.Find("UnresolvedAndRetryIssuedFailedMessages")!;
+        var category = MigrationCategoryRegistry.Find("RecentAndRetriedFailedMessages")!;
         var source = new InMemoryMigrationSource();
         var attached = new MigrationBody(new byte[] { 7 }, "text/plain");
         source.Seed(category.Id, Row("msg-1") with { Body = attached });
@@ -201,7 +201,7 @@ class MigrationEngineBodyRetryTests
     [Test]
     public async Task Exhausted_attempts_skip_the_whole_message_and_count_toward_the_halt_threshold()
     {
-        var category = MigrationCategoryRegistry.Find("UnresolvedAndRetryIssuedFailedMessages")!;
+        var category = MigrationCategoryRegistry.Find("RecentAndRetriedFailedMessages")!;
         var source = new InMemoryMigrationSource();
         source.Seed(category.Id, Row("msg-1"), Row("msg-2"));
         source.FailBodyReads("msg-1", MigrationEngine.MaxBodyReadAttempts, new TimeoutException("down"));
@@ -225,7 +225,7 @@ class MigrationEngineBodyRetryTests
     [Test]
     public async Task A_body_store_outage_across_many_messages_halts_the_category()
     {
-        var category = MigrationCategoryRegistry.Find("UnresolvedAndRetryIssuedFailedMessages")!;
+        var category = MigrationCategoryRegistry.Find("RecentAndRetriedFailedMessages")!;
         var source = new InMemoryMigrationSource();
         var ids = Enumerable.Range(1, 1_000).Select(i => $"msg-{i}").ToArray();
         source.Seed(category.Id, [.. ids.Select(Row)]);

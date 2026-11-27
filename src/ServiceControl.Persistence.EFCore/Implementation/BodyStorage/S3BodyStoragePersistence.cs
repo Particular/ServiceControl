@@ -29,7 +29,7 @@ public class S3BodyStoragePersistence : IBodyStoragePersistence
     {
         var key = Key(bodyId);
 
-        // Bodies are immutable, so an existing object is already correct.
+        // Bodies are immutable, so an existing object is already correct. This skips the upload; the conditional put below decides a race.
         if (await Exists(key, cancellationToken))
         {
             return;
@@ -43,13 +43,22 @@ public class S3BodyStoragePersistence : IBodyStoragePersistence
             BucketName = bucketName,
             Key = key,
             InputStream = new ReadOnlyStream(payload),
-            ContentType = contentType
+            ContentType = contentType,
+            // A writer that stored this body after the check above wins, and a live body is never replaced.
+            IfNoneMatch = "*"
         };
         request.Metadata.Add("format-version", FormatVersion);
         request.Metadata.Add("body-size", body.Length.ToString());
         request.Metadata.Add("is-compressed", (compressed is not null).ToString());
 
-        await client.PutObjectAsync(request, cancellationToken);
+        try
+        {
+            await client.PutObjectAsync(request, cancellationToken);
+        }
+        catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.PreconditionFailed)
+        {
+            // An object for this immutable body already exists.
+        }
     }
 
     public async Task<MessageBodyFileResult?> ReadBody(string bodyId, CancellationToken cancellationToken = default)

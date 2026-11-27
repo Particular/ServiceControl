@@ -122,7 +122,7 @@ class MigrationEngineFailurePathTests
     [Test]
     public async Task Body_skips_in_a_batch_whose_write_fails_are_counted_once_across_the_restart()
     {
-        var category = MigrationCategoryRegistry.Find("UnresolvedAndRetryIssuedFailedMessages")!;
+        var category = MigrationCategoryRegistry.Find("RecentAndRetriedFailedMessages")!;
         var source = new InMemoryMigrationSource();
         source.Seed(category.Id, Row("msg-1"), Row("msg-2"));
         // msg-1's body is unreadable on both runs: every attempt fails on each.

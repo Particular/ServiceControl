@@ -64,6 +64,17 @@ class MigrationBeforeTheHostOpensTests
         await new MigrationBeforeTheHostOpens(services).StartingAsync();
     }
 
+    [Test]
+    public async Task The_required_failed_messages_with_the_unresolved_failed_messages_row_open_the_host_while_that_row_still_copies()
+    {
+        var store = new InMemoryMigrationCheckpointStore();
+        await store.Upsert(Checkpoint(MigrationCategoryIds.RecentAndRetriedFailedMessages, MigrationCategoryState.Complete));
+        await store.Upsert(Checkpoint(MigrationCategoryIds.UnresolvedFailedMessages, MigrationCategoryState.InProgress));
+        using var services = Services(store);
+
+        await new MigrationBeforeTheHostOpens(services).StartingAsync();
+    }
+
     static ServiceProvider Services(IMigrationCheckpointStore store) =>
         new ServiceCollection().AddSingleton(store).BuildServiceProvider();
 

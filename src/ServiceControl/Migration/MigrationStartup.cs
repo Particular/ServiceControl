@@ -95,7 +95,7 @@ static class MigrationStartup
             throw new Exception($"{exception.Message} {NoWayOutWithoutTheSource(settings)}", exception.InnerException);
         }
 
-        await MigrationStartupCheckRunner.Run(source.ContributedChecks(), cancellationToken);
+        await MigrationStartupCheckRunner.Run(source.ContributedChecks(MigrationCategoryKind.Required), cancellationToken);
 
         logger.LogInformation(
             "Offline migration: copying {CopyCount} required categories with ServiceControl stopped ({DeferredCount} not yet implemented: {Deferred})",
@@ -133,7 +133,7 @@ static class MigrationStartup
 
         await MigrationStartupCheckRunner.Run([SourceOpens(source)], cancellationToken);
 
-        await MigrationStartupCheckRunner.Run(source.ContributedChecks(), cancellationToken);
+        await MigrationStartupCheckRunner.Run(source.ContributedChecks(MigrationCategoryKind.Required), cancellationToken);
 
         return options;
     }

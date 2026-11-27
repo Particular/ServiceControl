@@ -82,7 +82,7 @@ sealed class OptionalCategoryCopier(IServiceProvider services, Settings settings
             return;
         }
 
-        await MigrationStartupCheckRunner.Run(source.ContributedChecks(), cancellationToken);
+        await MigrationStartupCheckRunner.Run(source.ContributedChecks(MigrationCategoryKind.Optional), cancellationToken);
         await engine.RunCategories(categories, cancellationToken);
     }
 }

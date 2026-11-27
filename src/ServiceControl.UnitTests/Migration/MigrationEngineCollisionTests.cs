@@ -20,7 +20,7 @@ class MigrationEngineCollisionTests
     [Test]
     public async Task Rows_already_present_in_the_target_are_counted_as_already_present_across_batches_not_skipped_or_overwritten()
     {
-        var category = MigrationCategoryRegistry.Find("UnresolvedAndRetryIssuedFailedMessages")!;
+        var category = MigrationCategoryRegistry.Find("RecentAndRetriedFailedMessages")!;
         var source = new InMemoryMigrationSource();
         source.Seed(category.Id, Row("msg-1", "from-source"), Row("msg-2", "from-source"), Row("msg-3", "from-source"), Row("msg-4", "from-source"));
         var checkpointStore = new InMemoryMigrationCheckpointStore();

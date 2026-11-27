@@ -17,7 +17,7 @@ using ServiceControl.UnitTests.Migration.Fakes;
 [TestFixture]
 class MigrationBodyLoaderTests
 {
-    static readonly MigrationCategory Category = MigrationCategoryRegistry.Find(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages)!;
+    static readonly MigrationCategory Category = MigrationCategoryRegistry.Find(MigrationCategoryIds.RecentAndRetriedFailedMessages)!;
     static readonly MigrationBody Body = new(Encoding.UTF8.GetBytes("<order>1</order>"), "text/xml");
 
     [Test]

@@ -11,7 +11,7 @@ using ServiceControl.Persistence.DataMigration;
 /// Copies the group comments, one row per comment keyed on its group id, and never replaces a comment the target already holds.
 /// A null or blank comment is skipped as BlankGroupComment, because the product keeps no row for one.
 /// A comment whose group id the key column treats as another's is reported as a merge.
-/// A copied comment on a group the target holds no failed message in is reported as a change, because the retention sweep deletes it once ServiceControl opens.
+/// A copied comment whose group has no failed message in the target is reported as a change.
 /// </summary>
 sealed class GroupCommentsWriter(IMigrationSqlDialect migrationDialect) : MigrationCategoryWriter<GroupComment>
 {
@@ -55,12 +55,11 @@ sealed class GroupCommentsWriter(IMigrationSqlDialect migrationDialect) : Migrat
             skips,
             merges)
         {
-            Changes = await CommentsTheSweepWillDelete(dbContext, inserted, cancellationToken)
+            Changes = await CommentsWithoutCopiedMessages(dbContext, inserted, cancellationToken)
         };
     }
 
-    // Group comments copy after the unresolved failed messages, so the groups the target holds now are the groups it holds when ServiceControl opens.
-    async Task<IReadOnlyList<(string SourceId, string Detail)>> CommentsTheSweepWillDelete(ServiceControlDbContext dbContext, IReadOnlyList<(string SourceId, GroupCommentEntity Row)> inserted, CancellationToken cancellationToken)
+    async Task<IReadOnlyList<(string SourceId, string Detail)>> CommentsWithoutCopiedMessages(ServiceControlDbContext dbContext, IReadOnlyList<(string SourceId, GroupCommentEntity Row)> inserted, CancellationToken cancellationToken)
     {
         string[] groupIds = [.. inserted.Select(comment => comment.Row.GroupId).Distinct(StringComparer.Ordinal)];
         var held = (await dbContext.FailedMessageGroups
@@ -72,8 +71,8 @@ sealed class GroupCommentsWriter(IMigrationSqlDialect migrationDialect) : Migrat
 
         return [.. inserted
             .Where(comment => !held.Contains(comment.Row.GroupId))
-            .Select(comment => (comment.SourceId, $"The group '{comment.Row.GroupId}' has no copied failed message, so the retention sweep removes this comment shortly after ServiceControl opens. " +
-                "Its messages are archived or resolved, are gone from the source, or were skipped by the copy. " +
+            .Select(comment => (comment.SourceId, $"The group '{comment.Row.GroupId}' has no copied failed message. " +
+                "Its messages may be archived or resolved, gone from the source, skipped by the copy, or not reached before the unresolved failed messages copy was abandoned. " +
                 $"The comment was: '{comment.Row.Comment}'"))];
     }
 }

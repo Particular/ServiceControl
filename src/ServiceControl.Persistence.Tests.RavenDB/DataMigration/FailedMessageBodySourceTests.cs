@@ -12,7 +12,7 @@ using ServiceControl.Persistence.DataMigration;
 class FailedMessageBodySourceTests : RavenMigrationSourceTestBase
 {
     static readonly MigrationCategory FailedMessages =
-        MigrationCategoryRegistry.All.Single(category => category.Id == MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        MigrationCategoryRegistry.All.Single(category => category.Id == MigrationCategoryIds.RecentAndRetriedFailedMessages);
 
     [Test]
     public async Task Reads_the_attachment_and_its_own_content_type()
@@ -30,6 +30,18 @@ class FailedMessageBodySourceTests : RavenMigrationSourceTestBase
             Assert.That(body.Content.ToArray(), Is.EqualTo(content));
             Assert.That(body.ContentType, Is.EqualTo("application/json"), "the message header says text/xml, the attachment's own type wins");
         }
+    }
+
+    [Test]
+    public async Task Reads_the_attachment_for_the_unresolved_failed_messages_too()
+    {
+        var content = Encoding.UTF8.GetBytes("<order>2</order>");
+        var documentId = await SeedWithAttachment(content, "application/json");
+
+        await using var source = await OpenMigrationSource();
+        var body = await source.ReadBody(MigrationCategoryRegistry.Find(MigrationCategoryIds.UnresolvedFailedMessages), documentId);
+
+        Assert.That(body?.Content.ToArray(), Is.EqualTo(content));
     }
 
     [Test]

@@ -28,7 +28,7 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
         var failure = new IngestedFailure { FailingEndpointAddress = "Sales@MACHINE" };
         await SeedFailure(failure);
 
-        await CopyCategory(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        await CopyCategory(MigrationCategoryIds.UnresolvedFailedMessages);
 
         var row = await GetFailedMessage(failure.UniqueMessageId);
 
@@ -58,7 +58,7 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
         var failure = new IngestedFailure();
         await SeedFailure(failure, numberOfAttempts: 5);
 
-        await CopyCategory(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        await CopyCategory(MigrationCategoryIds.UnresolvedFailedMessages);
 
         var row = await GetFailedMessage(failure.UniqueMessageId);
 
@@ -77,7 +77,7 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
         var failure = new IngestedFailure();
         await SeedFailure(failure);
 
-        var first = await CopyCategory(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        var first = await CopyCategory(MigrationCategoryIds.UnresolvedFailedMessages);
 
         await QueryTarget(async db =>
         {
@@ -87,9 +87,9 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
             return existing;
         });
 
-        await DeleteCheckpoint(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        await DeleteCheckpoint(MigrationCategoryIds.UnresolvedFailedMessages);
 
-        var second = await CopyCategory(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        var second = await CopyCategory(MigrationCategoryIds.UnresolvedFailedMessages);
 
         var row = await GetFailedMessage(failure.UniqueMessageId);
 
@@ -105,16 +105,15 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
     }
 
     [Test]
-    public async Task Counts_only_the_statuses_this_category_owns()
+    public async Task Counts_the_whole_table_for_the_required_copy_and_only_the_unresolved_rows_for_the_unresolved_copy()
     {
         var unresolved = new IngestedFailure();
         var retryIssued = new IngestedFailure();
         await SeedFailure(unresolved);
         await SeedFailure(retryIssued, FailedMessageStatus.RetryIssued);
 
-        await CopyCategory(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        var offline = await CopyCategory(OfflineCategoryId);
 
-        // Written straight into the target, because this build has no category that copies archived messages.
         await QueryTarget(async db =>
         {
             db.FailedMessages.Add(new FailedMessageEntity
@@ -128,12 +127,23 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
             return await db.SaveChangesAsync();
         });
 
-        var category = MigrationCategoryRegistry.All.Single(entry => entry.Id == MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        var offlineCategory = MigrationCategoryRegistry.All.Single(entry => entry.Id == OfflineCategoryId);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(await Target.Count(category), Is.EqualTo(2), "the category's count takes in the archive's rows unless it honours the category's statuses");
-            Assert.That(await QueryTarget(db => db.FailedMessages.CountAsync()), Is.EqualTo(3), "the filter is doing the work, not an empty table");
+            Assert.That(offline.Copied, Is.EqualTo(2), "the unresolved message is the newest one, so it is a recent error and copies with the retry-issued message");
+            Assert.That(await Target.Count(offlineCategory), Is.EqualTo(3), "the required count includes the extra archived row written directly to the shared table");
+            Assert.That(await QueryTarget(db => db.FailedMessages.CountAsync()), Is.EqualTo(3));
+        }
+
+        var online = await CopyCategory(MigrationCategoryIds.UnresolvedFailedMessages);
+        var onlineCategory = MigrationCategoryRegistry.All.Single(entry => entry.Id == MigrationCategoryIds.UnresolvedFailedMessages);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(online.Copied, Is.Zero);
+            Assert.That(online.AlreadyPresent, Is.EqualTo(1), "the required copy took the recent unresolved message");
+            Assert.That(await Target.Count(onlineCategory), Is.EqualTo(1));
         }
     }
 
@@ -143,7 +153,7 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
         var failure = new IngestedFailure();
         await SeedFailure(failure);
 
-        await CopyCategory(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        await CopyCategory(MigrationCategoryIds.UnresolvedFailedMessages);
 
         var groups = await QueryTarget(db => db.FailedMessageGroups
             .AsNoTracking()
@@ -169,9 +179,10 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
         await SeedFailure(retryIssued, FailedMessageStatus.RetryIssued);
         await SeedSourceRetryClaim(retryIssued.UniqueMessageIdString);
 
-        var copy = await CopyCategory(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        var offline = await CopyCategory(OfflineCategoryId);
+        var online = await CopyCategory(MigrationCategoryIds.UnresolvedFailedMessages);
 
-        Assert.That(copy.Copied, Is.EqualTo(2), "the test proves nothing unless both messages reached the target");
+        Assert.That(offline.Copied + online.Copied, Is.EqualTo(2), "the test proves nothing unless both messages reached the target");
 
         string[] ids = [unresolved.UniqueMessageIdString, retryIssued.UniqueMessageIdString];
         var batchId = await RetryBatchStore.CreateBatch("migration-test-session", "retry-by-id", RetryType.MultipleMessages, ids, null, DateTime.UtcNow);
@@ -190,7 +201,7 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
         await SeedFailure(retryIssued, FailedMessageStatus.RetryIssued);
         await SeedSourceRetryClaim(retryIssued.UniqueMessageIdString);
 
-        var copy = await CopyCategory(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        var copy = await CopyCategory(OfflineCategoryId);
 
         using (Assert.EnterMultipleScope())
         {
@@ -217,12 +228,12 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
         var failure = new IngestedFailure();
         await SeedFailure(failure);
 
-        await CopyCategory(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        await CopyCategory(MigrationCategoryIds.UnresolvedFailedMessages);
 
         await QueryTarget(db => db.FailedMessageGroups.Where(group => group.FailedMessageUniqueId == failure.UniqueMessageId).ExecuteDeleteAsync());
-        await DeleteCheckpoint(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        await DeleteCheckpoint(MigrationCategoryIds.UnresolvedFailedMessages);
 
-        var second = await CopyCategory(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        var second = await CopyCategory(MigrationCategoryIds.UnresolvedFailedMessages);
 
         var groups = await QueryTarget(db => db.FailedMessageGroups.AsNoTracking().CountAsync(group => group.FailedMessageUniqueId == failure.UniqueMessageId));
 
@@ -240,6 +251,7 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
         await SeedFailure(failure);
 
         await MigrateThenRunHost();
+        await WaitUntil(async () => (await ReadCheckpoint(MigrationCategoryIds.UnresolvedFailedMessages))?.State.IsFinished() == true, "the unresolved copy finished");
 
         var response = await HttpClient.GetAsync($"api/errors/last/{failure.UniqueMessageIdString}");
 
@@ -259,41 +271,49 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
     }
 
     [Test]
-    public async Task The_required_copy_completes_the_category_before_the_host_opens()
+    public async Task The_required_copy_completes_the_category_before_the_host_opens_with_the_recent_unresolved_message()
     {
-        var failures = Enumerable.Range(0, 3).Select(_ => new IngestedFailure()).ToArray();
+        var retryIssued = Enumerable.Range(0, 3).Select(_ => new IngestedFailure()).ToArray();
 
-        foreach (var failure in failures)
+        foreach (var failure in retryIssued)
         {
-            await SeedFailure(failure);
+            await SeedFailure(failure, FailedMessageStatus.RetryIssued);
         }
+
+        await SeedFailure(new IngestedFailure());
 
         await MigrateThenRunHost();
 
-        var checkpoint = await ReadCheckpoint("UnresolvedAndRetryIssuedFailedMessages");
+        var checkpoint = await ReadCheckpoint(OfflineCategoryId);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Complete));
-            Assert.That(checkpoint.CopiedCount, Is.EqualTo(3));
+            Assert.That(checkpoint.CopiedCount, Is.EqualTo(4), "the three retry-issued messages and the unresolved message, which is the newest and so recent");
             Assert.That(checkpoint.SkippedCount, Is.Zero);
             Assert.That(checkpoint.SourceTotal, Is.Null, "the engine no longer counts the source before copying");
         }
+
+        await WaitUntil(async () => (await ReadCheckpoint(MigrationCategoryIds.UnresolvedFailedMessages))?.State.IsFinished() == true, "the unresolved copy finished");
+
+        var online = await ReadCheckpoint(MigrationCategoryIds.UnresolvedFailedMessages);
+
+        Assert.That((online.CopiedCount, online.AlreadyPresentCount), Is.EqualTo((0, 1)), "the unresolved copy finds the message the required copy took");
     }
 
     [Test]
     public async Task Records_each_skip_under_the_reason_that_caused_it()
     {
         var good = new IngestedFailure();
-        await SeedFailure(good);
+        await SeedFailure(good, FailedMessageStatus.RetryIssued);
 
         var unparseable = new IngestedFailure();
-        var unparseableDocument = unparseable.ToFailedMessage();
+        var unparseableDocument = unparseable.ToFailedMessage(FailedMessageStatus.RetryIssued);
         unparseableDocument.UniqueMessageId = "not-a-guid";
         await SeedSourceWithBody(unparseableDocument, unparseable.Body, unparseable.ContentType);
 
         var attemptless = new IngestedFailure();
-        var attemptlessDocument = attemptless.ToFailedMessage();
+        var attemptlessDocument = attemptless.ToFailedMessage(FailedMessageStatus.RetryIssued);
         attemptlessDocument.ProcessingAttempts.Clear();
         await SeedSourceWithBody(attemptlessDocument, attemptless.Body, attemptless.ContentType);
 
@@ -301,11 +321,11 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
 
         var refused = Assert.ThrowsAsync<Exception>(async () => await MigrateCommand.Run(Settings, AllowingAnUnreleasedMigration(), cancellation.Token));
 
-        var checkpoint = await ReadCheckpoint("UnresolvedAndRetryIssuedFailedMessages");
+        var checkpoint = await ReadCheckpoint(OfflineCategoryId);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(refused.Message, Does.Contain("UnresolvedAndRetryIssuedFailedMessages").And.Contain("--migration-retry").And.Contain("--migration-abandon"), "a fault skip leaves a required category Failed, so the host stays closed and names both commands");
+            Assert.That(refused.Message, Does.Contain("RecentAndRetriedFailedMessages").And.Contain("--migration-retry").And.Contain("--migration-abandon"), "a fault skip leaves a required category Failed, so the host stays closed and names both commands");
             Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.CompleteWithErrors));
             Assert.That(checkpoint.CopiedCount, Is.EqualTo(1));
             Assert.That(checkpoint.SkippedCount, Is.EqualTo(2));
@@ -338,7 +358,7 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
             (badTimeSentDocument, badTimeSent.Body, badTimeSent.ContentType),
             (badHostIdDocument, badHostId.Body, badHostId.ContentType));
 
-        var result = await CopyCategory(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        var result = await CopyCategory(MigrationCategoryIds.UnresolvedFailedMessages);
 
         using (Assert.EnterMultipleScope())
         {
@@ -364,7 +384,7 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
         await DeleteStoredTimeOfFailure(newestHasNoTime, attempt: 0);
         await DeleteStoredTimeOfFailure(olderHasNoTime, attempt: 0);
 
-        var result = await CopyCategory(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        var result = await CopyCategory(MigrationCategoryIds.UnresolvedFailedMessages);
 
         var copied = await GetFailedMessage(olderHasNoTime.UniqueMessageId);
 
@@ -384,6 +404,8 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
             $"FailedMessages/{failure.UniqueMessageIdString}",
             null,
             new PatchRequest { Script = $"delete this.ProcessingAttempts[{attempt}].FailureDetails.TimeOfFailure;" }));
+
+    const string OfflineCategoryId = MigrationCategoryIds.RecentAndRetriedFailedMessages;
 
     // Seeded with its body, because the copy leaves out a message whose body the source does not hold.
     Task SeedFailure(IngestedFailure failure, FailedMessageStatus status = FailedMessageStatus.Unresolved, int numberOfAttempts = 1) =>

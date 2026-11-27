@@ -28,6 +28,7 @@ sealed class RavenMigrationSource(RavenReadOnlySourceLifecycle lifecycle) : IMig
         new KnownEndpointsReader(lifecycle),
         new EndpointSettingsReader(lifecycle),
         new FailedMessagesReader(lifecycle),
+        new UnresolvedFailedMessagesReader(lifecycle),
         new LicensingEndpointsReader(lifecycle),
         new LicensingThroughputReader(lifecycle),
         new LicensingReportMasksReader(lifecycle),
@@ -45,7 +46,8 @@ sealed class RavenMigrationSource(RavenReadOnlySourceLifecycle lifecycle) : IMig
 
     public Task Open(CancellationToken cancellationToken = default) => lifecycle.Open(cancellationToken);
 
-    public IReadOnlyList<IMigrationStartupCheck> ContributedChecks() => [];
+    public IReadOnlyList<IMigrationStartupCheck> ContributedChecks(MigrationCategoryKind copying) =>
+        copying == MigrationCategoryKind.Required ? [new UnfinishedOperationsCheck(lifecycle)] : [];
 
     public async Task<MigrationSourceDescription> Describe(CancellationToken cancellationToken = default)
     {
@@ -103,7 +105,7 @@ sealed class RavenMigrationSource(RavenReadOnlySourceLifecycle lifecycle) : IMig
     public async Task<MigrationBody?> ReadBody(MigrationCategory category, string sourceId, CancellationToken cancellationToken = default)
     {
         // Another category may keep its body inside the document, where a body attachment read would find nothing and skip every row as BodyMissing.
-        if (category.Id != MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages)
+        if (category.Id is not (MigrationCategoryIds.RecentAndRetriedFailedMessages or MigrationCategoryIds.UnresolvedFailedMessages))
         {
             throw new NotSupportedException($"The migration source does not read bodies as attachments for the '{category.Id}' category.");
         }

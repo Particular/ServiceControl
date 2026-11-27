@@ -44,7 +44,7 @@ class FailedMessageMigrationCoverageTests : PersistenceTestBase
     public async Task Every_retry_claim_column_is_set_for_a_copied_retry_issued_message()
     {
         var target = ServiceProvider.GetRequiredService<IMigrationTarget>();
-        var category = MigrationCategoryRegistry.All.Single(entry => entry.Id == MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        var category = MigrationCategoryRegistry.All.Single(entry => entry.Id == MigrationCategoryIds.RecentAndRetriedFailedMessages);
         var row = FullyPopulatedRow();
         var source = row with
         {

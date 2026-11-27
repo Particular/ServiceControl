@@ -2,8 +2,15 @@ namespace ServiceControl.Persistence.Tests.RavenDB.DataMigration;
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
+using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
+using Raven.Client.Documents.Smuggler;
+using ServiceControl.MessageFailures;
 using ServiceControl.Configuration;
 using ServiceControl.Persistence.DataMigration;
 using ServiceControl.Persistence.RavenDB;
@@ -53,6 +60,39 @@ abstract class RavenMigrationSourceTestBase : RavenPersistenceTestBase
         await source.Open();
 
         return source;
+    }
+
+    // RavenDB assigns last-modified from its own clock, but a smuggler import keeps the one carried in the document.
+    protected async Task<FailedMessage> SeedFailedMessage(FailedMessage failedMessage, DateTime lastModified)
+    {
+        await SeedFailedMessage(failedMessage);
+
+        JObject document;
+        using (var session = DocumentStore.OpenAsyncSession())
+        {
+            var stored = await session.LoadAsync<FailedMessage>(failedMessage.Id);
+            document = JObject.FromObject(stored);
+            var metadata = session.Advanced.GetMetadataFor(stored);
+            document["@metadata"] = new JObject
+            {
+                ["@id"] = failedMessage.Id,
+                ["@collection"] = (string)metadata["@collection"],
+                ["Raven-Clr-Type"] = (string)metadata["Raven-Clr-Type"],
+                ["@last-modified"] = lastModified.ToUniversalTime()
+            };
+        }
+
+        using var dump = new MemoryStream();
+        using (var gzip = new GZipStream(dump, CompressionMode.Compress, leaveOpen: true))
+        {
+            gzip.Write(Encoding.UTF8.GetBytes(new JObject { ["Docs"] = new JArray(document) }.ToString(Formatting.None)));
+        }
+
+        dump.Position = 0;
+        var import = await DocumentStore.Smuggler.ImportAsync(new DatabaseSmugglerImportOptions(), dump, TestContext.CurrentContext.CancellationToken);
+        await import.WaitForCompletionAsync();
+
+        return failedMessage;
     }
 
     protected static async Task<List<MigrationBatch>> CollectBatches(IMigrationSource source, MigrationCategory category, string resumeAfter = null, int batchSize = 100)

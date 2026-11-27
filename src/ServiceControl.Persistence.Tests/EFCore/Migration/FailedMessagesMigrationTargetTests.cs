@@ -10,8 +10,11 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using NServiceBus.Extensibility;
+using NServiceBus.Transport;
 using NUnit.Framework;
 using ServiceControl.MessageFailures;
+using ServiceControl.Operations;
 using ServiceControl.Persistence.DataMigration;
 using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.DataMigration;
@@ -37,7 +40,9 @@ class FailedMessagesMigrationTargetTests : PersistenceTestBase
 
     static readonly MigrationBody SmallTextBody = new(Encoding.UTF8.GetBytes("<order>1</order>"), "text/xml");
 
-    static readonly MigrationCategory FailedMessagesCategory = MigrationCategoryRegistry.All.Single(category => category.Id == MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+    static readonly MigrationCategory UnresolvedCategory = MigrationCategoryRegistry.All.Single(category => category.Id == MigrationCategoryIds.UnresolvedFailedMessages);
+
+    static readonly MigrationCategory FailedMessagesCategory = MigrationCategoryRegistry.All.Single(category => category.Id == MigrationCategoryIds.RecentAndRetriedFailedMessages);
 
     [Test]
     public async Task A_copied_message_arrives_with_its_failure_group_rows()
@@ -150,7 +155,7 @@ class FailedMessagesMigrationTargetTests : PersistenceTestBase
         var present = new IngestedFailure();
         var absent = new IngestedFailure();
         await Target.Write(FailedMessagesCategory, BatchOf(present.ToFailedMessage()), Checkpoint());
-        var saved = await CheckpointStore.Read(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        var saved = await CheckpointStore.Read(MigrationCategoryIds.RecentAndRetriedFailedMessages);
 
         var result = await Target.Write(FailedMessagesCategory, BatchOf(present.ToFailedMessage(), absent.ToFailedMessage()), saved);
 
@@ -480,9 +485,13 @@ class FailedMessagesMigrationTargetTests : PersistenceTestBase
     }
 
     [Test]
-    public async Task Count_takes_in_only_unresolved_and_retry_issued_messages()
+    public async Task Count_of_the_required_copy_takes_in_every_failed_message_row_whatever_its_status_or_claim()
     {
-        await Target.Write(FailedMessagesCategory, BatchOf(new IngestedFailure().ToFailedMessage(), new IngestedFailure().ToFailedMessage(FailedMessageStatus.RetryIssued)), Checkpoint());
+        var holder = new IngestedFailure().ToFailedMessage(FailedMessageStatus.Archived);
+        await Target.Write(FailedMessagesCategory, BatchOf(
+            RowOf(new IngestedFailure().ToFailedMessage(), SmallTextBody),
+            RowOf(new IngestedFailure().ToFailedMessage(FailedMessageStatus.RetryIssued), SmallTextBody),
+            WithClaimHeld(RowOf(holder, SmallTextBody), true)), Checkpoint());
         await Query(db =>
         {
             db.FailedMessages.AddRange(
@@ -493,12 +502,198 @@ class FailedMessagesMigrationTargetTests : PersistenceTestBase
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(await Target.Count(FailedMessagesCategory), Is.EqualTo(2), "the archived and resolved rows belong to another category");
-            Assert.That(await Query(db => db.FailedMessages.CountAsync()), Is.EqualTo(4), "the filter is doing the work, not an empty table");
+            Assert.That(await Target.Count(FailedMessagesCategory), Is.EqualTo(5), "while ServiceControl is stopped the table holds only what the required copy wrote, recent errors included, so the count is the whole table");
+            Assert.That(await Query(db => db.FailedMessages.CountAsync()), Is.EqualTo(5));
         }
     }
 
-    // PostgreSQL takes a fixed number of rows per statement whatever the entity, so only SQL Server can catch the wrong entity here.
+    [Test]
+    public async Task Count_of_the_unresolved_copy_takes_in_only_unresolved_messages()
+    {
+        await Target.Write(UnresolvedCategory, BatchOf(new IngestedFailure().ToFailedMessage(), new IngestedFailure().ToFailedMessage()), Checkpoint(MigrationCategoryIds.UnresolvedFailedMessages));
+        await Query(db =>
+        {
+            db.FailedMessages.AddRange(
+                new FailedMessageEntity { UniqueMessageId = Guid.NewGuid(), Status = FailedMessageStatus.RetryIssued, HeadersJson = "{}", FailingEndpointAddress = "error" },
+                new FailedMessageEntity { UniqueMessageId = Guid.NewGuid(), Status = FailedMessageStatus.Archived, HeadersJson = "{}", FailingEndpointAddress = "error" });
+            return db.SaveChangesAsync();
+        });
+
+        Assert.That(await Target.Count(UnresolvedCategory), Is.EqualTo(2));
+    }
+
+    [Test]
+    public async Task A_claim_holder_of_any_status_gets_a_retry_claim_and_a_message_without_one_does_not()
+    {
+        var unresolved = new IngestedFailure();
+        var archived = new IngestedFailure();
+        var resolved = new IngestedFailure();
+        var withoutClaim = new IngestedFailure();
+
+        var result = await Target.Write(FailedMessagesCategory, BatchOf(
+            WithClaimHeld(RowOf(unresolved.ToFailedMessage(), SmallTextBody), true),
+            WithClaimHeld(RowOf(archived.ToFailedMessage(FailedMessageStatus.Archived), SmallTextBody), true),
+            WithClaimHeld(RowOf(resolved.ToFailedMessage(FailedMessageStatus.Resolved), SmallTextBody), true),
+            WithClaimHeld(RowOf(withoutClaim.ToFailedMessage(FailedMessageStatus.Archived), SmallTextBody), false)), Checkpoint());
+
+        var rows = await Query(db => db.FailedMessages.AsNoTracking().ToDictionaryAsync(message => message.UniqueMessageId, message => message.Status));
+        var claimed = await Query(db => db.FailedMessageRetries.AsNoTracking().Select(claim => claim.UniqueMessageId).ToListAsync());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.Copied, Is.EqualTo(4));
+            Assert.That(rows[archived.UniqueMessageId], Is.EqualTo(FailedMessageStatus.Archived), "the row keeps the status it had in the source");
+            Assert.That(rows[resolved.UniqueMessageId], Is.EqualTo(FailedMessageStatus.Resolved));
+            Assert.That(claimed, Is.EquivalentTo(new[] { unresolved.UniqueMessageId, archived.UniqueMessageId, resolved.UniqueMessageId }), "a retry by id stays blocked for every holder, whatever its status");
+        }
+    }
+
+    [Test]
+    public async Task A_claim_holder_already_in_the_target_gets_no_retry_claim_from_the_copy()
+    {
+        var present = new IngestedFailure();
+        await Query(db =>
+        {
+            db.FailedMessages.Add(new FailedMessageEntity { UniqueMessageId = present.UniqueMessageId, Status = FailedMessageStatus.Unresolved, HeadersJson = "{}", FailingEndpointAddress = "error" });
+            return db.SaveChangesAsync();
+        });
+
+        var result = await Target.Write(FailedMessagesCategory, BatchOf(WithClaimHeld(RowOf(present.ToFailedMessage(), SmallTextBody), true)), Checkpoint());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.AlreadyPresent, Is.EqualTo(1));
+            Assert.That(await Query(db => db.FailedMessageRetries.CountAsync()), Is.Zero);
+        }
+    }
+
+    [Test]
+    public async Task The_unresolved_copy_inserts_unresolved_messages_with_their_groups_and_bodies_and_no_claim()
+    {
+        var failure = new IngestedFailure { ContentType = "application/octet-stream" };
+        var body = new MigrationBody(new byte[] { 0x08, 0x00, 0x96, 0x01 }, "application/octet-stream");
+
+        var result = await Target.Write(UnresolvedCategory, BatchOf(RowOf(failure.ToFailedMessage(), body)), Checkpoint(MigrationCategoryIds.UnresolvedFailedMessages));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.Copied, Is.EqualTo(1));
+            Assert.That(await Query(db => db.FailedMessageGroups.CountAsync(group => group.FailedMessageUniqueId == failure.UniqueMessageId)), Is.EqualTo(failure.Groups.Count));
+            Assert.That(await BodyStored(failure.UniqueMessageIdString), Is.True);
+            Assert.That(await Query(db => db.FailedMessageRetries.CountAsync()), Is.Zero);
+        }
+    }
+
+    [Test]
+    public async Task A_row_ingestion_wrote_first_wins_over_the_unresolved_copy_with_its_attempt_count_payload_and_body()
+    {
+        var failure = new IngestedFailure { ContentType = "application/octet-stream" };
+        var liveBody = new byte[] { 0x01, 0x02 };
+        await Query(db =>
+        {
+            db.FailedMessages.Add(new FailedMessageEntity
+            {
+                UniqueMessageId = failure.UniqueMessageId,
+                Status = FailedMessageStatus.Unresolved,
+                ExceptionMessage = "Written by ingestion",
+                NumberOfProcessingAttempts = 1,
+                HeadersJson = "{}",
+                FailingEndpointAddress = "error",
+                BodyStoredExternally = true
+            });
+            return db.SaveChangesAsync();
+        });
+        await BodyStore.WriteBody(failure.UniqueMessageIdString, liveBody, "application/octet-stream");
+
+        var result = await Target.Write(UnresolvedCategory, BatchOf(RowOf(failure.ToFailedMessage(numberOfAttempts: 3), new MigrationBody(new byte[] { 0x09, 0x09, 0x09 }, "application/octet-stream"))), Checkpoint(MigrationCategoryIds.UnresolvedFailedMessages));
+
+        var row = await Query(db => db.FailedMessages.AsNoTracking().SingleAsync(message => message.UniqueMessageId == failure.UniqueMessageId));
+        var stored = await BodyStore.ReadBody(failure.UniqueMessageIdString);
+        using var memory = new MemoryStream();
+        await stored.Stream.CopyToAsync(memory);
+        await stored.Stream.DisposeAsync();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.Copied, Is.Zero);
+            Assert.That(result.AlreadyPresent, Is.EqualTo(1), "an existing SQL row counts as already present, not as a skip");
+            Assert.That(result.Skipped, Is.Zero);
+            Assert.That(row.ExceptionMessage, Is.EqualTo("Written by ingestion"), "SQL wins, so its payload stays even when the source holds a newer attempt");
+            Assert.That(row.NumberOfProcessingAttempts, Is.EqualTo(1), "SQL wins, so its attempt count omits the earlier RavenDB attempts");
+            Assert.That(memory.ToArray(), Is.EqualTo(liveBody), "the migration never replaces a body a live row already holds");
+        }
+    }
+
+    [Test]
+    public async Task A_body_stored_after_the_present_check_and_before_the_body_write_is_not_replaced()
+    {
+        // The present check and the body write are not atomic, so a body that ingestion stores between them has to survive the write.
+        var failure = new IngestedFailure { ContentType = "application/octet-stream" };
+        var liveBody = new byte[] { 0x01, 0x02 };
+        await BodyStore.WriteBody(failure.UniqueMessageIdString, liveBody, "application/octet-stream");
+
+        await Target.Write(UnresolvedCategory, BatchOf(RowOf(failure.ToFailedMessage(), new MigrationBody(new byte[] { 0x09, 0x09, 0x09 }, "application/octet-stream"))), Checkpoint(MigrationCategoryIds.UnresolvedFailedMessages));
+
+        var stored = await BodyStore.ReadBody(failure.UniqueMessageIdString);
+        using var memory = new MemoryStream();
+        await stored.Stream.CopyToAsync(memory);
+        await stored.Stream.DisposeAsync();
+
+        Assert.That(memory.ToArray(), Is.EqualTo(liveBody));
+    }
+
+    // Known release blocker, not accepted behavior: docs/migration/failed-message-migration-split-plan.md describes the interleaving.
+    // The test pins today's behavior and changes no confirmation handling, so it has to be rewritten when the blocker is resolved.
+    [Test]
+    public async Task Known_release_blocker_a_retry_confirmation_for_a_message_the_unresolved_copy_has_not_inserted_is_consumed_and_the_message_arrives_unresolved()
+    {
+        var failure = new IngestedFailure();
+        var confirmation = new MessageContext(
+            Guid.NewGuid().ToString(),
+            new Dictionary<string, string>
+            {
+                ["ServiceControl.Retry.Successful"] = string.Empty,
+                ["ServiceControl.Retry.UniqueMessageId"] = failure.UniqueMessageIdString
+            },
+            ReadOnlyMemory<byte>.Empty,
+            new TransportTransaction(),
+            "receiveAddress",
+            new ContextBag());
+        var unitOfWork = await IngestionUnitOfWorkFactory.StartNew();
+
+        await new RetryConfirmationProcessor(new FakeDomainEvents()).Process([confirmation], unitOfWork);
+
+        Assert.DoesNotThrowAsync(() => unitOfWork.Complete(TestContext.CurrentContext.CancellationToken), "a confirmation for a missing row succeeds today, which is how it is consumed");
+        Assert.That(await Query(db => db.FailedMessages.CountAsync()), Is.Zero, "the confirmation records nothing for a row that is absent");
+
+        await Target.Write(UnresolvedCategory, BatchOf(failure.ToFailedMessage()), Checkpoint(MigrationCategoryIds.UnresolvedFailedMessages));
+
+        var row = await Query(db => db.FailedMessages.AsNoTracking().SingleAsync(message => message.UniqueMessageId == failure.UniqueMessageId));
+        Assert.That(row.Status, Is.EqualTo(FailedMessageStatus.Unresolved), "the consumed confirmation no longer resolves the message");
+    }
+
+    [Test]
+    public void The_unresolved_copy_follows_the_required_copy_checkpoint_layout()
+    {
+        Assert.That(UnresolvedCategory.Kind, Is.EqualTo(MigrationCategoryKind.Optional));
+    }
+
+    [Test]
+    public async Task Writes_a_message_ingestion_has_not_stored_even_when_the_target_holds_a_claim_for_another()
+    {
+        var other = new IngestedFailure();
+        var failure = new IngestedFailure();
+        await Target.Write(FailedMessagesCategory, BatchOf(RowOf(other.ToFailedMessage(FailedMessageStatus.RetryIssued), SmallTextBody)), Checkpoint());
+
+        var result = await Target.Write(UnresolvedCategory, BatchOf(failure.ToFailedMessage()), Checkpoint(MigrationCategoryIds.UnresolvedFailedMessages));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.Copied, Is.EqualTo(1));
+            Assert.That(await Query(db => db.FailedMessageRetries.CountAsync()), Is.EqualTo(1), "the unresolved copy neither adds nor removes a claim");
+        }
+    }
+
     [Test]
     public async Task A_batch_is_one_statement_of_failed_message_rows()
     {
@@ -608,7 +803,7 @@ class FailedMessagesMigrationTargetTests : PersistenceTestBase
                 "a storage SDK's own error does not name the body, so without the row and body id the operator cannot tell which message halted the category");
             Assert.That(exception.InnerException, Is.TypeOf<IOException>().And.Message.EqualTo(UnwritableBodyStore.Failure));
             Assert.That(await Query(db => db.FailedMessages.CountAsync()), Is.Zero, "a row committed without its body would name a body that was never stored");
-            Assert.That(await CheckpointStore.Read(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages), Is.Null, "a checkpoint past the batch would stop a retry from reading it again");
+            Assert.That(await CheckpointStore.Read(MigrationCategoryIds.RecentAndRetriedFailedMessages), Is.Null, "a checkpoint past the batch would stop a retry from reading it again");
         }
     }
 
@@ -623,7 +818,7 @@ class FailedMessagesMigrationTargetTests : PersistenceTestBase
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(exception.Message, Does.Contain($"'FailedMessages/{document.UniqueMessageId}'").And.Contain(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages).And.Contain(nameof(InvalidCastException)),
+            Assert.That(exception.Message, Does.Contain($"'FailedMessages/{document.UniqueMessageId}'").And.Contain(MigrationCategoryIds.RecentAndRetriedFailedMessages).And.Contain(nameof(InvalidCastException)),
                 "the halt's LastError is built from this message, and without the row the operator cannot tell which document to look at");
             Assert.That(exception.InnerException, Is.TypeOf<InvalidCastException>());
         }
@@ -636,7 +831,7 @@ class FailedMessagesMigrationTargetTests : PersistenceTestBase
 
         var exception = Assert.ThrowsAsync<InvalidOperationException>(() => Target.Write(FailedMessagesCategory, BatchOf(RowOf(document, body: null)), Checkpoint()));
 
-        Assert.That(exception.Message, Does.Contain($"'FailedMessages/{document.UniqueMessageId}'").And.Contain(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages));
+        Assert.That(exception.Message, Does.Contain($"'FailedMessages/{document.UniqueMessageId}'").And.Contain(MigrationCategoryIds.RecentAndRetriedFailedMessages));
     }
 
     // Disposes the stream, because the file store holds the body file open until it is.
@@ -706,6 +901,6 @@ class FailedMessagesMigrationTargetTests : PersistenceTestBase
 
     FailedMessagesWriter Writer() => new(ServiceProvider.GetRequiredService<IMigrationSqlDialect>(), BodyStore, ServiceProvider.GetRequiredService<EFPersisterSettings>());
 
-    static MigrationCheckpoint Checkpoint() =>
-        new(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages, MigrationCategoryState.InProgress, null, 0, 0, null, null, null, null, null, null);
+    static MigrationCheckpoint Checkpoint(string categoryId = MigrationCategoryIds.RecentAndRetriedFailedMessages) =>
+        new(categoryId, MigrationCategoryState.InProgress, null, 0, 0, null, null, null, null, null, null);
 }
