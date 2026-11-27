@@ -17,6 +17,8 @@ interface IAuditPartitionManager
     Task<DropResult> DropExpired(AuditDbContext dbContext, AuditRetentionEntity entity, DateTime start, int batchSize, CancellationToken cancellationToken = default);
 
     Task<DateTime?> ProvisionedUntil(AuditDbContext dbContext, CancellationToken cancellationToken = default);
+
+    bool IsCommandTimeout(Exception exception) => false;
 }
 
 readonly record struct DropResult(int RowsDeleted, bool Completed, bool Deferred = false);

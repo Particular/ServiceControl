@@ -25,6 +25,7 @@ sealed class AuditRetention(
     static readonly TimeSpan InitialDelay = TimeSpan.FromMinutes(1);
     static readonly TimeSpan BatchPause = TimeSpan.FromSeconds(1);
     static readonly TimeSpan RetryBaseDelay = TimeSpan.FromSeconds(10);
+    const string CommandTimeoutSetting = $"ServiceControl.Audit/{EFPersistenceConfigurationBase.CommandTimeoutKey}";
 
     // Before ingestion starts, which cannot insert into an hour that has no partition.
     public override async Task StartAsync(CancellationToken cancellationToken = default)
@@ -174,6 +175,12 @@ sealed class AuditRetention(
 #pragma warning disable PS0019 // Filtered on the token alone because SqlClient reports a cancelled command as a SqlException.
         catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
         {
+            if (partitions.IsCommandTimeout(ex))
+            {
+                logger.LogError(ex, "The {RetentionEntity} audit retention pass exceeded the command timeout of {CommandTimeout} seconds. If this continues, increase the {Setting} setting", entity, settings.CommandTimeout, CommandTimeoutSetting);
+                return $"{entity}: a command exceeded the timeout of {settings.CommandTimeout} seconds. If this continues, increase the {CommandTimeoutSetting} setting";
+            }
+
             logger.LogError(ex, "Error during the {RetentionEntity} audit retention pass", entity);
             return $"{entity}: {ex.Message}";
         }

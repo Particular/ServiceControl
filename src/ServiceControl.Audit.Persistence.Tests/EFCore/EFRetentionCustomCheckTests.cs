@@ -75,6 +75,24 @@ namespace ServiceControl.Audit.Persistence.Tests
         }
 
         [Test]
+        public async Task Check_names_the_command_timeout_setting_when_a_pass_exceeds_the_command_timeout()
+        {
+            var partitions = new FailingAuditPartitions(AuditRetentionEntity.AuditMessages, ServiceProvider.GetRequiredService<IAuditPartitionManager>(), failsWithCommandTimeout: true);
+            var retention = ActivatorUtilities.CreateInstance<AuditRetention>(ServiceProvider, partitions);
+
+            await retention.SweepNow();
+            await retention.SweepNow();
+            await retention.SweepNow();
+            var result = await Check.PerformCheck();
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(result.HasFailed, Is.True);
+                Assert.That(result.FailureReason, Does.Contain("ServiceControl.Audit/Database/CommandTimeout"));
+            }
+        }
+
+        [Test]
         public async Task A_successful_sweep_clears_the_failure()
         {
             FailThreeSweeps();
