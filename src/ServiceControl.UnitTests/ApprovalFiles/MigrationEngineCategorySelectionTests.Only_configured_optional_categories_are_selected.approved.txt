@@ -1,0 +1,4 @@
+Configured: EventLog
+Runs as:
+Optional 3: EventLog
+Never copied: UnresolvedFailedMessages, GroupComments, ArchivedAndResolvedFailedMessages

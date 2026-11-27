@@ -39,7 +39,7 @@
             );
         }
 
-        const string KeyPrefix = "ExternalIntegrationDispatchRequests";
+        internal const string KeyPrefix = "ExternalIntegrationDispatchRequests";
 
         public async Task StoreDispatchRequest(IEnumerable<ExternalIntegrationDispatchRequest> dispatchRequests, CancellationToken cancellationToken = default)
         {

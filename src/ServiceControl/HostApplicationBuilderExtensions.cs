@@ -107,6 +107,7 @@
 
             services.AddStartupChecks();
             services.AddPersistence(settings);
+
             services.AddMetrics(settings.PrintMetrics);
             hostBuilder.AddTelemetry(settings);
             services.AddServiceControlHealthChecks();
