@@ -23,6 +23,7 @@
         protected abstract Task NotifyForIncompatibleStorageEngine(IServiceControlBaseInstance baseInstance, CancellationToken cancellationToken = default);
         protected abstract Task NotifyForIncompatibleUpgradeVersion(UpgradeInfo upgradeInfo, CancellationToken cancellationToken = default);
         protected abstract Task NotifyError(string title, string message, CancellationToken cancellationToken = default);
+        protected abstract Task<bool> PromptForRavenDBIndexRebuild(RavenDBIndexChanges indexChanges, CancellationToken cancellationToken = default);
 
         public async Task<bool> CanAddInstance(bool allowExpiredLicense = false, CancellationToken cancellationToken = default)
         {
@@ -166,6 +167,16 @@
             if (!await RabbitMqCheckIsOK(instance.TransportPackage, instance.Version, isUpgrade: true, cancellationToken).ConfigureAwait(false))
             {
                 return false;
+            }
+
+            // The database answers only while the instance runs, so this check comes before the instance stops.
+            if (instance is ServiceControlBaseService serviceControlInstance && !forceUpgradeDb)
+            {
+                var indexChanges = await RavenDBIndexChangeDetection.Detect(serviceControlInstance, cancellationToken).ConfigureAwait(false);
+                if (indexChanges is { Changes.Count: > 0 } && !await PromptForRavenDBIndexRebuild(indexChanges, cancellationToken).ConfigureAwait(false))
+                {
+                    return false;
+                }
             }
 
             return true;

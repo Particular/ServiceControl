@@ -1,0 +1,62 @@
+{
+  "Indexes": [
+    {
+      "Name": "FailedAuditImportIndex",
+      "Maps": [
+        "docs.FailedAuditImports.Select(cc => new {\n    Id = Id(cc)\n})"
+      ],
+      "Fields": {},
+      "AdditionalSources": {},
+      "AdditionalAssemblies": []
+    },
+    {
+      "Name": "MessagesViewIndex",
+      "Maps": [
+        "docs.ProcessedMessages.Select(message => new {\n    MessageId = ((string) message.MessageMetadata[\"MessageId\"]),\n    MessageType = ((string) message.MessageMetadata[\"MessageType\"]),\n    IsSystemMessage = ((bool) message.MessageMetadata[\"IsSystemMessage\"]),\n    Status = ((bool) message.MessageMetadata[\"IsRetried\"]) ? 4 : 3,\n    TimeSent = ((DateTime) message.MessageMetadata[\"TimeSent\"]),\n    ProcessedAt = message.ProcessedAt,\n    ReceivingEndpointName = ((message.MessageMetadata[\"ReceivingEndpoint\"])).Name,\n    SendingEndpointName = ((message.MessageMetadata[\"SendingEndpoint\"])).Name,\n    CriticalTime = ((TimeSpan ? ) message.MessageMetadata[\"CriticalTime\"]),\n    ProcessingTime = ((TimeSpan ? ) message.MessageMetadata[\"ProcessingTime\"]),\n    DeliveryTime = ((TimeSpan ? ) message.MessageMetadata[\"DeliveryTime\"]),\n    Query = Enumerable.ToArray(DynamicEnumerable.Union(message.MessageMetadata.ToDictionary(e1 => e1.Key, e1 => e1.Value).Select(_ => _.Value.ToString()), new string[] {\n        String.Join(\" \", message.Headers.ToDictionary(e1 => e1.Key, e1 => e1.Value).Select(x => x.Value))\n    })),\n    ConversationId = ((string) message.MessageMetadata[\"ConversationId\"])\n})"
+      ],
+      "Fields": {
+        "Query": {
+          "Indexing": "Search",
+          "Analyzer": "Lucene.Net.Analysis.Standard.StandardAnalyzer, Lucene.Net, Version=3.0.3.0, Culture=neutral, PublicKeyToken=85089178b9ac3181"
+        }
+      },
+      "AdditionalSources": {},
+      "AdditionalAssemblies": []
+    },
+    {
+      "Name": "MessagesViewIndexWithFullTextSearch",
+      "Maps": [
+        "docs.ProcessedMessages.Select(message => new {\n    MessageId = ((string) message.MessageMetadata[\"MessageId\"]),\n    MessageType = ((string) message.MessageMetadata[\"MessageType\"]),\n    IsSystemMessage = ((bool) message.MessageMetadata[\"IsSystemMessage\"]),\n    Status = ((bool) message.MessageMetadata[\"IsRetried\"]) ? 4 : 3,\n    TimeSent = ((DateTime) message.MessageMetadata[\"TimeSent\"]),\n    ProcessedAt = message.ProcessedAt,\n    ReceivingEndpointName = ((message.MessageMetadata[\"ReceivingEndpoint\"])).Name,\n    SendingEndpointName = ((message.MessageMetadata[\"SendingEndpoint\"])).Name,\n    CriticalTime = ((TimeSpan ? ) message.MessageMetadata[\"CriticalTime\"]),\n    ProcessingTime = ((TimeSpan ? ) message.MessageMetadata[\"ProcessingTime\"]),\n    DeliveryTime = ((TimeSpan ? ) message.MessageMetadata[\"DeliveryTime\"]),\n    Query = Enumerable.ToArray(DynamicEnumerable.Union(message.MessageMetadata.ToDictionary(e1 => e1.Key, e1 => e1.Value).Select(_ => _.Value.ToString()), new string[] {\n        String.Join(\" \", message.Headers.ToDictionary(e1 => e1.Key, e1 => e1.Value).Select(x => x.Value)),\n        this.LoadAttachment(message, \"body\").GetContentAsString()\n    })),\n    ConversationId = ((string) message.MessageMetadata[\"ConversationId\"])\n})"
+      ],
+      "Fields": {
+        "Query": {
+          "Indexing": "Search",
+          "Analyzer": "Lucene.Net.Analysis.Standard.StandardAnalyzer, Lucene.Net, Version=3.0.3.0, Culture=neutral, PublicKeyToken=85089178b9ac3181"
+        }
+      },
+      "AdditionalSources": {},
+      "AdditionalAssemblies": []
+    },
+    {
+      "Name": "SagaDetailsIndex",
+      "Maps": [
+        "docs.SagaHistories.Select(doc => new {\n    SagaId = doc.SagaId,\n    Id = doc.SagaId,\n    SagaType = doc.SagaType,\n    Changes = doc.Changes\n})",
+        "docs.SagaSnapshots.Select(doc => new {\n    SagaId = doc.SagaId,\n    Id = doc.SagaId,\n    SagaType = doc.SagaType,\n    Changes = new[] {\n        new {\n            Endpoint = doc.Endpoint,\n            FinishTime = doc.FinishTime,\n            InitiatingMessage = doc.InitiatingMessage,\n            OutgoingMessages = doc.OutgoingMessages,\n            StartTime = doc.StartTime,\n            StateAfterChange = doc.StateAfterChange,\n            Status = doc.Status\n        }\n    }\n})"
+      ],
+      "Reduce": "results.GroupBy(result => result.SagaId).Select(g => new {\n    g = g,\n    first = DynamicEnumerable.FirstOrDefault(g)\n}).Select(this0 => new {\n    Id = this0.first.SagaId,\n    SagaId = this0.first.SagaId,\n    SagaType = this0.first.SagaType,\n    Changes = Enumerable.ToList(DynamicEnumerable.OrderByDescending(this0.g.SelectMany(x => x.Changes), x0 => x0.FinishTime).Take(50000))\n})",
+      "Fields": {
+        "Changes": {
+          "Indexing": "No"
+        },
+        "SagaId": {
+          "Indexing": "Exact"
+        },
+        "SagaType": {
+          "Indexing": "No"
+        }
+      },
+      "AdditionalSources": {},
+      "AdditionalAssemblies": []
+    }
+  ]
+}

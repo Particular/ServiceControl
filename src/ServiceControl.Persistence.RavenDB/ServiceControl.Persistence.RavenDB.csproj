@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <None Update="persistence.manifest" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="index-definitions.manifest" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
