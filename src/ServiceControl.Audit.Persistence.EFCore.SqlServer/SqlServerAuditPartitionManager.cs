@@ -1,5 +1,6 @@
 namespace ServiceControl.Audit.Persistence.EFCore.SqlServer;
 
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using ServiceControl.Audit.Persistence.EFCore.DbContexts;
 using ServiceControl.Audit.Persistence.EFCore.Entities;
@@ -76,6 +77,21 @@ class SqlServerAuditPartitionManager : IAuditPartitionManager
 
         return new DropResult(deleted, Completed: deleted < batchSize);
     }
+
+    public bool IsCommandTimeout(Exception exception)
+    {
+        for (var current = exception; current is not null; current = current.InnerException)
+        {
+            if (current is SqlException { Number: CommandTimeoutErrorNumber })
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    const int CommandTimeoutErrorNumber = -2;
 
     public Task<DateTime?> ProvisionedUntil(AuditDbContext dbContext, CancellationToken cancellationToken = default) =>
         Task.FromResult<DateTime?>(null);

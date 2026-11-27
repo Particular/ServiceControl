@@ -11,7 +11,7 @@ namespace ServiceControl.Audit.Persistence.Tests
     /// <summary>
     /// Fails to list the expired rows of one kind of row, and hands everything else to the real partition manager.
     /// </summary>
-    sealed class FailingAuditPartitions(AuditRetentionEntity failing, IAuditPartitionManager inner) : IAuditPartitionManager
+    sealed class FailingAuditPartitions(AuditRetentionEntity failing, IAuditPartitionManager inner, bool failsWithCommandTimeout = false) : IAuditPartitionManager
     {
         public const string Reason = "The table is unreachable";
 
@@ -30,5 +30,7 @@ namespace ServiceControl.Audit.Persistence.Tests
 
         public Task<DateTime?> ProvisionedUntil(AuditDbContext dbContext, CancellationToken cancellationToken = default) =>
             inner.ProvisionedUntil(dbContext, cancellationToken);
+
+        public bool IsCommandTimeout(Exception exception) => failsWithCommandTimeout;
     }
 }

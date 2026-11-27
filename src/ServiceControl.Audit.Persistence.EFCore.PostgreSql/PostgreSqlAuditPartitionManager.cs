@@ -56,6 +56,19 @@ class PostgreSqlAuditPartitionManager(ILogger<PostgreSqlAuditPartitionManager> l
             : new DropResult(RowsDeleted: 0, Completed: true, Deferred: true);
     }
 
+    public bool IsCommandTimeout(Exception exception)
+    {
+        for (var current = exception; current is not null; current = current.InnerException)
+        {
+            if (current is NpgsqlException { InnerException: TimeoutException })
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public async Task<DateTime?> ProvisionedUntil(AuditDbContext dbContext, CancellationToken cancellationToken = default)
     {
         var days = await PartitionDays(dbContext, Table<AuditMessageEntity>(dbContext), cancellationToken);
