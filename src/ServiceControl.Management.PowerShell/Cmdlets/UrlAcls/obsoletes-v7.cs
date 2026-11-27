@@ -1,4 +1,5 @@
 #pragma warning disable CS1591
+#pragma warning disable OBSOLETES0010
 namespace ServiceControl.Management.PowerShell
 {
     using System;
