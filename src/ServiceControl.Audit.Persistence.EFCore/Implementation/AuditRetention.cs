@@ -24,6 +24,7 @@ sealed class AuditRetention(
     static readonly TimeSpan Interval = TimeSpan.FromHours(1);
     static readonly TimeSpan InitialDelay = TimeSpan.FromMinutes(1);
     static readonly TimeSpan BatchPause = TimeSpan.FromSeconds(1);
+    static readonly TimeSpan RetryBaseDelay = TimeSpan.FromSeconds(10);
 
     // Before ingestion starts, which cannot insert into an hour that has no partition.
     public override async Task StartAsync(CancellationToken cancellationToken = default)
@@ -48,17 +49,16 @@ sealed class AuditRetention(
 
             do
             {
-                try
+                var attempt = 0;
+                while (!await TrySweep(cancellationToken))
                 {
-                    await Sweep(pace: true, cancellationToken);
-                }
-#pragma warning disable PS0019 // Filtered on the token alone because SqlClient reports a cancelled command as a SqlException.
-                catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
-                {
-                    logger.LogError(ex, "Error during audit retention sweep");
+                    var delay = RetryDelay(++attempt, Random.Shared.NextDouble());
+                    logger.LogWarning("The audit retention sweep failed. Attempt {Attempt} starts in {Delay}", attempt + 1, delay);
+                    await Task.Delay(delay, timeProvider, cancellationToken);
                 }
             } while (await timer.WaitForNextTickAsync(cancellationToken));
         }
+#pragma warning disable PS0019 // Filtered on the token alone because SqlClient reports a cancelled command as a SqlException.
         catch (Exception) when (cancellationToken.IsCancellationRequested)
         {
             logger.LogInformation("Stopping audit retention sweep");
@@ -66,9 +66,32 @@ sealed class AuditRetention(
 #pragma warning restore PS0019
     }
 
+    async Task<bool> TrySweep(CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await Sweep(pace: true, cancellationToken);
+        }
+#pragma warning disable PS0019 // Filtered on the token alone because SqlClient reports a cancelled command as a SqlException.
+        catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+        {
+            logger.LogError(ex, "Error during audit retention sweep");
+            return false;
+        }
+#pragma warning restore PS0019
+    }
+
+    // Exponential back-off with jitter, capped at the sweep interval. jitter is in [0, 1).
+    internal static TimeSpan RetryDelay(int attempt, double jitter)
+    {
+        var exponential = TimeSpan.FromTicks(Math.Min(Interval.Ticks, RetryBaseDelay.Ticks << Math.Min(attempt - 1, 16)));
+        return (exponential / 2) + (exponential / 2 * jitter);
+    }
+
     internal Task SweepNow(CancellationToken cancellationToken = default) => Sweep(pace: false, cancellationToken);
 
-    async Task Sweep(bool pace, CancellationToken cancellationToken)
+    // Returns false when a pass failed.
+    async Task<bool> Sweep(bool pace, CancellationToken cancellationToken)
     {
         var passesStarted = false;
         try
@@ -79,7 +102,7 @@ sealed class AuditRetention(
                 if (handle is null)
                 {
                     logger.LogWarning("Skipping the audit retention sweep because another instance holds the retention lock. Only one audit instance should own a database.");
-                    return;
+                    return true;
                 }
 
                 var now = timeProvider.GetUtcNow().UtcDateTime;
@@ -99,11 +122,11 @@ sealed class AuditRetention(
             if (passFailures.Count > 0)
             {
                 retentionState.SweepFailed(string.Join("; ", passFailures));
+                return false;
             }
-            else
-            {
-                retentionState.SweepSucceeded();
-            }
+
+            retentionState.SweepSucceeded();
+            return true;
         }
 #pragma warning disable PS0019 // Filtered on the token alone because SqlClient reports a cancelled command as a SqlException.
         catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
