@@ -17,7 +17,7 @@ using NServiceBus;
 /// pass/fail reports that ServiceControl ingests as if a real endpoint (or ServiceControl
 /// itself) had produced them.
 /// </summary>
-sealed class ReportCustomCheckResult : ICommand
+public sealed class ReportCustomCheckResult : ICommand
 {
     /// <summary>Stable id of the host that ran the check. ServiceControl groups custom checks
     /// by HostId + CustomCheckId + Category, so a stable value per check gives coherent state

@@ -1,18 +1,20 @@
 # Load testing
 
-The [ServiceControl Testing Tool](../tools/testing-tool/README.md) is a stateless .NET service that generates error load and real-world failure scenarios against a test ServiceControl instance, to validate error-ingestion performance. It has a web UI for manual control, built-in failure scenarios (third-party outage, timeout spike, poison message, and more), and OpenTelemetry telemetry.
+The [ServiceControl Testing Tool](../tools/testing-tool/README.md) is a .NET service that generates error load and real-world failure scenarios against a test ServiceControl instance, to validate error-ingestion performance. It has a web UI for manual control, built-in failure scenarios (third-party outage, timeout spike, poison message, and more), and OpenTelemetry telemetry.
 
 The [testing tool README](../tools/testing-tool/README.md) is the full reference: every scenario, API endpoint, configuration setting, container usage, and scaling notes.
 
 ## Quick start: full stack with Aspire
 
-The Aspire AppHost starts the whole system with a single command: the ServiceControl platform (Learning transport), the testing tool, and a complete observability stack (OTel Collector, Jaeger, Prometheus, and Grafana with a prebuilt dashboard).
+The Aspire AppHost starts the whole system with a single command: the ServiceControl platform (RabbitMQ by default), the testing tool, and a complete observability stack (OTel Collector, Jaeger, Prometheus, and Grafana with a prebuilt dashboard).
 
 ```bash
 aspire run tools/testing-tool/TestingTool.AppHost/TestingTool.AppHost.csproj
 ```
 
 Aspire assigns dynamic ports. Open the web UI of the testing tool through the link in the Aspire dashboard.
+
+The AppHost enables external integration-event publishing on the error instances, so ServiceControl writes and publishes a `MessageFailed` event for each ingested failure. This can change ingestion baselines compared with a run without it.
 
 Useful flags, passed after `--`:
 
@@ -43,6 +45,7 @@ Everything is controllable from the web UI, or via the HTTP API:
 - Scenarios: the six built-in scenarios (`third-party-outage`, `timeout-spike`, `poison-message`, `deserialization-failure`, `background-noise`, `large-messages`), each producing errors that group naturally. `large-messages` starts at 3 messages per second unless `rate` is set, sends bodies of about 256 KiB (the wire envelope is slightly larger), fails 20% of them to the error queue, and audits the rest. The bypass writer fails every message by design, so it sends the large bodies only as failures. Start with `POST /api/scenarios/{name}/start` (optional `rate` and `durationSeconds`).
 - Bypass writer: high-throughput load that writes failed-message envelopes directly to the ServiceControl error queue, skipping the message handler (`POST /api/bypass/start`).
 - Jobs: retry, archive, search, retention sweep, and custom-check-failure jobs exercise ServiceControl's recoverability, FTS search, and retention pipelines against the load. Jobs do not start automatically. Start them from the UI or `/api/jobs`.
+- Smoke tests: the **Smoke tests** tab runs an API-verified version of the functionality checklist in the [testing scenarios](testing-scenarios.md) against the instance under test, with manual rows for what only a person can verify. Do not confuse it with the load presets: it sends a few messages per check and reads the results back through the ServiceControl APIs. The [testing tool README](../tools/testing-tool/README.md#smoke-tests) lists each check, its prerequisites and its limits.
 - Release-test presets: named presets mapped from the [testing scenarios](testing-scenarios.md), for example `POST /api/release-tests/ingestion-load/start`.
 
 ## Observing the run

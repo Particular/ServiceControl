@@ -12,6 +12,8 @@ This list is long but not exhaustive. Not every change needs every test.
 
 ## Functionality
 
+The **Smoke tests** tab of the [testing tool](../tools/testing-tool/README.md#smoke-tests) automates the API-level part of the custom checks, heartbeats, recoverability, audits, saga auditing, integration events and monitoring items below: it generates the messages and verifies the results through the ServiceControl APIs. The ServicePulse screens, the installation steps, the public integration events sample, chaos testing and performance testing stay manual. The manual rows of the tab list them.
+
 - [ ] Install and run ServiceControl Primary, Audit, and Monitoring instances
 - [ ] [Install the ServiceControl.SmokeTesting tool](https://github.com/Particular/ServiceControl.SmokeTest#installing)
 - [ ] Start the smoke testing tool, for example `dotnet servicecontrol.smoketest rabbitmq`

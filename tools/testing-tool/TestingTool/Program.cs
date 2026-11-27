@@ -4,6 +4,7 @@ using TestingTool.Auditing;
 using TestingTool.Contracts;
 using TestingTool.Jobs;
 using TestingTool.Scenarios;
+using TestingTool.Smoke;
 
 // --- Configuration ---
 
@@ -59,6 +60,39 @@ builder.Services.AddSingleton<JobBase, RetentionSweepJob>();
 builder.Services.AddSingleton<JobBase, CustomCheckFailureJob>();
 builder.Services.AddSingleton<JobRunner>();
 
+// --- Smoke tests ---
+// An API-verified checklist run from the "Smoke tests" tab. See SmokeChecks for what each check verifies.
+
+builder.Services.AddHttpClient<SmokeApiClient>((sp, client) =>
+{
+    client.BaseAddress = new Uri(sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<TestingToolOptions>>().Value.ServiceControlApiUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+builder.Services.AddHttpClient<SmokeMonitoringClient>((sp, client) =>
+{
+    client.BaseAddress = new Uri(sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<TestingToolOptions>>().Value.MonitoringApiUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+builder.Services.AddSingleton<SmokeObservations>();
+builder.Services.AddSingleton<SmokeChecks>();
+builder.Services.AddSingleton(sp =>
+{
+    var opts = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<TestingToolOptions>>().Value;
+    var jobs = sp.GetRequiredService<JobRunner>();
+    return new SmokeRunner(
+        sp.GetRequiredService<SmokeChecks>().Create(),
+        () => jobs.All.FirstOrDefault(j => j.IsRunning && SmokeJobConflicts.Conflicts(j.Name)) is { } job
+            ? $"Stop the '{job.Name}' job first. It acts on every failed message group, not only the groups of the smoke run."
+            : null,
+        opts.SmokeCheckTimeout,
+        TimeSpan.FromSeconds(60),
+        opts.SmokePollInterval,
+        opts.SmokePollTimeout,
+        sp.GetRequiredService<ILogger<SmokeRunner>>());
+});
+// Registered after the NServiceBus endpoint so it stops first and the run can still clean up through the endpoint.
+builder.Services.AddHostedService<SmokeRunnerLifecycle>();
+
 // --- Application pipeline ---
 
 var app = builder.Build();
@@ -70,6 +104,7 @@ var metrics = app.Services.GetRequiredService<TestingToolMetrics>();
 var scClient = app.Services.GetRequiredService<ServiceControlClient>();
 var jobRunner = app.Services.GetRequiredService<JobRunner>();
 var startedAt = DateTimeOffset.UtcNow;
+var smokeStartGate = new Lock();
 
 // Auto-start background noise after the endpoint is ready.
 app.Lifetime.ApplicationStarted.Register(() =>
@@ -160,14 +195,21 @@ app.MapPost("/api/scenarios/stop-all", (ScenarioRunner runner) =>
 
 app.MapGet("/api/jobs", () => Results.Ok(jobRunner.GetSnapshot()));
 
-app.MapPost("/api/jobs/{name}/start", (string name, StartJobRequest? request) =>
+app.MapPost("/api/jobs/{name}/start", (string name, StartJobRequest? request, SmokeRunner smokeRunner) =>
 {
     var interval = request?.IntervalSeconds is { } secs and > 0
         ? TimeSpan.FromSeconds(secs)
         : (TimeSpan?)null;
 
-    if (!jobRunner.TryStart(name, interval, request, out var error))
-        return Results.BadRequest(new { error });
+    // The same lock guards smoke start, so a conflicting job and a smoke run cannot both pass their check.
+    lock (smokeStartGate)
+    {
+        if (SmokeJobConflicts.Conflicts(name) && smokeRunner.GetSnapshot().Running)
+            return Results.BadRequest(new { error = $"Job '{name}' acts on every failed message group, so it cannot start while a smoke run is in progress." });
+
+        if (!jobRunner.TryStart(name, interval, request, out var error))
+            return Results.BadRequest(new { error });
+    }
 
     var snapshot = jobRunner.GetSnapshot()
         .First(j => j.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
@@ -273,6 +315,24 @@ app.MapPost("/api/release-tests/{name}/start", (string name, ScenarioRunner runn
         return Results.BadRequest(new { error });
 
     return Results.Ok(new { started = preset.Name, scenario = preset.ScenarioName, rate = preset.Rate });
+});
+
+// --- Smoke test endpoints ---
+
+app.MapGet("/api/smoke", (SmokeRunner runner) => Results.Ok(runner.GetSnapshot()));
+
+app.MapPost("/api/smoke/start", (SmokeRunner runner) =>
+{
+    lock (smokeStartGate)
+    {
+        return runner.TryStart(out var error) ? Results.Ok(runner.GetSnapshot()) : Results.BadRequest(new { error });
+    }
+});
+
+app.MapPost("/api/smoke/stop", (SmokeRunner runner) =>
+{
+    runner.Stop();
+    return Results.Ok(runner.GetSnapshot());
 });
 
 app.MapFallbackToFile("index.html");

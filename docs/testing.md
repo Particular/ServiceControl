@@ -114,3 +114,7 @@ Containers built by a PR and stored on GitHub Container Registry can be tested l
     * Monitoring API
     * ServicePulse (latest from Docker Hub)
 6. Exit the CLI process. Aspire stops the application automatically.
+
+## Smoke tests with the testing tool
+
+The [testing tool](../tools/testing-tool/README.md#smoke-tests) has a **Smoke tests** tab that sends deterministic messages with a run-specific identifier and verifies custom checks, heartbeats, retries, message editing, redirects, audit data, conversations, sagas, integration events and monitoring data through the ServiceControl APIs. Start it with the Aspire AppHost and `--audit-instances 1`, as described in the [load testing](load-testing.md) page. It complements the [testing scenarios](testing-scenarios.md) checklist: the rows it does not automate stay manual.

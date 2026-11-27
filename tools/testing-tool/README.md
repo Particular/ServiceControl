@@ -1,8 +1,6 @@
 # ServiceControl Testing Tool
 
-A stateless, horizontally-scalable .NET 10 service that generates error load and real-world failure
-scenarios against a test ServiceControl instance to validate its error-ingestion performance, with
-OpenTelemetry observability and a simple web UI for manual scenario control.
+A horizontally scalable .NET 10 service that generates failure scenarios, verifies smoke checks, and measures error-ingestion performance against a test ServiceControl instance. It includes OpenTelemetry observability and a web UI.
 
 The tool drives both ingestion paths: failed messages into the primary ServiceControl instance, and audited messages and saga snapshots into a ServiceControl.Audit instance.
 
@@ -103,6 +101,50 @@ release-test scenarios can be kicked off manually by name:
 - `GET /api/release-tests` — list all presets
 - `POST /api/release-tests/{name}/start` — start a preset (e.g. `retry-message-group`, `ingestion-load`)
 
+### Smoke tests
+
+The **Smoke tests** tab runs an API-verified version of the functionality checklist in [docs/testing-scenarios.md](/docs/testing-scenarios.md). **Run all** executes the automated checks one after another, **Stop** cancels the run, and each row shows pending, running, passed, failed, canceled or manual with the observed detail. The run state lives in the tool, so reloading the page shows the current or last run.
+
+Every check sends its own messages with a run identifier (`smoke-<8 hex digits>`) and reads the effect back through the ServiceControl APIs. A check matches only what it created: a custom check id, an endpoint name, a message id, a conversation id, a saga id or a failure group that contains the run identifier. Background load and leftovers from earlier runs cannot satisfy a check. An HTTP 202 alone never passes a check, and a transport error or an unexpected status fails the check with the reason. When ServiceControl reports incomplete cross-instance results (`X-Particular-Incomplete-Results`), the check keeps polling and names the missing instances in the timeout detail; data that matches the run identifier still passes. Checks run in order, and a failed check does not stop later checks. Each check attempts cleanup after completion, cancellation, or shutdown.
+
+| Check | What it does | What it verifies |
+|---|---|---|
+| `custom-check-fail-then-pass` | Reports a failed, then a passed custom check with id `Smoke.<run>` to the primary input queue | `GET /api/customchecks?status=fail` lists it with the failure reason, then `?status=pass` lists it and `?status=fail` does not |
+| `heartbeat-beating-then-dead` | Starts a real in-process endpoint `TestingTool.Smoke.<run>` with the NServiceBus.Heartbeat plugin, then stops its host | `GET /api/endpoints` shows `heartbeat_information.reported_status` `beating`, then `dead` (about 45 seconds after the host stops with the default 40 second grace period; the check waits up to 100 seconds) |
+| `audit-ingestion-fulltext` | Handles a message with a run-specific word in the body | `GET /api/messages/search?q=<word>` finds it with status `successful`, and `GET /api/messages/{id}/body` contains the word |
+| `fanout-conversation` | Handles a message that sends two children per level for two levels, with a run-specific conversation id | `GET /api/conversations/{id}` returns the seven messages, and every `NServiceBus.RelatedTo` header points at a parent in the conversation |
+| `saga-audit` | Runs a real saga (start, step, finish) with saga auditing to the audit queue | `GET /api/messages/search` finds the start message with its saga id, and `GET /api/sagas/{id}` lists `new`, `updated`, `completed` |
+| `monitoring-data` | Starts a real endpoint `TestingTool.Smoke.<run>` with the NServiceBus.Metrics.ServiceControl plugin (2 second interval, as the load endpoint) and handles three messages that each take 100 ms | `GET /monitored-endpoints` on the monitoring instance lists the endpoint with a `processingTime` average above zero. Cleanup deletes the instance ids that monitoring reports for it |
+| `integration-event` | Subscribes the tool endpoint to `ServiceControl.Contracts.MessageFailed` and fails one message | The published event arrives with the run header and the failed message id that `GET /api/recoverability/groups/{id}/errors` returns |
+| `retry-single` | Fails two messages in a group unique to the run, then retries one with `POST /api/errors/{id}/retry` | The tool handled and `GET /api/errors/{id}` reports `resolved` for that message, and its sibling is unresolved and unhandled |
+| `retry-group` | Fails three messages in a unique group, then retries the group with `POST /api/recoverability/groups/{id}/errors/retry` | Every message was handled and is `resolved` |
+| `edit-and-retry` | Fails a message, then edits it with `POST /api/edit/{id}` (snake_case body, every original header, `Fail` cleared) | The edited message arrives with `ServiceControl.EditOf` set to the failed message id and the edited text |
+| `retry-through-redirect` | Starts real endpoints `TestingTool.Smoke.<run>.Source` and `.Target`, fails a message in Source, creates a redirect from the Source input address to the Target input address with `POST /api/redirects`, retries it | The failed message has the Source address as its queue, the redirect is listed, the message is handled by Target (a retry that Source handles fails the check) and is `resolved`, and the redirect is gone after `DELETE /api/redirects/{id}`. It runs last because a redirect changes retry routing while it exists |
+
+Failures come from the real message handler, not from the load scenarios. A smoke message fails when its `Fail` flag is set and its marker was not released, so a retry succeeds when the check releases the marker and an edit succeeds when it clears the flag. The handler throws a `SmokeFailureException` and the tool rewrites the fault headers so ServiceControl groups it under the exception type `TestingTool.Smoke.Failure_<run>_<check>`, which makes the group unique to one check. At the end of a check, unresolved failed messages of that check are archived. The redirect check removes only the redirect it created.
+
+Prerequisites on the instance under test:
+
+- The primary needs a remote audit instance for the audit, conversation and saga checks. With the Aspire AppHost, pass `--audit-instances 1`. The checks fail with that hint when `GET /api/configuration/remotes` is empty or a remote is not online.
+- Integration events need `SERVICECONTROL_ENABLEEXTERNALINTEGRATIONSPUBLISHING=true` on the instances that ingest errors. The AppHost sets it on the primary and on the error-ingestion scale units.
+- Message editing needs `SERVICECONTROL_ALLOWMESSAGEEDITING=true`. The AppHost sets it.
+- The monitoring check needs `TestingTool__MonitoringApiUrl` to point at the monitoring instance. The AppHost sets it.
+- Stop the retry, archive and retention-sweep jobs first: they act on every failed message group, so a start is refused while one runs. Scenarios and bypass writers may keep running.
+
+Run it against a test instance only. Cleanup stops the run-scoped endpoint hosts, removes custom checks, endpoint and monitoring records, and redirects, and archives unresolved failures. Audited messages and resolved or archived failures remain subject to ServiceControl retention. If cleanup fails, the row reports the error and warns that data may remain.
+
+Limits of the automation:
+
+- The heartbeat, monitoring and redirect checks start real NServiceBus endpoints, each in its own host in the tool process, next to `TestingTool.Load`. They use the same transport, topology and serializer as the load endpoint, send failures to the same error queue, and handle only smoke messages. Their input addresses come from the transport (`ReceiveAddresses.MainReceiveAddress`), so SQL Server schema and catalog are included. Stopping a host, which a check does explicitly for the heartbeat and always at the end (before any API cleanup, so an unreachable ServiceControl cannot delay it), stops that endpoint and its plugins; it does not stop the tool or the load endpoint. It also does not delete the queues or tables the endpoint created: those run-scoped transport entities stay until the broker or database is torn down. The check exercises the NServiceBus.Heartbeat and NServiceBus.Metrics.ServiceControl plugins.
+- The saga is a real saga in the tool endpoint with the NServiceBus.SagaAudit plugin and learning persistence in the temp folder, not a snapshot written by hand.
+- Rows marked manual are not automated: instance installation and upgrade, how ServicePulse renders custom checks, heartbeats, recoverability screens, search, the sequence diagram, the saga view and the monitoring graphs, the public integration events sample, chaos testing, and performance, load and stability testing. The API data behind the rendered views is verified by the automated rows above.
+
+API:
+
+- `GET /api/smoke` — the current or last run, or the idle checklist
+- `POST /api/smoke/start` — start a run; 400 when one is running or a conflicting job is running
+- `POST /api/smoke/stop` — cancel the current run
+
 ## Layout
 
 ```
@@ -111,6 +153,7 @@ tools/testing-tool/
   Dockerfile                     # multi-stage container build (build context = repo root)
   TestingTool/                   # ASP.NET Core host — API endpoints, web UI, NServiceBus endpoint,
                                  #   scenario runner, bypass writer, recoverability/search jobs,
+                                 #   smoke test runner and checks (Smoke/),
                                  #   OTel setup, ServiceControl REST client
   TestingTool.Scenarios/         # IScenario contract + the six scenario implementations
   TestingTool.Contracts/         # shared DTOs (scenarios, status, jobs, bypass)
@@ -190,7 +233,7 @@ separator) or `--name:value` (colon separator):
 | `--transport` | `RabbitMq` | `RabbitMq`, `SqlServer` | Transport shared by ServiceControl and the testing tool. `SqlServer` reuses the storage SQL Server container with a separate `Transport` database |
 | `--tag` | *(none — uses the current build's image)* | any image tag, e.g. `pr-1234` or `6.3.1` | Override the ServiceControl container image tag (useful for testing PR-based prereleases) |
 | `--error-ingestion-scale-unit` | `0` | non-negative integer | Number of additional error-ingestion-only scale-out instances to spin up alongside the primary error instance (each runs with `--error-ingestion-only`) |
-| `--audit-instances` | `1` | non-negative integer | Number of ServiceControl.Audit instances to add. They take the same `--storage` backend, report custom checks to the primary and export OTel to the collector |
+| `--audit-instances` | `0` | non-negative integer | Number of ServiceControl.Audit instances to add. They take the same `--storage` backend, report custom checks to the primary and export OTel to the collector |
 | `--azure-blob-body-storage` | *(none — uses file-system body storage)* | `"<connection string>"` | Store message bodies in Azure Blob Storage instead of the container file system. Applies only with `--storage:SqlServer` or `--storage:PostgreSql`. Quote the value because connection strings contain semicolons. The error instance and its scale-out units share the `error-bodies` container, and each audit instance gets its own `audit-bodies-<instance name>` container |
 | `--s3-body-storage` | *(none — uses file-system body storage)* | `<bucket name>` | Store message bodies in an S3 bucket instead of the container file system. Applies only with `--storage:SqlServer` or `--storage:PostgreSql`, and cannot be combined with `--azure-blob-body-storage`. Setup creates the bucket if it is missing and the credentials permit it. The error instance and its scale-out units share the `error-bodies/` key prefix, and each audit instance gets its own `audit-bodies-<instance name>/` prefix |
 | `--s3-region` | SDK default | region name, e.g. `eu-west-1` | Region for `--s3-body-storage`. Requires `--s3-body-storage` |
@@ -241,9 +284,7 @@ and cumulative), ingestion duration p95, and ingestion outcome by result.
 
 ## Horizontal scaling
 
-The tool is **stateless** — all state is in-memory per replica. Run a single instance via
-`dotnet run` or the Aspire AppHost; for multi-replica deployments, bring your own orchestration
-and give each replica a distinct shard id so deterministic failure decisions don't overlap:
+Load counters, job controls, and smoke-run results are in-memory per replica. The smoke saga uses learning persistence in a local temporary directory. Run a single instance with `dotnet run` or the Aspire AppHost. For multiple replicas, provide orchestration and a distinct shard id for each replica so deterministic failure decisions do not overlap:
 
 | Shard id source | When |
 |---|---|
@@ -269,7 +310,7 @@ on its own, set it to the broker your ServiceControl instance uses:
 | not set or empty | Learning transport (local standalone runs only — ServiceControl won't see the messages) |
 | anything else | startup fails with an error naming `ConnectionStrings__transport` |
 
-The selected transport is logged at startup (`Using RabbitMQ transport` etc.).
+The selected transport is logged at startup (`Using RabbitMQ transport` etc.). The smoke tests start their own run-scoped endpoints with the same selection, so they need the same `ConnectionStrings__transport`.
 
 The Standard Service Bus tier limits a message to 256 KiB including headers. The `large-messages` scenario serializes to about 190 KiB, so it leaves room for headers on Standard and still exceeds the 100 KB external body storage threshold.
 
@@ -296,6 +337,10 @@ All configuration is via environment variables (no files, no database). Settings
 | `TestingTool__AuditQueueName` | `audit` | NServiceBus audit queue the ServiceControl.Audit instance drains |
 | `TestingTool__AuditSagaSnapshotRatio` | `0.2` | Default saga snapshots per processed message for the audit-queue writer |
 | `TestingTool__MonitoringQueueName` | `Particular.Monitoring` | ServiceControl monitoring instance queue that endpoint metrics are sent to |
+| `TestingTool__MonitoringApiUrl` | `http://localhost:33633` | ServiceControl.Monitoring API base URL, used by the smoke tests |
+| `TestingTool__SmokePollInterval` | `00:00:01` | Interval between polls while a smoke check waits for an effect |
+| `TestingTool__SmokePollTimeout` | `00:01:00` | How long a smoke check waits for one effect before it fails |
+| `TestingTool__SmokeCheckTimeout` | `00:03:00` | How long one smoke check may take in total |
 | `TestingTool__ErrorQueueName` | `error` | NServiceBus error queue (ServiceControl monitors this) |
 | `TestingTool__AutoStartBackgroundNoise` | `false` | Auto-start the background-noise scenario on startup |
 | `SHARD_ID` (env) | *(auto: hostname ordinal or machine name)* | Shard id for disjoint scenario slices when scaled |
