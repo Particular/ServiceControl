@@ -2,7 +2,9 @@ using System.Data.Common;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
 using NServiceBus;
+using NServiceBus.Features;
 using TestingTool.Auditing;
+using TestingTool.Smoke;
 
 namespace TestingTool;
 
@@ -30,8 +32,61 @@ public static class NServiceBusEndpointExtensions
     /// </summary>
     public static IServiceCollection AddTestingToolEndpoint(this IServiceCollection services, TestingToolOptions options, IConfiguration configuration)
     {
-        var config = new EndpointConfiguration("TestingTool.Load");
+        var config = new EndpointConfiguration(LoadEndpointName);
 
+        var selectedTransport = ConfigureTransport(config, configuration);
+        services.AddSingleton(selectedTransport);
+        services.AddSingleton(new SmokeEndpointIdentity(LoadEndpointName));
+
+        // Route failures to the ServiceControl error queue.
+        config.SendFailedMessagesTo(options.ErrorQueueName);
+        config.AuditProcessedMessagesTo(options.AuditQueueName);
+
+        // Lets the direct audit-queue writer replace the wire message after serialization, which is
+        // the only stage late enough to control NServiceBus.EnclosedMessageTypes and the timestamps.
+        config.Pipeline.Register(new RawAuditPayloadBehavior(), "Applies raw audit envelopes from the direct audit-queue writer");
+        config.SendHeartbeatTo(options.ServiceControlInputQueue);
+
+        // enable metrics
+        var metrics = config.EnableMetrics();
+        metrics.SendMetricDataToServiceControl(
+            serviceControlMetricsAddress: options.MonitoringQueueName,
+            interval: TimeSpan.FromSeconds(2)
+        );
+
+        // Simplified serializer; the testing tool generates volume, not complex payloads.
+        config.UseSerialization<SystemJsonSerializer>();
+
+        // Disable immediate retries to make error groups cleaner; deferred retries are handled
+        // by ServiceControl's retry mechanism.
+        var recoverability = config.Recoverability();
+        recoverability.Immediate(im => im.NumberOfRetries(0));
+        recoverability.Delayed(d => d.NumberOfRetries(0));
+
+        // Smoke checks: a saga with saga auditing, SmokeMessage failures grouped per check, and the
+        // ServiceControl integration events, subscribed explicitly while a smoke check needs them.
+        config.UsePersistence<LearningPersistence>().SagaStorageDirectory(Path.Combine(Path.GetTempPath(), "TestingTool.Sagas"));
+        config.AuditSagaStateChanges(options.AuditQueueName);
+        recoverability.Failed(failed => failed.HeaderCustomization(SmokeHeaders.CustomizeFailure));
+        config.DisableFeature<AutoSubscribe>();
+        config.Conventions().DefiningEventsAs(type =>
+            typeof(IEvent).IsAssignableFrom(type) || type.Namespace?.StartsWith("ServiceControl.Contracts", StringComparison.Ordinal) == true);
+
+        config.EnableInstallers();
+
+        services.AddNServiceBusEndpoint(config);
+        return services;
+    }
+
+    public const string LoadEndpointName = "TestingTool.Load";
+
+    /// <summary>
+    /// Selects the transport from the <c>transport</c> connection string, as documented on
+    /// <see cref="AddTestingToolEndpoint"/>. The smoke tests call it for their own endpoints too, so they
+    /// share the transport and topology of the load endpoint.
+    /// </summary>
+    public static SelectedTransport ConfigureTransport(EndpointConfiguration config, IConfiguration configuration)
+    {
         var transportConnectionString = configuration.GetConnectionString("transport");
         string transportName;
         if (string.IsNullOrWhiteSpace(transportConnectionString))
@@ -65,37 +120,7 @@ public static class NServiceBusEndpointExtensions
                 "Initial Catalog/Database for SQL Server. Leave it unset to use the Learning transport.");
         }
 
-        services.AddSingleton(new SelectedTransport(transportName));
-
-        // Route failures to the ServiceControl error queue.
-        config.SendFailedMessagesTo(options.ErrorQueueName);
-        config.AuditProcessedMessagesTo(options.AuditQueueName);
-
-        // Lets the direct audit-queue writer replace the wire message after serialization, which is
-        // the only stage late enough to control NServiceBus.EnclosedMessageTypes and the timestamps.
-        config.Pipeline.Register(new RawAuditPayloadBehavior(), "Applies raw audit envelopes from the direct audit-queue writer");
-        config.SendHeartbeatTo(options.ServiceControlInputQueue);
-        
-        // enable metrics
-        var metrics = config.EnableMetrics();
-        metrics.SendMetricDataToServiceControl(
-            serviceControlMetricsAddress: options.MonitoringQueueName,
-            interval: TimeSpan.FromSeconds(2)
-        );
-
-        // Simplified serializer; the testing tool generates volume, not complex payloads.
-        config.UseSerialization<SystemJsonSerializer>();
-
-        // Disable immediate retries to make error groups cleaner; deferred retries are handled
-        // by ServiceControl's retry mechanism.
-        var recoverability = config.Recoverability();
-        recoverability.Immediate(im => im.NumberOfRetries(0));
-        recoverability.Delayed(d => d.NumberOfRetries(0));
-
-        config.EnableInstallers();
-
-        services.AddNServiceBusEndpoint(config);
-        return services;
+        return new SelectedTransport(transportName);
     }
 
     static bool IsAzureServiceBusConnectionString(string connectionString)

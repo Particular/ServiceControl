@@ -32,7 +32,7 @@ var primaryErrorInstance = platform
     .WithEnvironment("SERVICECONTROL_ERRORINGESTIONMAXPARALLELWRITERS", "4")
     .WithEnvironment("SERVICECONTROL_ERRORINGESTIONBATCHTIMEOUT", "00:00:00.100")
     .WithEnvironment("SERVICECONTROL_ALLOWMESSAGEEDITING", "true")
-    .WithEnvironment("SERVICECONTROL_DISABLEEXTERNALINTEGRATIONSPUBLISHING", "true")
+    .WithEnvironment("SERVICECONTROL_ENABLEEXTERNALINTEGRATIONSPUBLISHING", "true")
     .WithEnvironment("OTEL_EXPORTER_OTLP_ENDPOINT", observability.Collector.GetEndpoint("otlp-grpc"))
     .WithStorageType(storageType, azureBlobBodyStorage, s3BodyStorage)
     .WithRunMode(PlatformRunMode.SetupAndRun);
@@ -42,8 +42,8 @@ for (int i = 0; i < options.GetValue("error-ingestion-scale-unit", 0); i++) {
         .AddServiceControlErrorInstance("error-scale-"  + i, raven)
         .WithArgs("--error-ingestion-only")
         .WithEnvironment("SERVICECONTROL_INSTANCENAME", "Error-scale-" + i)
+        .WithEnvironment("SERVICECONTROL_ENABLEEXTERNALINTEGRATIONSPUBLISHING", "true")
         .WithEnvironment("OTEL_EXPORTER_OTLP_ENDPOINT", observability.Collector.GetEndpoint("otlp-grpc"))
-        .WithEnvironment("SERVICECONTROL_DISABLEEXTERNALINTEGRATIONSPUBLISHING", "true")
         
         //scale settings
         .WithEnvironment("SERVICECONTROL_MAXIMUMCONCURRENCYLEVEL", "100")
@@ -56,7 +56,8 @@ for (int i = 0; i < options.GetValue("error-ingestion-scale-unit", 0); i++) {
         .WithRunMode(PlatformRunMode.Run);
 }
 
-platform.AddServicePulse("pulse", primaryErrorInstance, platform.AddServiceControlMonitoringInstance("monitoring"));
+var monitoringInstance = platform.AddServiceControlMonitoringInstance("monitoring");
+platform.AddServicePulse("pulse", primaryErrorInstance, monitoringInstance);
 
 // EF persistence lives in the audit instance itself, so audit load needs a real audit container.
 // The platform persistence argument stays RavenDB because the Aspire package only knows about
@@ -83,6 +84,7 @@ for (int i = 0; i < auditInstanceCount; i++)
 builder.AddProject<Projects.TestingTool>("testing-tool")
     .WithParticularPlatform(platform)
     .WithEnvironment("TestingTool__ServiceControlApiUrl", primaryErrorInstance.GetEndpoint("http"))
+    .WithEnvironment("TestingTool__MonitoringApiUrl", monitoringInstance.GetEndpoint("http"))
     .WithEnvironment("TestingTool__AutoStartBackgroundNoise", "true")
     .WithEnvironment("OTEL_EXPORTER_OTLP_ENDPOINT", observability.Collector.GetEndpoint("otlp-grpc"))
     // this should wait for the platform but cannot because error scale out leaves nodes unhealthy 

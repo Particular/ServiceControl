@@ -81,4 +81,16 @@ public sealed class TestingToolOptions
 
     /// <summary>ServiceControl monitoring instance input queue that endpoint metrics are sent to.</summary>
     public string MonitoringQueueName { get; set; } = "Particular.Monitoring";
+
+    /// <summary>Base URL of the ServiceControl.Monitoring instance (e.g. http://monitoring:33633). Only the smoke tests use it.</summary>
+    public string MonitoringApiUrl { get; set; } = "http://localhost:33633";
+
+    /// <summary>Interval between polls of a ServiceControl API while a smoke check waits for an effect.</summary>
+    public TimeSpan SmokePollInterval { get; set; } = TimeSpan.FromSeconds(1);
+
+    /// <summary>How long a smoke check waits for one effect before it fails.</summary>
+    public TimeSpan SmokePollTimeout { get; set; } = TimeSpan.FromSeconds(60);
+
+    /// <summary>How long one smoke check may run in total, including all of its waits.</summary>
+    public TimeSpan SmokeCheckTimeout { get; set; } = TimeSpan.FromMinutes(3);
 }

@@ -88,6 +88,13 @@
     .tab { padding: .5rem 1rem; border: none; background: none; color: var(--muted); cursor: pointer; font-size: .95rem; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s, border-color .15s; }
     .tab.active { color: var(--text); border-bottom-color: var(--accent); }
     .tab:hover { color: var(--text); }
+    .smoke-row { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--border); border-radius: var(--radius); padding: .6rem .9rem; margin-bottom: .5rem; }
+    .smoke-row .head { display: flex; justify-content: space-between; gap: 1rem; font-weight: 600; }
+    .smoke-row .desc, .smoke-row .detail { color: var(--muted); font-size: .85rem; margin-top: .2rem; }
+    .smoke-row.passed { border-left-color: var(--ok); } .smoke-row.passed .status { color: var(--ok); }
+    .smoke-row.failed { border-left-color: var(--err); } .smoke-row.failed .status, .smoke-row.failed .detail { color: var(--err); }
+    .smoke-row.running { border-left-color: var(--warn); } .smoke-row.running .status { color: var(--warn); }
+    .smoke-row.manual { border-left-style: dashed; }
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
     .btn { padding: .4rem .9rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-2); color: var(--text); cursor: pointer; font-size: .85rem; transition: opacity .15s; }
@@ -195,6 +202,7 @@
       <button class="tab active" data-tab="scenarios" onclick="showTab('scenarios')">Scenarios</button>
       <button class="tab" data-tab="jobs" onclick="showTab('jobs')">Recoverability Jobs</button>
       <button class="tab" data-tab="bypass" onclick="showTab('bypass')">Bypass Writers</button>
+      <button class="tab" data-tab="smoke" onclick="showTab('smoke')">Smoke tests</button>
     </div>
 
     <!-- Tab: Scenarios -->
@@ -285,6 +293,24 @@
         <span>Messages written: <strong>0</strong></span>
       </div>
     </div>
+
+    </div>
+
+    <!-- Tab: Smoke tests -->
+    <div class="tab-panel" id="panel-smoke">
+
+    <div class="section-head">
+      <h2>Smoke tests</h2>
+      <span>
+        <button class="btn start" onclick="startSmoke()" id="btn-smoke-start">&#9654; Run all</button>
+        <button class="btn stop" onclick="stopSmoke()" id="btn-smoke-stop" disabled>&#9209; Stop</button>
+      </span>
+    </div>
+    <div class="desc" style="margin-bottom:.8rem;color:var(--muted)">
+      Sends its own messages with a run-specific identifier and checks the effects through the ServiceControl APIs. Run it against a test instance only: it creates failed messages, custom checks, endpoints and a redirect. Cleanup removes temporary check, endpoint and redirect records, and archives unresolved failures; message data remains subject to ServiceControl retention. Rows marked manual are not automated.
+    </div>
+    <div id="smoke-summary" class="stats" style="margin-bottom:.8rem"></div>
+    <div id="smoke-checks"><div class="loading">Loading checks…</div></div>
 
     </div>
 
@@ -710,6 +736,42 @@
       } catch (e) { /* ignore */ }
     }
 
+    // --- Smoke tests ---
+    async function refreshSmoke() {
+      try {
+        const run = await api('GET', '/api/smoke');
+        const checks = run.checks;
+        const count = s => checks.filter(c => c.status.toLowerCase() === s).length;
+        document.getElementById('btn-smoke-start').disabled = run.running;
+        document.getElementById('btn-smoke-stop').disabled = !run.running;
+        document.getElementById('smoke-summary').innerHTML = `
+          <span>Run: <strong>${esc(run.runId ?? 'none yet')}</strong></span>
+          <span>Status: <strong>${run.running ? 'running' : run.finishedAt ? 'finished' : 'idle'}</strong></span>
+          <span>Passed: <strong>${count('passed')}</strong></span>
+          <span>Failed: <strong>${count('failed')}</strong></span>
+          <span>Canceled: <strong>${count('canceled')}</strong></span>
+          <span>Manual: <strong>${count('manual')}</strong></span>`;
+        document.getElementById('smoke-checks').innerHTML = checks.map(c => {
+          const status = c.status.toLowerCase();
+          return `<div class="smoke-row ${status}">
+            <div class="head"><span>${esc(c.title)}</span><span class="status">${esc(status)}${c.durationSeconds != null ? ` · ${c.durationSeconds}s` : ''}</span></div>
+            <div class="desc">${esc(c.description)}</div>
+            ${c.detail ? `<div class="detail">${esc(c.detail)}</div>` : ''}
+          </div>`;
+        }).join('');
+      } catch (e) { /* ignore transient errors during polling */ }
+    }
+
+    async function startSmoke() {
+      try { await api('POST', '/api/smoke/start'); toast('Smoke run started', 'ok'); } catch (e) { toast(e.message, 'error'); }
+      refreshSmoke();
+    }
+
+    async function stopSmoke() {
+      try { await api('POST', '/api/smoke/stop'); toast('Stopping smoke run'); } catch (e) { toast(e.message, 'error'); }
+      refreshSmoke();
+    }
+
     // --- Polling ---
     async function loadAll() {
       await Promise.all([loadStatus(), loadScenarios(), loadJobs()]);
@@ -777,9 +839,11 @@
     loadAll().then(() => populateBypassScenarios());
     refreshBypass();
     refreshAuditBypass();
+    refreshSmoke();
     refreshTimer = setInterval(refresh, 2000);
     setInterval(refreshBypass, 2000);
     setInterval(refreshAuditBypass, 2000);
+    setInterval(refreshSmoke, 2000);
   </script>
 </body>
 
