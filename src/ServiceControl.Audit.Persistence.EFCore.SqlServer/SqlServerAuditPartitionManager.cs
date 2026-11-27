@@ -2,6 +2,7 @@ namespace ServiceControl.Audit.Persistence.EFCore.SqlServer;
 
 using Microsoft.EntityFrameworkCore;
 using ServiceControl.Audit.Persistence.EFCore.DbContexts;
+using ServiceControl.Audit.Persistence.EFCore.Entities;
 using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
 using ServiceControl.Audit.Persistence.EFCore.Infrastructure.Metrics;
 
@@ -43,20 +44,35 @@ class SqlServerAuditPartitionManager : IAuditPartitionManager
 
     public async Task<DropResult> DropExpired(AuditDbContext dbContext, AuditRetentionEntity entity, DateTime hour, int batchSize, CancellationToken cancellationToken = default)
     {
-        var deleted = entity switch
+        var entityType = entity switch
         {
-            AuditRetentionEntity.AuditMessages => await dbContext.AuditMessages
-                .Where(message => message.CreatedOn == hour)
-                .OrderBy(message => message.Id)
-                .Take(batchSize)
-                .ExecuteDeleteAsync(cancellationToken),
-            AuditRetentionEntity.SagaSnapshots => await dbContext.SagaSnapshots
-                .Where(snapshot => snapshot.CreatedOn == hour)
-                .OrderBy(snapshot => snapshot.Id)
-                .Take(batchSize)
-                .ExecuteDeleteAsync(cancellationToken),
+            AuditRetentionEntity.AuditMessages => dbContext.Model.FindEntityType(typeof(AuditMessageEntity))!,
+            AuditRetentionEntity.SagaSnapshots => dbContext.Model.FindEntityType(typeof(SagaSnapshotEntity))!,
             _ => throw new ArgumentOutOfRangeException(nameof(entity))
         };
+        var table = $"[{entityType.GetSchema()}].[{entityType.GetTableName()}]";
+
+        // Raw SQL because ExecuteDeleteAsync cannot add the hints.
+#pragma warning disable EF1002 // The table name comes from the EF Core model.
+        var deleted = await dbContext.Database.ExecuteSqlRawAsync(
+            $"""
+            DELETE FROM [a]
+            FROM {table} AS [a]
+            WHERE EXISTS (
+                SELECT 1
+                FROM (
+                    SELECT TOP (@p0) [a0].[CreatedOn], [a0].[Id]
+                    FROM {table} AS [a0] WITH (FORCESEEK)
+                    WHERE [a0].[CreatedOn] = @p1
+                    ORDER BY [a0].[Id]
+                ) AS [a1]
+                WHERE [a1].[CreatedOn] = [a].[CreatedOn] AND [a1].[Id] = [a].[Id]
+            )
+            OPTION (KEEPFIXED PLAN)
+            """,
+            [batchSize, hour],
+            cancellationToken);
+#pragma warning restore EF1002
 
         return new DropResult(deleted, Completed: deleted < batchSize);
     }
