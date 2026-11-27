@@ -37,7 +37,7 @@ class TwoPersistersInOneProcessTests
         SetVariable("SERVICECONTROL_RAVENDB_DATABASENAME", MigrationSourceServer.PrimaryDatabase);
         SetVariable("LICENSINGCOMPONENT_RAVENDB_THROUGHPUTDATABASENAME", MigrationSourceServer.ThroughputDatabase);
 
-        settings = new Settings(persisterType: "SQLServer", forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10));
+        settings = new Settings(storageType: "SQLServer", forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10));
     }
 
     [TearDown]

@@ -24,7 +24,7 @@ class MigrationIsReleasedCheckTests
     [Test]
     public void An_unreleased_build_refuses_before_any_other_check()
     {
-        var settings = new Settings(transportType: "LearningTransport", persisterType: "RavenDB", errorRetentionPeriod: TimeSpan.FromDays(10));
+        var settings = new Settings(transportType: "LearningTransport", storageType: "RavenDB", errorRetentionPeriod: TimeSpan.FromDays(10));
         using var services = new ServiceCollection().BuildServiceProvider();
 
         var exception = Assert.ThrowsAsync<Exception>(() => MigrationStartup.RunRequiredCopy(services, settings));

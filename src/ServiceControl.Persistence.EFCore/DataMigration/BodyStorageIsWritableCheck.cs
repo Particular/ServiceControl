@@ -11,7 +11,8 @@ using ServiceControl.Persistence.DataMigration;
 /// </summary>
 sealed class BodyStorageIsWritableCheck(IBodyStoragePersistence bodyStorage) : IMigrationStartupCheck
 {
-    const string ProbeBodyId = "migration-writable-probe";
+    // A GUID because file system body storage refuses any other id.
+    internal const string ProbeBodyId ="6d1a3f0e-6c1b-4f43-9a52-0c3e1b7d5a90";
 
     public string Name => "message body storage is writable";
 

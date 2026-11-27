@@ -140,7 +140,7 @@ class MigrationTargetReadinessTests : PersistenceTestBase
 
         await Readiness.ContributedChecks().Single(check => check.Name == "message body storage is writable").Run();
 
-        Assert.That(await bodyStorage.ReadBody("migration-writable-probe"), Is.Null, "a probe left in the store is a body the source never had, which a count comparison reads as an extra rather than a loss");
+        Assert.That(await bodyStorage.ReadBody(BodyStorageIsWritableCheck.ProbeBodyId), Is.Null, "a probe left in the store is a body the source never had, which a count comparison reads as an extra rather than a loss");
     }
 
     [Test]

@@ -33,7 +33,7 @@ flowchart TD
         Q1{"Did --start-data-migration succeed?"}
         Fix["Correct the reported cause"]
         RetryAbandon1["Run --migration-retry or --migration-abandon for the Failed category"]
-        Back["Go back: set PersistenceType to RavenDB and start ServiceControl"]
+        Back["Go back: set StorageType to RavenDB and start ServiceControl"]
         S6 --> Q1
         Q1 -->|"No: a check failed or the command stopped"| Fix --> S6
         Q1 -->|"No: a required category is Failed"| RetryAbandon1 --> S6
@@ -81,7 +81,7 @@ Keep these settings as they are:
 
 ## Keep the RavenDB settings
 
-The migration reads RavenDB through the RavenDB settings that the instance already has. You do not add new settings for the source. Keep these settings in the configuration of the instance, also after you change `ServiceControl/PersistenceType` to SQL Server or PostgreSQL.
+The migration reads RavenDB through the RavenDB settings that the instance already has. You do not add new settings for the source. Keep these settings in the configuration of the instance, also after you change `ServiceControl/StorageType` to SQL Server or PostgreSQL.
 
 | Setting | Environment variable | What it is |
 | --- | --- | --- |
@@ -131,7 +131,7 @@ The report exits with 0 when it prints a report, and with 1 when it cannot. If t
 ## Step 2: Create an empty SQL database
 
 1. Create a new database on SQL Server or PostgreSQL.
-2. In the configuration of the instance, set `ServiceControl/PersistenceType` to `SQLServer` or `PostgreSQL`.
+2. In the configuration of the instance, set `ServiceControl/StorageType` to `SQLServer` or `PostgreSQL`.
 3. Set `ServiceControl/Database/ConnectionString` to the new database.
 4. Set `ServiceControl/MessageBody/StorageType` to `FileSystem`, `AzureBlob` or `S3`, and set the settings for that storage type.
 5. Run `ServiceControl.exe --setup`. This creates the SQL schema, which includes the table where the migration saves its progress.
@@ -212,12 +212,12 @@ ServiceControl does not start, and its log names the check that failed. Nothing 
 
 The offline command makes this refusal before it copies anything. The refusal names the unfinished operation families and an example document id from each. The migration does not copy active operation state. Completed retry history and outstanding retry claims do not cause this refusal.
 
-1. Set `ServiceControl/PersistenceType` back to RavenDB.
+1. Set `ServiceControl/StorageType` back to RavenDB.
 2. Start ServiceControl.
 3. Let retry batches resume when ServiceControl starts. An archive or unarchive operation resumes only when you request the same group action again. If that is no longer possible, for example because no failed messages remain in the group, contact Particular support. Do not delete the leftover documents yourself.
 4. Wait until the retry, archive and unarchive operations finish.
 5. Stop ServiceControl.
-6. Set `ServiceControl/PersistenceType` back to the SQL target.
+6. Set `ServiceControl/StorageType` back to the SQL target.
 7. Run `--start-data-migration` again.
 
 If the refusal persists, contact support rather than deleting operation documents. A batch document can remain without its operation document.
@@ -249,7 +249,7 @@ You can abandon a required category only after it starts copying. You can abando
 
 You can go back to RavenDB without losing data only while ServiceControl is still closed:
 
-1. Set `ServiceControl/PersistenceType` back to RavenDB.
+1. Set `ServiceControl/StorageType` back to RavenDB.
 2. Start ServiceControl.
 
 You lose only the copy. To try the migration again later, start from step 2 with a new, empty SQL database.

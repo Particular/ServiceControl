@@ -551,5 +551,5 @@ class RequiredCopyGateTests
         new(categoryId, state, null, 0, 0, null, null, null, null, null, null);
 
     static Settings NewSettings() =>
-        new(transportType: "LearningTransport", persisterType: "SQLServer", errorRetentionPeriod: TimeSpan.FromDays(10));
+        new(transportType: "LearningTransport", storageType: "SQLServer", errorRetentionPeriod: TimeSpan.FromDays(10));
 }

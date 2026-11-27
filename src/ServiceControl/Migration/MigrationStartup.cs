@@ -287,7 +287,7 @@ static class MigrationStartup
         catch (MigrationCheckpointConflictException exception)
         {
             throw new Exception(
-                $"The required copy stopped because another writer saved a migration checkpoint for this instance, which is a second ServiceControl pointed at the same {settings.PersistenceType} database. The offline migration stopped. {exception.Message} Stop the other instance, then run --start-data-migration again; the copy resumes from its last committed batch. " +
+                $"The required copy stopped because another writer saved a migration checkpoint for this instance, which is a second ServiceControl pointed at the same {settings.StorageType} database. The offline migration stopped. {exception.Message} Stop the other instance, then run --start-data-migration again; the copy resumes from its last committed batch. " +
                 RollbackAdvice(settings), exception);
         }
     }
@@ -479,11 +479,11 @@ static class MigrationStartup
         $"Halted: {stalledCategoryId} committed nothing for {ClosedWindowProgress.StallLimit.TotalMinutes:0.#} minutes, so it was stopped. The limit is not configurable: check that the source and the target are both responding rather than looking for a setting to change.";
 
     static string RollbackAdvice(Settings settings) =>
-        $"Nothing has opened on {settings.PersistenceType} yet, so pointing PersistenceType back at {PersistenceFactory.MigrationSourcePersistenceType} discards the partial copy and returns the instance to {PersistenceFactory.MigrationSourcePersistenceType} with no loss.";
+        $"Nothing has opened on {settings.StorageType} yet, so pointing StorageType back at {PersistenceFactory.MigrationSourcePersistenceType} discards the partial copy and returns the instance to {PersistenceFactory.MigrationSourcePersistenceType} with no loss.";
 
     static string NoWayOutWithoutTheSource(Settings settings) =>
         $"If the {PersistenceFactory.MigrationSourcePersistenceType} source is already gone, a required category that is Failed or has started copying can be given up with --migration-abandon <category>, with ServiceControl stopped. " +
-        $"A required category that never started cannot be abandoned: while one is outstanding ServiceControl has never opened on {settings.PersistenceType}, so pointing PersistenceType back at {PersistenceFactory.MigrationSourcePersistenceType}, or starting over against an empty {settings.PersistenceType} database, loses nothing it has served.";
+        $"A required category that never started cannot be abandoned: while one is outstanding ServiceControl has never opened on {settings.StorageType}, so pointing StorageType back at {PersistenceFactory.MigrationSourcePersistenceType}, or starting over against an empty {settings.StorageType} database, loses nothing it has served.";
 
     static Step SourceOpens(IMigrationSource source) => new("the migration source opens", source.Open);
 

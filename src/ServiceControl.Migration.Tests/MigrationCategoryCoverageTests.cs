@@ -30,7 +30,7 @@ class MigrationCategoryCoverageTests
             Path.Combine(TestContext.CurrentContext.WorkDirectory, "Bodies", Guid.NewGuid().ToString("n")));
 
         // SQL Server stands in for PostgreSQL too, because both register the same EFCoreMigrationTarget and its writer list does not depend on the provider.
-        settings = new Settings(persisterType: "SQLServer", forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10));
+        settings = new Settings(storageType: "SQLServer", forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10));
     }
 
     [TearDown]

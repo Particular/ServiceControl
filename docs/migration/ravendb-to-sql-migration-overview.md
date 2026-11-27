@@ -93,7 +93,7 @@ flowchart LR
   - Each side adds its own startup checks.
   - The engine passes the cursor from one side to the other without looking inside it.
   - RavenDB to SQL is the only supported pair, but the engine does not depend on it.
-- **The source reuses the instance's existing RavenDB settings**, so an existing customer configures nothing new for it. Leave them in place when switching `ServiceControl/PersistenceType`.
+- **The source reuses the instance's existing RavenDB settings**, so an existing customer configures nothing new for it. Leave them in place when switching `ServiceControl/StorageType`.
 
 ### A migration from start to finish
 
@@ -415,7 +415,7 @@ Stop ServiceControl before either command. In a container, run it as a one-off `
 
 **While ServiceControl is closed**, RavenDB is still the source of truth, because the migration writes nothing to it. This is the *free abort*. RavenDB's own expiration still runs unless you disabled it.
 
-- **To go back:** point `ServiceControl/PersistenceType` back at RavenDB, and start. You lose the copy, not your data.
+- **To go back:** point `ServiceControl/StorageType` back at RavenDB, and start. You lose the copy, not your data.
 - **To try again later:** start from a new, empty SQL database (`--setup`).
 
 > [!IMPORTANT]

@@ -47,7 +47,7 @@ class MigrationSourceReportCommandTests
 
     static async Task<string> RunReport()
     {
-        var settings = new Settings(persisterType: "RavenDB", forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10));
+        var settings = new Settings(storageType: "RavenDB", forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10));
 
         var writer = new StringWriter();
         var original = Console.Out;

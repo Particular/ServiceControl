@@ -103,7 +103,7 @@ abstract class MigrationAcceptanceTest
 
         Settings = new Settings(
             transportType: transport.TypeName,
-            persisterType: StorageConfiguration.PersistenceType,
+            storageType: StorageConfiguration.StorageType,
             forwardErrorMessages: false,
             errorRetentionPeriod: TimeSpan.FromDays(10))
         {

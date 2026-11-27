@@ -18,12 +18,12 @@ class MigrationPairIsSupportedCheck(Settings settings) : IMigrationStartupCheck
 
     public Task Run(CancellationToken cancellationToken = default)
     {
-        var targetName = PersistenceManifestLibrary.Find(settings.PersistenceType)?.Name;
+        var targetName = PersistenceManifestLibrary.Find(settings.StorageType)?.Name;
 
         if (!PersistenceFactory.SqlPersistenceNames.Contains(targetName, StringComparer.OrdinalIgnoreCase))
         {
             throw new Exception(
-                $"Migrating from '{PersistenceFactory.MigrationSourcePersistenceType}' to '{settings.PersistenceType}' is not supported. The only supported migration is from RavenDB to SQL Server or PostgreSQL, so set {Settings.SettingsRootNamespace}/PersistenceType to {string.Join(" or ", PersistenceFactory.SqlPersistenceNames)} before running --start-data-migration.");
+                $"Migrating from '{PersistenceFactory.MigrationSourcePersistenceType}' to '{settings.StorageType}' is not supported. The only supported migration is from RavenDB to SQL Server or PostgreSQL, so set {Settings.SettingsRootNamespace}/StorageType to {string.Join(" or ", PersistenceFactory.SqlPersistenceNames)} before running --start-data-migration.");
         }
 
         return Task.CompletedTask;

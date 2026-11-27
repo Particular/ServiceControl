@@ -27,9 +27,9 @@ class MigrationPairIsSupportedCheckTests
     {
         var exception = Assert.ThrowsAsync<Exception>(() => Check("RavenDB").Run());
 
-        Assert.That(exception.Message, Does.Contain("ServiceControl/PersistenceType"));
+        Assert.That(exception.Message, Does.Contain("ServiceControl/StorageType"));
     }
 
     static MigrationPairIsSupportedCheck Check(string target) =>
-        new(new Settings(transportType: "LearningTransport", persisterType: target, errorRetentionPeriod: TimeSpan.FromDays(10)));
+        new(new Settings(transportType: "LearningTransport", storageType: target, errorRetentionPeriod: TimeSpan.FromDays(10)));
 }

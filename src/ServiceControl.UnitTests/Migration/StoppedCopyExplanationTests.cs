@@ -287,7 +287,7 @@ class StoppedCopyExplanationTests
         new(source, target, store, clock, new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []), NullLogger<MigrationEngine>.Instance);
 
     static Settings NewSettings() =>
-        new(transportType: "LearningTransport", persisterType: "SQLServer", errorRetentionPeriod: TimeSpan.FromDays(10));
+        new(transportType: "LearningTransport", storageType: "SQLServer", errorRetentionPeriod: TimeSpan.FromDays(10));
 
     // Refuses a cancelled token as the EF Core store does, so a settle made on the stalled category's token fails here too.
     sealed class CancellationHonouringCheckpointStore : IMigrationCheckpointStore
