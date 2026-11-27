@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure;
 using Azure.Core;
 using Azure.Core.Pipeline;
 using Azure.Identity;
@@ -17,9 +18,8 @@ using Azure.ResourceManager.Monitor;
 using Azure.ResourceManager.Monitor.Models;
 using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.ServiceBus;
+using Azure.ResourceManager.ServiceBus.Models;
 using BrokerThroughput;
-using DnsClient;
-using DnsClient.Protocol;
 using Microsoft.Extensions.Logging;
 
 public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, TransportSettings transportSettings)
@@ -36,7 +36,6 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
     ArmClient? armClient;
     TokenCredential? credential;
     ResourceIdentifier? resourceId;
-    ArmEnvironment armEnvironment;
 
     protected override void InitializeCore(ReadOnlyDictionary<string, string> settings)
     {
@@ -109,7 +108,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
             Diagnostics.AppendLine("Client secret set");
         }
 
-        armEnvironment = GetEnvironment();
+        ArmEnvironment armEnvironment = GetEnvironment();
 
         if (managementUrl == null)
         {
@@ -274,64 +273,55 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
     public override async IAsyncEnumerable<IBrokerQueue> GetQueueNames(
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var validNamespaces = await GetValidNamespaceNames(cancellationToken);
+        SubscriptionResource subscription = await armClient!.GetDefaultSubscriptionAsync(cancellationToken);
+        ServiceBusNamespaceResource serviceBusNamespace =
+            await FindNamespace(subscription.GetServiceBusNamespacesAsync(cancellationToken), serviceBusName, cancellationToken);
 
-        SubscriptionResource? subscription = await armClient!.GetDefaultSubscriptionAsync(cancellationToken);
-        var namespaces = subscription.GetServiceBusNamespacesAsync(cancellationToken);
+        resourceId = serviceBusNamespace.Id;
 
-        await foreach (var serviceBusNamespaceResource in namespaces)
+        await foreach (var queue in serviceBusNamespace.GetServiceBusQueues().WithCancellation(cancellationToken))
         {
-            if (!validNamespaces.Contains(serviceBusNamespaceResource.Data.Name))
-            {
-                continue;
-            }
-
-            resourceId = serviceBusNamespaceResource.Id;
-
-            await foreach (var queue in serviceBusNamespaceResource.GetServiceBusQueues()
-                               .WithCancellation(cancellationToken))
-            {
-                yield return new DefaultBrokerQueue(queue.Data.Name);
-            }
-
-            yield break;
+            yield return new DefaultBrokerQueue(queue.Data.Name);
         }
-
-        throw new Exception($"Could not find a Azure Service Bus namespace named \"{serviceBusName}\"");
     }
 
-    // ArmEnvironment Audience Values: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/resourcemanager/Azure.ResourceManager/src/ArmEnvironment.cs
-    // Service Bus Domains: https://learn.microsoft.com/en-us/rest/api/servicebus/
-    static readonly Dictionary<ArmEnvironment, string> ServiceBusDomains = new()
+    internal static async Task<ServiceBusNamespaceResource> FindNamespace(
+        IAsyncEnumerable<ServiceBusNamespaceResource> namespaces, string name, CancellationToken cancellationToken = default)
     {
-        { ArmEnvironment.AzurePublicCloud, "servicebus.windows.net" },
-        { ArmEnvironment.AzureGovernment, "servicebus.usgovcloudapi.net" },
-        { ArmEnvironment.AzureGermany, "servicebus.cloudapi.de" },
-        { ArmEnvironment.AzureChina, "servicebus.chinacloudapi.cn" },
-    };
-
-    async Task<HashSet<string>> GetValidNamespaceNames(CancellationToken cancellationToken)
-    {
-        var validNamespaces = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { serviceBusName };
-
-        var serviceBusCloudDomain = ServiceBusDomains.GetValueOrDefault(armEnvironment, "servicebus.windows.net");
-
-        // Worst case: the DNS lookup finds nothing additional to match
-        var queryDomain = $"{serviceBusName}.{serviceBusCloudDomain}";
-        var validDomainTail = $".{serviceBusCloudDomain}.";
-
-        var dnsLookup = new LookupClient();
-        var dnsResult = await dnsLookup.QueryAsync(queryDomain, QueryType.CNAME, cancellationToken: cancellationToken);
-        var domain = (dnsResult.Answers.FirstOrDefault() as CNameRecord)?.CanonicalName.Value;
-        if (domain is not null && domain.EndsWith(validDomainTail))
+        var otherNamespaces = new List<ServiceBusNamespaceResource>();
+        await foreach (var serviceBusNamespace in namespaces.WithCancellation(cancellationToken))
         {
-            // In some cases, like private networking access, result might be something like `namespacename.private` with a dot in the middle
-            // which is not a big deal because that will not actually match a namespace name in metrics
-            var otherName = domain[..^validDomainTail.Length];
-            validNamespaces.Add(otherName);
+            if (string.Equals(serviceBusNamespace.Data.Name, name, StringComparison.OrdinalIgnoreCase))
+            {
+                return serviceBusNamespace;
+            }
+
+            otherNamespaces.Add(serviceBusNamespace);
         }
 
-        return validNamespaces;
+        var aliasesForbidden = false;
+        foreach (var serviceBusNamespace in otherNamespaces)
+        {
+            try
+            {
+                await foreach (var alias in serviceBusNamespace.GetServiceBusDisasterRecoveries().GetAllAsync(cancellationToken))
+                {
+                    if (string.Equals(alias.Data.Name, name, StringComparison.OrdinalIgnoreCase) &&
+                        alias.Data.Role is ServiceBusDisasterRecoveryRole.Primary or ServiceBusDisasterRecoveryRole.PrimaryNotReplicating)
+                    {
+                        return serviceBusNamespace;
+                    }
+                }
+            }
+            catch (RequestFailedException e) when (e.Status == 403)
+            {
+                aliasesForbidden = true;
+            }
+        }
+
+        throw new Exception(aliasesForbidden
+            ? $"Could not find an Azure Service Bus namespace named \"{name}\". If \"{name}\" is a Geo-Recovery alias, resolving it requires the Microsoft.ServiceBus/namespaces/disasterRecoveryConfigs/read permission."
+            : $"Could not find an Azure Service Bus namespace or Geo-Recovery alias named \"{name}\"");
     }
 
     public override string SanitizedEndpointNameCleanser(string endpointName) => endpointName.ToLower();
